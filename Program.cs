@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace backer_upper
+namespace BackerUpper
 {
     static class Program
     {

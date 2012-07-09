@@ -1,4 +1,4 @@
-﻿namespace backer_upper
+﻿namespace BackerUpper
 {
     partial class Main
     {
