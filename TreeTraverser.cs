@@ -11,7 +11,6 @@ namespace BackerUpper
         private string startDir;
         private Stack<FolderEntry> stack;
         private int substringStart;
-        private string listFilesPrefix;
 
         public TreeTraverser(string startDir) {
             this.startDir = startDir;

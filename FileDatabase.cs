@@ -73,40 +73,35 @@ namespace BackerUpper
             return folderRecords;
         }
 
-        public FileStatus InspectFile(int folderId, string name, DateTime lastModified, string fileMD5) {
-            // md5 is used to search for "alternates" -- files in a different location, but with the same contents.
-            // This can be used to detect moves, and saves unnecessary copying
+        public FileStatus InspectFile(int folderId, string name, DateTime lastModified) {
             int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
 
-            // So search for alternates as well, but favour an exact match
-            // 0: exact, 1: id, 2: path, 3: name, 4: date_modified, , 5: md5
-            string[] result = this.executeRow(@"SELECT (files.name = @name AND files.folder_id = @folder_id) AS exact, files.id, folders.path, files.name, files.date_modified, files.md5
-                FROM files LEFT JOIN folders ON files.folder_id = folders.id
-                WHERE exact OR files.md5 = @md5
-                ORDER BY exact DESC
-                LIMIT 1
-                ", "@folder_id", folderId, "@name", Path.GetFileName(name), "@md5", fileMD5);
+            string[] result = this.executeRow("SELECT files.date_modified, files.md5 FROM files WHERE name = @name and folder_id = @folder_id LIMIT 1", "@folder_id", folderId, "@name", Path.GetFileName(name));
 
             if (result.Length == 0) {
                 return new FileStatus(FileModStatus.New, null);
             }
 
-            if (result[0] == "1") {
-                // Is an exact match
-                int fileEpoch = int.Parse(result[4]);
-                string md5 = result[5];
+            // Is an exact match
+            int fileEpoch = int.Parse(result[0]);
+            string md5 = result[1];
 
-                if (lastModifiedEpoch > fileEpoch) {
-                    return new FileStatus(FileModStatus.Modified, md5);
-                }
-                else {
-                    return new FileStatus(FileModStatus.Unmodified, md5);
-                }
+            if (lastModifiedEpoch > fileEpoch) {
+                return new FileStatus(FileModStatus.Modified, md5);
             }
             else {
-                // Didn't find an exact match, but found an alternate
-                return new FileStatus(FileModStatus.Alternate, result[5], Path.Combine(result[2], result[3]), Convert.ToInt32(result[1]));
+                return new FileStatus(FileModStatus.Unmodified, md5);
             }
+        }
+
+        public FileRecord SearchForAlternates(string fileMD5) {
+            string[] result = this.executeRow("SELECT files.id, folders.path, files.name FROM files LEFT JOIN folders ON files.folder_id = folders.id WHERE files.md5 = @md5 LIMIT 1", "@md5", fileMD5);
+
+            if (result.Length == 0) {
+                return new FileRecord(0, null);
+            }
+
+            return new FileRecord(Convert.ToInt32(result[0]), Path.Combine((string)result[1], (string)result[2]));
         }
 
         public void AddFile(int folderId, string name, DateTime lastModified, string md5) {
@@ -277,10 +272,12 @@ namespace BackerUpper
         private void setupDatabase() {
             this.execute(@"CREATE TABLE folders( id INTEGER PRIMARY KEY, parent_id INTEGER, name TEXT COLLATE NOCASE, path TEXT COLLATE NOCASE,
                 FOREIGN KEY(parent_id) REFERENCES folders(id) );");
-            this.execute("CREATE INDEX folder_name_idx ON folders(name);");
-            this.execute("CREATE INDEX folder_path_idx ON folders(path);");
+            this.execute("CREATE INDEX folders_name_idx ON folders(name);");
+            this.execute("CREATE INDEX folders_path_idx ON folders(path);");
             this.execute(@"CREATE TABLE files( id INTEGER PRIMARY KEY, folder_id INTEGER, name TEXT COLLATE NOCASE, date_modified INTEGER, md5 TEXT COLLATE NOCASE,
                 FOREIGN KEY(folder_id) REFERENCES folders(id) );");
+            this.execute(@"CREATE INDEX files_folder_id_idx ON files(folder_id);");
+            this.execute(@"CREATE INDEX files_name_idx ON files(name);");
             // We have a foreign key constraint which enforces parent folders. However, root folders have a parentId of 0 (to make the code easier), which violates this.
             // Therefore, add a root entry with an ID of 0 and a parent of null
             this.execute("INSERT INTO folders (id, parent_id, name, path) VALUES (0, null, 'root', '');");
@@ -299,20 +296,16 @@ namespace BackerUpper
             }
         }
 
-        public enum FileModStatus { New, Modified, Unmodified, Deleted, Alternate };
+        public enum FileModStatus { New, Modified, Unmodified, Deleted };
 
         public struct FileStatus
         {
             public FileModStatus FileModStatus;
             public string MD5;
-            public string AlternatePath;
-            public int AlternateId;
 
-            public FileStatus(FileModStatus fileModStatus, string md5, string alternatePath = null, int alternateId = 0) {
+            public FileStatus(FileModStatus fileModStatus, string md5) {
                 this.FileModStatus = fileModStatus;
                 this.MD5 = md5;
-                this.AlternatePath = alternatePath;
-                this.AlternateId = alternateId;
             }
         }
 
@@ -327,7 +320,8 @@ namespace BackerUpper
             }
         }
 
-        public struct FolderRecord {
+        public struct FolderRecord
+        {
             public int Id;
             public string Path;
 

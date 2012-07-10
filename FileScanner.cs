@@ -60,7 +60,6 @@ namespace BackerUpper
             string[] files;
             FileDatabase.FileStatus fileStatus;
             DateTime fileLastModified;
-            string fileMD5;
 
             // Do all the additions, then go through and do the deletions separately
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
@@ -92,18 +91,14 @@ namespace BackerUpper
                 files = this.treeTraverser.ListFiles(folder.Name);
                 foreach (string file in files) {
                     fileLastModified = this.treeTraverser.GetFileLastModified(file);
-                    fileMD5 = this.treeTraverser.FileMd5(file);
-                    fileStatus = this.fileDatabase.InspectFile(curFolderId, file, fileLastModified, fileMD5);
+                    fileStatus = this.fileDatabase.InspectFile(curFolderId, file, fileLastModified);
 
                     switch (fileStatus.FileModStatus) {
                         case FileDatabase.FileModStatus.New:
-                            this.addFile(curFolderId, file, fileMD5, fileLastModified);
+                            this.addFile(curFolderId, file, fileLastModified);
                             break;
                         case FileDatabase.FileModStatus.Modified:
-                            this.updatefile(curFolderId, file, fileStatus.MD5, fileMD5, fileLastModified);
-                            break;
-                        case FileDatabase.FileModStatus.Alternate:
-                            this.alternateFile(curFolderId, file, fileMD5, fileLastModified, fileStatus.AlternatePath, fileStatus.AlternateId);
+                            this.updatefile(curFolderId, file, fileStatus.MD5, fileLastModified);
                             break;
                     }
                 }
@@ -144,23 +139,19 @@ namespace BackerUpper
             this.fileDatabase.DeleteFolder(folderId);
         }
 
-        private void addFile(int folderId, string file, string fileMD5, DateTime lastModified) {
+        private void addFile(int folderId, string file, DateTime lastModified) {
+            string fileMD5 = this.treeTraverser.FileMd5(file);
+            // Just do a search for alternates (files in a different place on the remote location with the same hash)
+            // as this will speed up copying
+            FileDatabase.FileRecord alternate = this.fileDatabase.SearchForAlternates(fileMD5);
+            if (alternate.Id > 0) {
+                // Aha!
+                this.alternateFile(folderId, file, fileMD5, lastModified, alternate.Path, alternate.Id);
+                return;
+            }
+
             this.backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
             this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
-        }
-
-        private void updatefile(int folderId, string file, string remoteMD5, string fileMD5, DateTime lastModified) {
-            // Only copy if the file has actually changed
-            if (remoteMD5 == fileMD5) {
-                this.backend.UpdateFile(file, this.treeTraverser.GetFileSource(file));
-            }
-            // But update the last modified time either way
-            this.fileDatabase.UpdateFile(folderId, file, lastModified, fileMD5);
-        }
-
-        private void deleteFile(int fileId, string file) {
-            this.backend.DeleteFile(file);
-            this.fileDatabase.DeleteFile(fileId);
         }
 
         private void alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, string alternatePath, int alternateId) {
@@ -176,6 +167,21 @@ namespace BackerUpper
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                 this.fileDatabase.DeleteFile(alternateId);
             }
+        }
+
+        private void updatefile(int folderId, string file, string remoteMD5, DateTime lastModified) {
+            // Only copy if the file has actually changed
+            string fileMD5 = this.treeTraverser.FileMd5(file);
+            if (remoteMD5 == fileMD5) {
+                this.backend.UpdateFile(file, this.treeTraverser.GetFileSource(file));
+            }
+            // But update the last modified time either way
+            this.fileDatabase.UpdateFile(folderId, file, lastModified, fileMD5);
+        }
+
+        private void deleteFile(int fileId, string file) {
+            this.backend.DeleteFile(file);
+            this.fileDatabase.DeleteFile(fileId);
         }
 
         private struct FoundFolderItem
