@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackendBase.cs" />
+    <Compile Include="Database.cs" />
     <Compile Include="FileDatabase.cs" />
     <Compile Include="FileScanner.cs" />
     <Compile Include="FileUtils.cs" />

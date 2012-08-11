@@ -13,10 +13,10 @@ namespace BackerUpper
         private FileDatabase fileDatabase;
         private BackendBase backend;
 
-        public FileScanner(string startDir, string fileDatabase, BackendBase backend) {
+        public FileScanner(string startDir, Database database, BackendBase backend) {
             this.startDir = startDir;
             this.treeTraverser = new TreeTraverser(startDir);
-            this.fileDatabase = new FileDatabase(fileDatabase);
+            this.fileDatabase = new FileDatabase(database);
             this.backend = backend;
         }
 
@@ -125,7 +125,7 @@ namespace BackerUpper
             }
 
             // Sync the database back to disk
-            this.fileDatabase.FinishAndSync();
+            this.fileDatabase.SyncToDisk();
         }
 
         private int addFolder(string folder) {
