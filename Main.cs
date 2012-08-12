@@ -17,6 +17,7 @@ namespace BackerUpper
         public Timer backupTimer;
         public int backupTimerElapsed = 0;
         private DateTime lastStatusUpdate;
+        private string[] backups;
 
         public Main() {
             InitializeComponent();
@@ -56,13 +57,12 @@ namespace BackerUpper
         private void populateBackupsList() {
             if (!Directory.Exists(this.backupsPath))
                 return;
-            string[] files = Directory.GetFiles(this.backupsPath).Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
-            this.backupsList.DataSource = files;
+            this.backups = Directory.GetFiles(this.backupsPath).Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
+            this.backupsList.DataSource = this.backups;
         }
 
-        private Database loadSelectedBackup() {
-            string databaseFile = Path.Combine(this.backupsPath, this.backupsList.SelectedItem.ToString()) + Constants.BACKUP_EXTENSION;
-            return new Database(databaseFile);
+        private string loadSelectedBackup() {
+            return Path.Combine(this.backupsPath, this.backupsList.SelectedItem.ToString()) + Constants.BACKUP_EXTENSION;
         }
 
         private void createBackup() {
@@ -71,7 +71,7 @@ namespace BackerUpper
             Settings settings = new Settings(database);
             settings.PopulateInitial("Unnamed Backup");
 
-            Properties propertiesForm = new Properties(settings);
+            Properties propertiesForm = new Properties(settings, this.backups);
             propertiesForm.ShowDialog();
 
             if (propertiesForm.Saved == false)
@@ -96,7 +96,7 @@ namespace BackerUpper
 
             this.lastStatusUpdate = DateTime.Now;
 
-            Database database = this.loadSelectedBackup();
+            Database database = new Database(this.loadSelectedBackup());
             Settings settings = new Settings(database);
 
             MirrorBackend backend = new MirrorBackend(settings.Dest);
@@ -131,16 +131,23 @@ namespace BackerUpper
             //this.Update();
         }
 
-
         private void buttonProperties_Click(object sender, EventArgs e) {
-            Database database = this.loadSelectedBackup();
+            string fileName = this.loadSelectedBackup();
+            Database database = new Database(fileName);
             Settings settings = new Settings(database);
 
-            Properties propertiesForm = new Properties(settings);
+            Properties propertiesForm = new Properties(settings, this.backups);
             propertiesForm.ShowDialog();
+            propertiesForm.Close();
 
+            // need to close DB before move
+            string afterName = settings.Name + Constants.BACKUP_EXTENSION;
             database.Close();
 
+            if (afterName != fileName) {
+                File.Move(Path.Combine(this.backupsPath, fileName), Path.Combine(this.backupsPath, afterName));
+                this.populateBackupsList();
+            }
         }
 
         private void buttonCreate_Click(object sender, EventArgs e) {

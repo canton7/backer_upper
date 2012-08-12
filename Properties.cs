@@ -14,11 +14,15 @@ namespace BackerUpper
     {
         public bool Saved = false;
         private Settings settings;
+        private string[] takenBackupNames;
+        private string initialBackupName;
 
-        public Properties(Settings settings) {
+        public Properties(Settings settings, string[] takenBackupNames) {
             InitializeComponent();
 
             this.settings = settings;
+            this.takenBackupNames = takenBackupNames;
+            this.initialBackupName = settings.Name;
             this.loadValues();
         }
 
@@ -31,8 +35,14 @@ namespace BackerUpper
         private bool checkValues() {
             List<String> errors = new List<string>();
 
+            this.textBoxName.Text = this.textBoxName.Text.Trim();
+            this.textBoxSource.Text = this.textBoxSource.Text.Trim();
+            this.textBoxDest.Text = this.textBoxDest.Text.Trim();
+
             if (this.textBoxName.Text == "")
                 errors.Add("Name cannot be empty");
+            else if (this.textBoxName.Text != this.initialBackupName && this.takenBackupNames.Contains(this.textBoxName.Text))
+                errors.Add("A backup with that name exists already");
             if (this.textBoxSource.Text == "")
                 errors.Add("Source cannot be empty");
             else if (!Directory.Exists(this.textBoxSource.Text))
