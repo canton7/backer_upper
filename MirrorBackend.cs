@@ -13,20 +13,20 @@ namespace BackerUpper
         }
 
         public override void CreateFolder(string folder) {
-            Directory.CreateDirectory(Path.Combine(this.dest, folder));
+            Directory.CreateDirectory(Path.Combine(this.Dest, folder));
         }
 
         public override void DeleteFolder(string folder) {
-            Directory.Delete(Path.Combine(this.dest, folder));
+            Directory.Delete(Path.Combine(this.Dest, folder));
         }
 
         public override bool FolderExists(string folder) {
-            return Directory.Exists(Path.Combine(this.dest, folder));
+            return Directory.Exists(Path.Combine(this.Dest, folder));
         }
 
-        public override void CreateFile(string file, string source, string fileMD5 = null) {
+        public override void CreateFile(string file, string source, string fileMD5) {
             // If fileMD5 passed, check whether file already exists with this hash. If so, don't copy
-            string dest = Path.Combine(this.dest, file);
+            string dest = Path.Combine(this.Dest, file);
 
             if (fileMD5 != null && File.Exists(dest)) {
                 string destMD5 = FileUtils.FileMD5(dest);
@@ -40,30 +40,30 @@ namespace BackerUpper
         }
 
         public override void UpdateFile(string file, string source) {
-            File.Copy(source, Path.Combine(this.dest, file), true);
+            File.Copy(source, Path.Combine(this.Dest, file), true);
         }
 
         public override void DeleteFile(string file) {
-            File.Delete(Path.Combine(this.dest, file));
+            File.Delete(Path.Combine(this.Dest, file));
         }
 
         public override bool FileExists(string file) {
-            return File.Exists(Path.Combine(this.dest, file));
+            return File.Exists(Path.Combine(this.Dest, file));
         }
 
         public override void CreateFromAlternateCopy(string file, string source) {
-            File.Copy(Path.Combine(this.dest, source), Path.Combine(this.dest, file), true);
+            File.Copy(Path.Combine(this.Dest, source), Path.Combine(this.Dest, file), true);
         }
 
         public override void CreateFromAlternateMove(string file, string source) {
-            File.Move(Path.Combine(this.dest, source), Path.Combine(this.dest, file));
+            File.Move(Path.Combine(this.Dest, source), Path.Combine(this.Dest, file));
         }
 
         public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn) {
             HashSet<string> files = new HashSet<string>(filesIn);
             HashSet<string> folders = new HashSet<string>(foldersIn);
             // Just use a TreeTraverser here
-            TreeTraverser treeTraverser = new TreeTraverser(this.dest);
+            TreeTraverser treeTraverser = new TreeTraverser(this.Dest);
             TreeTraverser.FolderEntry folder = treeTraverser.FirstFolder();
 
             string[] filesInDir;

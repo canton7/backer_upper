@@ -16,7 +16,8 @@ namespace BackerUpper
         private SQLiteConnection diskConn;
 
         public Database(string path) {
-            bool setupDatabase = !File.Exists(path);
+            if (!File.Exists(path))
+                throw new FileNotFoundException("Could not find database "+path);
 
             this.conn = new SQLiteConnection("Data Source="+path);
             this.conn.Open();
@@ -24,9 +25,6 @@ namespace BackerUpper
             this.diskConn = null;
 
             this.Execute("PRAGMA foreign_keys = ON;");
-
-            if (setupDatabase)
-                this.setupDatabase();
         }
 
         public void LoadToMemory() {
@@ -140,18 +138,25 @@ namespace BackerUpper
             return Convert.ToInt32(com.ExecuteScalar());
         }
 
-        private void setupDatabase() {
-            this.Execute(@"CREATE TABLE folders( id INTEGER PRIMARY KEY, parent_id INTEGER, name TEXT COLLATE NOCASE, path TEXT COLLATE NOCASE,
+        public static Database CreateDatabase(string path) {
+            Database database = new Database(path);
+
+            database.Execute(@"CREATE TABLE folders( id INTEGER PRIMARY KEY, parent_id INTEGER, name TEXT COLLATE NOCASE, path TEXT COLLATE NOCASE,
                 FOREIGN KEY(parent_id) REFERENCES folders(id) );");
-            this.Execute("CREATE INDEX folders_name_idx ON folders(name);");
-            this.Execute("CREATE INDEX folders_path_idx ON folders(path);");
-            this.Execute(@"CREATE TABLE files( id INTEGER PRIMARY KEY, folder_id INTEGER, name TEXT COLLATE NOCASE, date_modified INTEGER, md5 TEXT COLLATE NOCASE,
+            database.Execute("CREATE INDEX folders_name_idx ON folders(name);");
+            database.Execute("CREATE INDEX folders_path_idx ON folders(path);");
+            database.Execute(@"CREATE TABLE files( id INTEGER PRIMARY KEY, folder_id INTEGER, name TEXT COLLATE NOCASE, date_modified INTEGER, md5 TEXT COLLATE NOCASE,
                 FOREIGN KEY(folder_id) REFERENCES folders(id) );");
-            this.Execute(@"CREATE INDEX files_folder_id_idx ON files(folder_id);");
-            this.Execute(@"CREATE INDEX files_name_idx ON files(name);");
+            database.Execute(@"CREATE INDEX files_folder_id_idx ON files(folder_id);");
+            database.Execute(@"CREATE INDEX files_name_idx ON files(name);");
             // We have a foreign key constraint which enforces parent folders. However, root folders have a parentId of 0 (to make the code easier), which violates this.
             // Therefore, add a root entry with an ID of 0 and a parent of null
-            this.Execute("INSERT INTO folders (id, parent_id, name, path) VALUES (0, null, 'root', '');");
+            database.Execute("INSERT INTO folders (id, parent_id, name, path) VALUES (0, null, 'root', '');");
+
+            database.Execute("CREATE TABLE settings( id INTEGER PRIMARY KEY, name TEXT, value TEXT );");
+            database.Execute("CREATE INDEX settings_name_idx ON settings(name)");
+
+            return database;
         }
     }
 }

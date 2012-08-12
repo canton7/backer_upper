@@ -7,7 +7,7 @@ namespace BackerUpper
 {
     interface IBackend
     {
-        void CreateFile(string file, string source, string fileMD5 = null);
+        void CreateFile(string file, string source, string fileMD5);
         void UpdateFile(string file, string source);
         void DeleteFile(string file);
         void CreateFromAlternateCopy(string file, string source);

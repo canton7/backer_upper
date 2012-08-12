@@ -12,9 +12,14 @@ namespace BackerUpper
         private TreeTraverser treeTraverser;
         private FileDatabase fileDatabase;
         private BackendBase backend;
+        public Database Database;
+
+        public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
+        public event BackupActionEventHandler BackupAction;
 
         public FileScanner(string startDir, Database database, BackendBase backend) {
             this.startDir = startDir;
+            this.Database = database;
             this.treeTraverser = new TreeTraverser(startDir);
             this.fileDatabase = new FileDatabase(database);
             this.backend = backend;
@@ -100,6 +105,9 @@ namespace BackerUpper
                         case FileDatabase.FileModStatus.Modified:
                             this.updatefile(curFolderId, file, fileStatus.MD5, fileLastModified);
                             break;
+                        default:
+                            this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
+                            break;
                     }
                 }
 
@@ -131,12 +139,14 @@ namespace BackerUpper
         private int addFolder(string folder) {
             this.backend.CreateFolder(folder);
             int insertedId = this.fileDatabase.AddFolder(folder);
+            this.BackupAction(this, new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add));
             return insertedId;
         }
 
         private void deleteFolder(int folderId, string folder) {
             this.backend.DeleteFolder(folder);
             this.fileDatabase.DeleteFolder(folderId);
+            this.BackupAction(this, new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Delete));
         }
 
         private void addFile(int folderId, string file, DateTime lastModified) {
@@ -152,6 +162,8 @@ namespace BackerUpper
 
             this.backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
             this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
+
+            this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add));
         }
 
         private void alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, string alternatePath, int alternateId) {
@@ -160,12 +172,14 @@ namespace BackerUpper
                 // It's a copy
                 this.backend.CreateFromAlternateCopy(file, alternatePath);
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
+                this.BackupAction(this, new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Copy));
             }
             else {
                 // It's a move
                 this.backend.CreateFromAlternateMove(file, alternatePath);
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                 this.fileDatabase.DeleteFile(alternateId);
+                this.BackupAction(this, new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Move));
             }
         }
 
@@ -177,11 +191,13 @@ namespace BackerUpper
             }
             // But update the last modified time either way
             this.fileDatabase.UpdateFile(folderId, file, lastModified, fileMD5);
+            this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update));
         }
 
         private void deleteFile(int fileId, string file) {
             this.backend.DeleteFile(file);
             this.fileDatabase.DeleteFile(fileId);
+            this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Delete));
         }
 
         private struct FoundFolderItem
@@ -192,6 +208,23 @@ namespace BackerUpper
             public FoundFolderItem(string path) {
                 this.Path = path;
                 this.Folders = new List<string>();
+            }
+        }
+
+        public enum BackupActionEntity { File, Folder };
+        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Nothing };
+        public struct BackupActionItem
+        {
+            public string From;
+            public string To;
+            public BackupActionEntity Entity;
+            public BackupActionOperation Operation;
+
+            public BackupActionItem(string from, string to, BackupActionEntity entity, BackupActionOperation operation) {
+                this.From = from;
+                this.To = to;
+                this.Entity = entity;
+                this.Operation = operation;
             }
         }
 

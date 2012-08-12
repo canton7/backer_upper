@@ -7,15 +7,15 @@ namespace BackerUpper
 {
     abstract class BackendBase : IBackend
     {
-        public string dest;
+        public string Dest;
 
         public BackendBase(string dest) {
-            this.dest = dest;
+            this.Dest = dest;
         }
 
         public abstract void CreateFolder(string folder);
         public abstract void DeleteFolder(string folder);
-        public abstract void CreateFile(string file, string source, string fileMD5 = null);
+        public abstract void CreateFile(string file, string source, string fileMD5);
         public abstract void CreateFromAlternateCopy(string file, string source);
         public abstract void CreateFromAlternateMove(string file, string source);
         public abstract bool FileExists(string file);

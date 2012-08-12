@@ -11,7 +11,6 @@ namespace BackerUpper
     class FileDatabase
     {
         //const int CACHED_INSERT_SIZE = 100;
-
         
         //private List<CachedInsert> cachedInserts;
 
