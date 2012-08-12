@@ -14,6 +14,11 @@ namespace BackerUpper
         private BackendBase backend;
         public Database Database;
 
+        private bool cancel = false;
+        public bool Cancelled {
+            get { return this.cancel; }
+        }
+
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
@@ -23,6 +28,10 @@ namespace BackerUpper
             this.treeTraverser = new TreeTraverser(startDir);
             this.fileDatabase = new FileDatabase(database);
             this.backend = backend;
+        }
+
+        public void Cancel() {
+            this.cancel = true;
         }
 
         public void PruneDatabase() {
@@ -56,6 +65,8 @@ namespace BackerUpper
         }
 
         public void Backup() {
+            this.cancel = false;
+
             TreeTraverser.FolderEntry folder = this.treeTraverser.FirstFolder();
             FileDatabase.FolderStatus folderStatus;
             int newFolderLevel = -1;
@@ -69,7 +80,7 @@ namespace BackerUpper
             // Do all the additions, then go through and do the deletions separately
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
 
-            while (folder.Level >= 0) {
+            while (folder.Level >= 0 && !this.cancel) {
                 if (newFolderLevel >= 0 && folder.Level > newFolderLevel) {
                     // Just automatically add it, as a parent somewhere is new
                     curFolderId = this.addFolder(folder.Name);
@@ -95,6 +106,8 @@ namespace BackerUpper
                 // Check for files in this folder
                 files = this.treeTraverser.ListFiles(folder.Name);
                 foreach (string file in files) {
+                    if (this.cancel)
+                        break;
                     fileLastModified = this.treeTraverser.GetFileLastModified(file);
                     fileStatus = this.fileDatabase.InspectFile(curFolderId, file, fileLastModified);
 

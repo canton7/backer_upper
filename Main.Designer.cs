@@ -30,9 +30,10 @@
             this.buttonProperties = new System.Windows.Forms.Button();
             this.buttonCreate = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.statusLabelTime = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusLabelBackupAction = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusLabelTime = new System.Windows.Forms.ToolStripStatusLabel();
             this.backgroundWorkerBackup = new System.ComponentModel.BackgroundWorker();
+            this.buttonCancel = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -86,24 +87,35 @@
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
-            // statusLabelTime
-            // 
-            this.statusLabelTime.Name = "statusLabelTime";
-            this.statusLabelTime.Size = new System.Drawing.Size(34, 17);
-            this.statusLabelTime.Text = "00:00";
-            // 
             // statusLabelBackupAction
             // 
             this.statusLabelBackupAction.BorderSides = System.Windows.Forms.ToolStripStatusLabelBorderSides.Right;
             this.statusLabelBackupAction.Name = "statusLabelBackupAction";
-            this.statusLabelBackupAction.Size = new System.Drawing.Size(250, 19);
+            this.statusLabelBackupAction.Size = new System.Drawing.Size(281, 19);
             this.statusLabelBackupAction.Spring = true;
             this.statusLabelBackupAction.Text = "Idle";
             this.statusLabelBackupAction.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
+            // statusLabelTime
+            // 
+            this.statusLabelTime.Name = "statusLabelTime";
+            this.statusLabelTime.Size = new System.Drawing.Size(34, 19);
+            this.statusLabelTime.Text = "00:00";
+            // 
             // backgroundWorkerBackup
             // 
             this.backgroundWorkerBackup.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorkerBackup_DoWork);
+            // 
+            // buttonCancel
+            // 
+            this.buttonCancel.Enabled = false;
+            this.buttonCancel.Location = new System.Drawing.Point(174, 100);
+            this.buttonCancel.Name = "buttonCancel";
+            this.buttonCancel.Size = new System.Drawing.Size(75, 23);
+            this.buttonCancel.TabIndex = 2;
+            this.buttonCancel.Text = "Cancel";
+            this.buttonCancel.UseVisualStyleBackColor = true;
+            this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
             // 
             // Main
             // 
@@ -112,6 +124,7 @@
             this.ClientSize = new System.Drawing.Size(330, 262);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.buttonCreate);
+            this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonProperties);
             this.Controls.Add(this.buttonBackup);
             this.Controls.Add(this.backupsList);
@@ -134,6 +147,7 @@
         private System.Windows.Forms.ToolStripStatusLabel statusLabelBackupAction;
         private System.ComponentModel.BackgroundWorker backgroundWorkerBackup;
         private System.Windows.Forms.ToolStripStatusLabel statusLabelTime;
+        private System.Windows.Forms.Button buttonCancel;
 
     }
 }

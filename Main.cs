@@ -19,6 +19,8 @@ namespace BackerUpper
         private DateTime lastStatusUpdate;
         private string[] backups;
 
+        private FileScanner currentBackupFilescanner;
+
         public Main() {
             InitializeComponent();
 
@@ -90,6 +92,7 @@ namespace BackerUpper
 
         private void performBackup() {
             this.buttonBackup.Enabled = false;
+            this.buttonCancel.Enabled = true;
 
             this.backupTimerElapsed = 0;
             this.backupTimer.Start();
@@ -100,26 +103,27 @@ namespace BackerUpper
             Settings settings = new Settings(database);
 
             MirrorBackend backend = new MirrorBackend(settings.Dest);
-            FileScanner fileScanner = new FileScanner(settings.Source, database, backend);
-            fileScanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
+            this.currentBackupFilescanner = new FileScanner(settings.Source, database, backend);
+            this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
-            this.backgroundWorkerBackup.RunWorkerAsync(fileScanner);
+            this.backgroundWorkerBackup.RunWorkerAsync();
         }
 
         private void backgroundWorkerBackup_DoWork(object sender, DoWorkEventArgs e) {
-            FileScanner fileScanner = (FileScanner)e.Argument;
-            fileScanner.Database.LoadToMemory();
+            this.currentBackupFilescanner.Database.LoadToMemory();
 
-            fileScanner.PruneDatabase();
-            fileScanner.Backup();
-            fileScanner.PurgeDest();
-
-            fileScanner.Database.Close();
+            this.currentBackupFilescanner.PruneDatabase();
+            this.currentBackupFilescanner.Backup();
+            this.currentBackupFilescanner.PurgeDest();
+            this.currentBackupFilescanner.Database.Close();
 
             this.backupTimer.Stop();
-            this.InvokeEx(f => f.statusLabelBackupAction.Text = "Completed");
+            this.InvokeEx(f => f.statusLabelBackupAction.Text = this.currentBackupFilescanner.Cancelled ? "Cancelled": "Completed");
+
+            this.currentBackupFilescanner = null;
 
             this.InvokeEx(f => f.buttonBackup.Enabled = true);
+            this.InvokeEx(f => f.buttonCancel.Enabled = false);
         }
 
         void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
@@ -156,6 +160,12 @@ namespace BackerUpper
 
         private void buttonBackup_Click(object sender, EventArgs e) {
             this.performBackup();
+        }
+
+        private void buttonCancel_Click(object sender, EventArgs e) {
+            if (this.currentBackupFilescanner == null)
+                return;
+            this.currentBackupFilescanner.Cancel();
         }
     }
 
