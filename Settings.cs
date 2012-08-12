@@ -14,9 +14,34 @@ namespace BackerUpper
             set { this.setKey("source", value); }
         }
 
-        public string Dest {
-            get { return this.getKey("dest"); }
-            set { this.setKey("dest", value); }
+        public bool MirrorEnabled {
+            get { return (this.getKey("mirrorEnabled") == "1"); }
+            set { this.setKey("mirrorEnabled", value ? "1" : "0"); }
+        }
+
+        public string MirrorDest {
+            get { return this.getKey("mirrorDest"); }
+            set { this.setKey("mirrorDest", value); }
+        }
+
+        public bool S3Enabled {
+            get { return (this.getKey("s3Enabled") == "1"); }
+            set { this.setKey("s3Enabled", value ? "1" : "0"); }
+        }
+
+        public string S3Dest {
+            get { return this.getKey("s3Dest"); }
+            set { this.setKey("s3Dest", value); }
+        }
+
+        public string S3PublicKey {
+            get { return this.getKey("s3PublicKey"); }
+            set { this.setKey("s3PublicKey", value); }
+        }
+
+        public string S3PrivateKey {
+            get { return this.getKey("s3PrivateKey"); }
+            set { this.setKey("s3PrivateKey", value); }
         }
 
         public string Name {
@@ -37,7 +62,10 @@ namespace BackerUpper
         }
 
         public void PopulateInitial(string name) {
-            this.db.Execute("INSERT INTO settings(name, value) VALUES('name', @name), ('source', ''), ('dest', '');", "@name", name);
+            this.db.Execute(@"INSERT INTO settings(name, value) VALUES
+                ('name', @name), ('source', ''),
+                ('mirrorEnabled', '0'), ('mirrorDest', ''),
+                ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', '');", "@name", name);
         }
     }
 }

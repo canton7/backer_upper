@@ -127,7 +127,7 @@ namespace BackerUpper
             Database database = new Database(this.loadSelectedBackup());
             Settings settings = new Settings(database);
 
-            MirrorBackend backend = new MirrorBackend(settings.Dest);
+            MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
             this.currentBackupFilescanner = new FileScanner(settings.Source, database, backend);
             this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
@@ -179,11 +179,11 @@ namespace BackerUpper
             propertiesForm.Close();
 
             // need to close DB before move
-            string afterName = settings.Name + Constants.BACKUP_EXTENSION;
+            string afterName = Path.Combine(this.backupsPath, settings.Name) + Constants.BACKUP_EXTENSION;
             database.Close();
 
             if (afterName != fileName) {
-                File.Move(Path.Combine(this.backupsPath, fileName), Path.Combine(this.backupsPath, afterName));
+                File.Move(fileName, afterName);
                 this.populateBackupsList();
             }
         }
