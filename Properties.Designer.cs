@@ -36,6 +36,7 @@
             this.buttonSourceBrowser = new System.Windows.Forms.Button();
             this.buttonDestBrowser = new System.Windows.Forms.Button();
             this.buttonSave = new System.Windows.Forms.Button();
+            this.buttonCancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // sourceBrowser
@@ -48,9 +49,11 @@
             // 
             // textBoxSource
             // 
+            this.textBoxSource.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxSource.Location = new System.Drawing.Point(48, 52);
             this.textBoxSource.Name = "textBoxSource";
-            this.textBoxSource.Size = new System.Drawing.Size(158, 20);
+            this.textBoxSource.Size = new System.Drawing.Size(228, 20);
             this.textBoxSource.TabIndex = 0;
             // 
             // label1
@@ -64,9 +67,11 @@
             // 
             // textBoxDest
             // 
+            this.textBoxDest.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxDest.Location = new System.Drawing.Point(48, 78);
             this.textBoxDest.Name = "textBoxDest";
-            this.textBoxDest.Size = new System.Drawing.Size(158, 20);
+            this.textBoxDest.Size = new System.Drawing.Size(228, 20);
             this.textBoxDest.TabIndex = 0;
             // 
             // label2
@@ -80,9 +85,11 @@
             // 
             // textBoxName
             // 
+            this.textBoxName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBoxName.Location = new System.Drawing.Point(48, 24);
             this.textBoxName.Name = "textBoxName";
-            this.textBoxName.Size = new System.Drawing.Size(158, 20);
+            this.textBoxName.Size = new System.Drawing.Size(228, 20);
             this.textBoxName.TabIndex = 0;
             // 
             // label3
@@ -96,23 +103,25 @@
             // 
             // buttonSourceBrowser
             // 
+            this.buttonSourceBrowser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSourceBrowser.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonSourceBrowser.Location = new System.Drawing.Point(212, 50);
+            this.buttonSourceBrowser.Image = global::backer_upper.Properties.Resources.IconFolderOpen;
+            this.buttonSourceBrowser.Location = new System.Drawing.Point(283, 50);
             this.buttonSourceBrowser.Name = "buttonSourceBrowser";
-            this.buttonSourceBrowser.Size = new System.Drawing.Size(75, 23);
+            this.buttonSourceBrowser.Size = new System.Drawing.Size(26, 23);
             this.buttonSourceBrowser.TabIndex = 2;
-            this.buttonSourceBrowser.Text = "Browse...";
             this.buttonSourceBrowser.UseVisualStyleBackColor = true;
             this.buttonSourceBrowser.Click += new System.EventHandler(this.buttonSourceBrowser_Click);
             // 
             // buttonDestBrowser
             // 
+            this.buttonDestBrowser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonDestBrowser.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonDestBrowser.Location = new System.Drawing.Point(212, 76);
+            this.buttonDestBrowser.Image = global::backer_upper.Properties.Resources.IconFolderOpen;
+            this.buttonDestBrowser.Location = new System.Drawing.Point(283, 76);
             this.buttonDestBrowser.Name = "buttonDestBrowser";
-            this.buttonDestBrowser.Size = new System.Drawing.Size(75, 23);
+            this.buttonDestBrowser.Size = new System.Drawing.Size(26, 23);
             this.buttonDestBrowser.TabIndex = 2;
-            this.buttonDestBrowser.Text = "Browse...";
             this.buttonDestBrowser.UseVisualStyleBackColor = true;
             this.buttonDestBrowser.Click += new System.EventHandler(this.buttonDestBrowser_Click);
             // 
@@ -126,11 +135,22 @@
             this.buttonSave.UseVisualStyleBackColor = true;
             this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
             // 
+            // buttonCancel
+            // 
+            this.buttonCancel.Location = new System.Drawing.Point(94, 125);
+            this.buttonCancel.Name = "buttonCancel";
+            this.buttonCancel.Size = new System.Drawing.Size(75, 23);
+            this.buttonCancel.TabIndex = 4;
+            this.buttonCancel.Text = "Cancel";
+            this.buttonCancel.UseVisualStyleBackColor = true;
+            this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
+            // 
             // Properties
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(319, 160);
+            this.ClientSize = new System.Drawing.Size(316, 160);
+            this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonSave);
             this.Controls.Add(this.buttonDestBrowser);
             this.Controls.Add(this.buttonSourceBrowser);
@@ -160,5 +180,6 @@
         private System.Windows.Forms.Button buttonSourceBrowser;
         private System.Windows.Forms.Button buttonDestBrowser;
         private System.Windows.Forms.Button buttonSave;
+        private System.Windows.Forms.Button buttonCancel;
     }
 }

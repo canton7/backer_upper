@@ -18,8 +18,12 @@ namespace BackerUpper
         public int backupTimerElapsed = 0;
         private DateTime lastStatusUpdate;
         private string[] backups;
+        private bool closeAfterFinish;
 
         private FileScanner currentBackupFilescanner;
+        private bool backupInProgress {
+            get { return this.currentBackupFilescanner != null; }
+        }
 
         public Main() {
             InitializeComponent();
@@ -91,6 +95,8 @@ namespace BackerUpper
         }
 
         private void performBackup() {
+            this.closeAfterFinish = false;
+
             this.buttonBackup.Enabled = false;
             this.buttonCancel.Enabled = true;
 
@@ -124,15 +130,24 @@ namespace BackerUpper
 
             this.InvokeEx(f => f.buttonBackup.Enabled = true);
             this.InvokeEx(f => f.buttonCancel.Enabled = false);
+
+            if (this.closeAfterFinish)
+                this.InvokeEx(f => f.Close());
         }
 
-        void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
+        private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             // Don't update *too* frequently, as this actually slows us down considerably
             if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 100))
                 return;
             this.InvokeEx(f => f.statusLabelBackupAction.Text = item.To);
             this.lastStatusUpdate = DateTime.Now;
             //this.Update();
+        }
+
+        private void cancelBackup() {
+            if (this.currentBackupFilescanner == null)
+                return;
+            this.currentBackupFilescanner.Cancel();
         }
 
         private void buttonProperties_Click(object sender, EventArgs e) {
@@ -163,9 +178,19 @@ namespace BackerUpper
         }
 
         private void buttonCancel_Click(object sender, EventArgs e) {
-            if (this.currentBackupFilescanner == null)
-                return;
-            this.currentBackupFilescanner.Cancel();
+            this.cancelBackup();
+        }
+
+        private void buttonExit_Click(object sender, EventArgs e) {
+            this.Close();
+        }
+
+        private void Main_FormClosing(object sender, FormClosingEventArgs e) {
+            if (this.backupInProgress) {
+                this.closeAfterFinish = true;
+                e.Cancel = true;
+                this.cancelBackup();
+            }
         }
     }
 
