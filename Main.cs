@@ -67,6 +67,10 @@ namespace BackerUpper
             this.backupsList.DataSource = this.backups;
         }
 
+        private void showError(string message, string caption="Error") {
+            MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         private string loadSelectedBackup() {
             return Path.Combine(this.backupsPath, this.backupsList.SelectedItem.ToString()) + Constants.BACKUP_EXTENSION;
         }
@@ -91,6 +95,21 @@ namespace BackerUpper
             database.Close();
 
             File.Move(tempFile, destFile);
+            this.populateBackupsList();
+        }
+
+        private void deleteBackup() {
+            string backupName = this.backupsList.SelectedItem.ToString();
+            DialogResult result = MessageBox.Show("Are you sure you want to delete the backup "+backupName+"?", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (result == DialogResult.No)
+                return;
+            string filepath = this.loadSelectedBackup();
+            try {
+                File.Delete(filepath);
+            }
+            catch (IOException e) {
+                this.showError("Could not delete "+backupName+": "+e.Message);
+            }
             this.populateBackupsList();
         }
 
@@ -171,6 +190,10 @@ namespace BackerUpper
 
         private void buttonCreate_Click(object sender, EventArgs e) {
             this.createBackup();
+        }
+
+        private void buttonDelete_Click(object sender, EventArgs e) {
+            this.deleteBackup();
         }
 
         private void buttonBackup_Click(object sender, EventArgs e) {

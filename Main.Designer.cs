@@ -35,6 +35,7 @@
             this.backgroundWorkerBackup = new System.ComponentModel.BackgroundWorker();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonExit = new System.Windows.Forms.Button();
+            this.buttonDelete = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -43,7 +44,7 @@
             this.backupsList.FormattingEnabled = true;
             this.backupsList.Location = new System.Drawing.Point(12, 12);
             this.backupsList.Name = "backupsList";
-            this.backupsList.Size = new System.Drawing.Size(193, 82);
+            this.backupsList.Size = new System.Drawing.Size(156, 82);
             this.backupsList.TabIndex = 0;
             // 
             // buttonBackup
@@ -68,7 +69,7 @@
             // 
             // buttonCreate
             // 
-            this.buttonCreate.Location = new System.Drawing.Point(212, 12);
+            this.buttonCreate.Location = new System.Drawing.Point(174, 12);
             this.buttonCreate.Name = "buttonCreate";
             this.buttonCreate.Size = new System.Drawing.Size(75, 23);
             this.buttonCreate.TabIndex = 3;
@@ -84,14 +85,14 @@
             this.statusLabelTime});
             this.statusStrip1.Location = new System.Drawing.Point(0, 238);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(297, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(261, 24);
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // statusLabelBackupAction
             // 
             this.statusLabelBackupAction.Name = "statusLabelBackupAction";
-            this.statusLabelBackupAction.Size = new System.Drawing.Size(213, 19);
+            this.statusLabelBackupAction.Size = new System.Drawing.Size(208, 19);
             this.statusLabelBackupAction.Spring = true;
             this.statusLabelBackupAction.Text = "Idle";
             this.statusLabelBackupAction.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -128,11 +129,22 @@
             this.buttonExit.UseVisualStyleBackColor = true;
             this.buttonExit.Click += new System.EventHandler(this.buttonExit_Click);
             // 
+            // buttonDelete
+            // 
+            this.buttonDelete.Location = new System.Drawing.Point(174, 41);
+            this.buttonDelete.Name = "buttonDelete";
+            this.buttonDelete.Size = new System.Drawing.Size(75, 23);
+            this.buttonDelete.TabIndex = 6;
+            this.buttonDelete.Text = "Delete";
+            this.buttonDelete.UseVisualStyleBackColor = true;
+            this.buttonDelete.Click += new System.EventHandler(this.buttonDelete_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(297, 262);
+            this.ClientSize = new System.Drawing.Size(261, 262);
+            this.Controls.Add(this.buttonDelete);
             this.Controls.Add(this.buttonExit);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.buttonCreate);
@@ -162,6 +174,7 @@
         private System.Windows.Forms.ToolStripStatusLabel statusLabelTime;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Button buttonExit;
+        private System.Windows.Forms.Button buttonDelete;
 
     }
 }
