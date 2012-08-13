@@ -14,9 +14,10 @@ namespace BackerUpper
     partial class Main : Form
     {
         private string backupsPath;
-        public Timer backupTimer;
+        private Timer backupTimer;
+        private Timer backupStatusTimer;
+        private string backupStatus;
         public int backupTimerElapsed = 0;
-        private DateTime lastStatusUpdate;
         private string[] backups;
         private bool closeAfterFinish;
         private Queue<FileScanner> backupQueue;
@@ -34,6 +35,9 @@ namespace BackerUpper
             this.backupTimer = new Timer();
             this.backupTimer.Interval = 1000;
             this.backupTimer.Tick += new EventHandler(backupTimer_Tick);
+            this.backupStatusTimer = new Timer();
+            this.backupStatusTimer.Interval = 250;
+            this.backupStatusTimer.Tick += new EventHandler(backupStatusTimer_Tick);
             this.backupQueue = new Queue<FileScanner>();
 
             if (backupToRun != null) {
@@ -112,8 +116,7 @@ namespace BackerUpper
 
             this.backupTimerElapsed = 0;
             this.backupTimer.Start();
-
-            this.lastStatusUpdate = DateTime.Now;
+            this.backupStatusTimer.Start();
 
             Database database = new Database(this.loadSelectedBackup());
             Settings settings = new Settings(database);
@@ -152,6 +155,7 @@ namespace BackerUpper
             }
 
             this.backupTimer.Stop();
+            this.backupStatusTimer.Stop();
             this.InvokeEx(f => f.statusLabelBackupAction.Text = this.currentBackupFilescanner.Cancelled ? "Cancelled": "Completed");
 
             this.currentBackupFilescanner = null;
@@ -164,9 +168,6 @@ namespace BackerUpper
         }
 
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
-            // Don't update *too* frequently, as this actually slows us down considerably
-            //if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 50))
-            //    return;
             string text = item.To;
             if (this.currentBackupFilescanner.Backend.Name == "S3")
                 text = "S3\\" + text;
@@ -174,8 +175,11 @@ namespace BackerUpper
                 text = "Cancelling: " + text;
             if (item.Percent < 100)
                 text += " ("+item.Percent+"%)";
-            this.InvokeEx(f => f.statusLabelBackupAction.Text = text);
-            this.lastStatusUpdate = DateTime.Now;
+            this.backupStatus = text;
+        }
+
+        void backupStatusTimer_Tick(object sender, EventArgs e) {
+            this.InvokeEx(f => f.statusLabelBackupAction.Text = this.backupStatus);
         }
 
         private void cancelBackup() {
@@ -183,7 +187,7 @@ namespace BackerUpper
                 return;
             this.currentBackupFilescanner.Cancel();
             // TODO: Remove duplication between this and fileScanner_BackupAction
-            this.statusLabelBackupAction.Text = "Cancelling: "+this.statusLabelBackupAction.Text;
+            this.backupStatus = "Cancelling: " + this.backupStatus;
         }
 
         private void buttonProperties_Click(object sender, EventArgs e) {
