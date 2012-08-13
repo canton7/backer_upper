@@ -174,7 +174,7 @@ namespace BackerUpper
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             string text = item.To;
             if (this.currentBackupFilescanner.Backend.Name == "S3")
-                text = "S3\\" + text;
+                text = "S3://" + text;
             if (this.currentBackupFilescanner.Cancelled)
                 text = "Cancelling: " + text;
             if (item.Percent < 100)
@@ -227,7 +227,7 @@ namespace BackerUpper
             if (settings.MirrorEnabled)
                 dest.Add(settings.MirrorDest);
             if (settings.S3Enabled)
-                dest.Add("S3\\"+settings.S3Dest);
+                dest.Add("S3://"+settings.S3Dest);
             this.labelDest.Text = dest.Count == 0 ? "None" : String.Join("\n", dest);
             database.Close();
         }
