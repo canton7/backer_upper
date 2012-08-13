@@ -120,6 +120,8 @@ namespace BackerUpper
 
             Database database = new Database(this.loadSelectedBackup());
             Settings settings = new Settings(database);
+            settings.LastRun = DateTime.Now;
+            this.updateInfoDisplay();
 
             if (settings.MirrorEnabled) {
                 MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
@@ -207,6 +209,21 @@ namespace BackerUpper
                 File.Move(fileName, afterName);
                 this.populateBackupsList();
             }
+            this.updateInfoDisplay();
+        }
+
+        private void updateInfoDisplay() {
+            Settings settings = new Settings(new Database(this.loadSelectedBackup()));
+            DateTime lastRun = settings.LastRun;
+            this.labelLastRun.Text = lastRun == new DateTime(1970, 1, 1) ? "Never" : lastRun.ToString();
+            this.labelSource.Text = settings.Source;
+            List<string> dest = new List<string>();
+            if (settings.MirrorEnabled)
+                dest.Add(settings.MirrorDest);
+            if (settings.S3Enabled)
+                dest.Add("S3\\"+settings.S3Dest);
+            this.labelDest.Text = dest.Count == 0 ? "None" : String.Join("\n", dest);
+            settings.Database.Close();
         }
 
         private void buttonCreate_Click(object sender, EventArgs e) {
@@ -235,6 +252,10 @@ namespace BackerUpper
                 e.Cancel = true;
                 this.cancelBackup();
             }
+        }
+
+        private void backupsList_SelectedIndexChanged(object sender, EventArgs e) {
+            this.updateInfoDisplay();
         }
     }
 

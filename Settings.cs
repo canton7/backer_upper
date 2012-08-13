@@ -7,7 +7,11 @@ namespace BackerUpper
 {
     class Settings
     {
+        
         Database db;
+        public Database Database {
+            get { return this.db; }
+        }
 
         public string Source {
             get { return this.getKey("source"); }
@@ -49,6 +53,11 @@ namespace BackerUpper
             set { this.setKey("name", value); }
         }
 
+        public DateTime LastRun {
+            get { return new DateTime(1970, 1, 1).AddSeconds(Convert.ToInt32(this.getKey("lastRun"))); }
+            set { this.setKey("lastRun", ((int)(value - new DateTime(1970, 1, 1)).TotalSeconds).ToString()); }
+        }
+
         public Settings(Database db) {
             this.db = db;
         }
@@ -65,7 +74,8 @@ namespace BackerUpper
             this.db.Execute(@"INSERT INTO settings(name, value) VALUES
                 ('name', @name), ('source', ''),
                 ('mirrorEnabled', '0'), ('mirrorDest', ''),
-                ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', '');", "@name", name);
+                ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', ''),
+                ('lastRun', '0');", "@name", name);
         }
     }
 }

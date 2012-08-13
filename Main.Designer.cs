@@ -36,6 +36,12 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonExit = new System.Windows.Forms.Button();
             this.buttonDelete = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.labelLastRun = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.labelSource = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.labelDest = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -46,8 +52,9 @@
             this.backupsList.FormattingEnabled = true;
             this.backupsList.Location = new System.Drawing.Point(12, 12);
             this.backupsList.Name = "backupsList";
-            this.backupsList.Size = new System.Drawing.Size(156, 82);
+            this.backupsList.Size = new System.Drawing.Size(322, 82);
             this.backupsList.TabIndex = 0;
+            this.backupsList.SelectedIndexChanged += new System.EventHandler(this.backupsList_SelectedIndexChanged);
             // 
             // buttonBackup
             // 
@@ -61,7 +68,7 @@
             // 
             // buttonProperties
             // 
-            this.buttonProperties.Location = new System.Drawing.Point(93, 100);
+            this.buttonProperties.Location = new System.Drawing.Point(173, 100);
             this.buttonProperties.Name = "buttonProperties";
             this.buttonProperties.Size = new System.Drawing.Size(75, 23);
             this.buttonProperties.TabIndex = 2;
@@ -72,7 +79,7 @@
             // buttonCreate
             // 
             this.buttonCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCreate.Location = new System.Drawing.Point(174, 12);
+            this.buttonCreate.Location = new System.Drawing.Point(340, 12);
             this.buttonCreate.Name = "buttonCreate";
             this.buttonCreate.Size = new System.Drawing.Size(75, 23);
             this.buttonCreate.TabIndex = 3;
@@ -88,7 +95,7 @@
             this.statusLabelTime});
             this.statusStrip1.Location = new System.Drawing.Point(0, 238);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(261, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(427, 24);
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -114,7 +121,7 @@
             // buttonCancel
             // 
             this.buttonCancel.Enabled = false;
-            this.buttonCancel.Location = new System.Drawing.Point(174, 100);
+            this.buttonCancel.Location = new System.Drawing.Point(93, 100);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 2;
@@ -135,7 +142,7 @@
             // buttonDelete
             // 
             this.buttonDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDelete.Location = new System.Drawing.Point(174, 41);
+            this.buttonDelete.Location = new System.Drawing.Point(340, 41);
             this.buttonDelete.Name = "buttonDelete";
             this.buttonDelete.Size = new System.Drawing.Size(75, 23);
             this.buttonDelete.TabIndex = 6;
@@ -143,11 +150,71 @@
             this.buttonDelete.UseVisualStyleBackColor = true;
             this.buttonDelete.Click += new System.EventHandler(this.buttonDelete_Click);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 139);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(53, 13);
+            this.label1.TabIndex = 7;
+            this.label1.Text = "Last Run:";
+            // 
+            // labelLastRun
+            // 
+            this.labelLastRun.AutoSize = true;
+            this.labelLastRun.Location = new System.Drawing.Point(68, 139);
+            this.labelLastRun.Name = "labelLastRun";
+            this.labelLastRun.Size = new System.Drawing.Size(36, 13);
+            this.labelLastRun.TabIndex = 8;
+            this.labelLastRun.Text = "Never";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(12, 156);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(44, 13);
+            this.label2.TabIndex = 9;
+            this.label2.Text = "Source:";
+            // 
+            // labelSource
+            // 
+            this.labelSource.AutoSize = true;
+            this.labelSource.Location = new System.Drawing.Point(68, 156);
+            this.labelSource.Name = "labelSource";
+            this.labelSource.Size = new System.Drawing.Size(33, 13);
+            this.labelSource.TabIndex = 10;
+            this.labelSource.Text = "None";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 173);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(32, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Dest:";
+            // 
+            // labelDest
+            // 
+            this.labelDest.AutoSize = true;
+            this.labelDest.Location = new System.Drawing.Point(68, 173);
+            this.labelDest.Name = "labelDest";
+            this.labelDest.Size = new System.Drawing.Size(33, 13);
+            this.labelDest.TabIndex = 12;
+            this.labelDest.Text = "None";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(261, 262);
+            this.ClientSize = new System.Drawing.Size(427, 262);
+            this.Controls.Add(this.labelDest);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.labelSource);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.labelLastRun);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.buttonDelete);
             this.Controls.Add(this.buttonExit);
             this.Controls.Add(this.statusStrip1);
@@ -179,6 +246,12 @@
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Button buttonExit;
         private System.Windows.Forms.Button buttonDelete;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelLastRun;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label labelSource;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label labelDest;
 
     }
 }
