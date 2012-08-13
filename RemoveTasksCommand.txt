@@ -1,0 +1,2 @@
+FOR /F "tokens=1 delims=," %i IN ('schtasks /FO CSV ^| FIND "\Ba
+ckerUpper"') DO (schtasks /Delete /TN %i /F)
