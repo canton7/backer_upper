@@ -81,11 +81,15 @@ namespace BackerUpper
                 return;
 
             Trigger trigger = task.Definition.Triggers.FirstOrDefault(x => x.TriggerType == TaskTriggerType.Weekly);
-            // Don't have an appropriate trigger -- use defaults
+            // Don't have an appropriate trigger -- select no days
+            DaysOfTheWeek dow;
             if (trigger == null)
-                return;
+                dow = 0;
+            else {
+                dow = ((WeeklyTrigger)trigger).DaysOfWeek;
+                this.dateTimePickerScheduleTime.Value = new DateTime(1970, 1, 1, trigger.StartBoundary.Hour, trigger.StartBoundary.Minute, 0);
+            }
 
-            DaysOfTheWeek dow = ((WeeklyTrigger)trigger).DaysOfWeek;
             this.checkBoxScheduleMon.Checked = dow.HasFlag(DaysOfTheWeek.Monday);
             this.checkBoxScheduleTues.Checked = dow.HasFlag(DaysOfTheWeek.Tuesday);
             this.checkBoxScheduleWeds.Checked = dow.HasFlag(DaysOfTheWeek.Wednesday);
@@ -93,8 +97,6 @@ namespace BackerUpper
             this.checkBoxScheduleFri.Checked = dow.HasFlag(DaysOfTheWeek.Friday);
             this.checkBoxScheduleSat.Checked = dow.HasFlag(DaysOfTheWeek.Saturday);
             this.checkBoxScheduleSun.Checked = dow.HasFlag(DaysOfTheWeek.Sunday);
-
-            this.dateTimePickerScheduleTime.Value = new DateTime(1970, 1, 1, trigger.StartBoundary.Hour, trigger.StartBoundary.Minute, 0);
         }
 
         private void setupTask() {
@@ -126,15 +128,19 @@ namespace BackerUpper
                 start += new TimeSpan(1, 0, 0, 0);
             trigger.StartBoundary = start;
 
-            if (this.checkBoxScheduleMon.Checked) trigger.DaysOfWeek |= DaysOfTheWeek.Monday;
-            if (this.checkBoxScheduleTues.Checked) trigger.DaysOfWeek |= DaysOfTheWeek.Tuesday;
-            if (this.checkBoxScheduleWeds.Checked) trigger.DaysOfWeek |= DaysOfTheWeek.Wednesday;
-            if (this.checkBoxScheduleThurs.Checked) trigger.DaysOfWeek |= DaysOfTheWeek.Thursday;
-            if (this.checkBoxScheduleFri.Checked) trigger.DaysOfWeek |= DaysOfTheWeek.Friday;
-            if (this.checkBoxScheduleSat.Checked) trigger.DaysOfWeek |= DaysOfTheWeek.Saturday;
-            if (this.checkBoxScheduleSun.Checked) trigger.DaysOfWeek |= DaysOfTheWeek.Sunday;
+            bool set = false;
+            // Defaults to sunday
+            trigger.DaysOfWeek = 0;
+            if (this.checkBoxScheduleMon.Checked) { trigger.DaysOfWeek |= DaysOfTheWeek.Monday; set = true; }
+            if (this.checkBoxScheduleTues.Checked) { trigger.DaysOfWeek |= DaysOfTheWeek.Tuesday; set = true; }
+            if (this.checkBoxScheduleWeds.Checked) { trigger.DaysOfWeek |= DaysOfTheWeek.Wednesday; set = true; }
+            if (this.checkBoxScheduleThurs.Checked) { trigger.DaysOfWeek |= DaysOfTheWeek.Thursday; set = true; }
+            if (this.checkBoxScheduleFri.Checked) { trigger.DaysOfWeek |= DaysOfTheWeek.Friday; set = true; }
+            if (this.checkBoxScheduleSat.Checked) { trigger.DaysOfWeek |= DaysOfTheWeek.Saturday; set = true; }
+            if (this.checkBoxScheduleSun.Checked) { trigger.DaysOfWeek |= DaysOfTheWeek.Sunday; set = true; }
             
-            definition.Triggers.Add(trigger);
+            if (set)
+                definition.Triggers.Add(trigger);
             folder.RegisterTaskDefinition(this.settings.Name, definition);
         }
 
