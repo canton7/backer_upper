@@ -26,28 +26,8 @@ namespace BackerUpper
             get { return this.currentBackupFilescanner != null; }
         }
 
-        public Main() {
+        public Main(string backupToRun=null) {
             InitializeComponent();
-
-            //Stopwatch sw = new Stopwatch();
-            //sw.Start();
-
-            //Database database = new Database("test.sqlite");
-
-            //MirrorBackend backend = new MirrorBackend(@"D:\Users\Antony\Documents\projects\backer_upper\test_dest");
-            //FileScanner fileScanner = new FileScanner(@"D:\Users\Antony\Documents\projects\backer_upper\test_src", database, backend);
-            //FileScanner fileScanner = new FileScanner(@"D:\Users\Antony\Music", database, backend);
-
-            //database.LoadToMemory();
-
-            //fileScanner.PruneDatabase();
-            //fileScanner.Backup();
-            //fileScanner.PurgeDest();
-
-            //database.Close();
-
-            //sw.Stop();
-            //MessageBox.Show(String.Format("Took {0}", sw.Elapsed));
 
             this.backupsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER);
             this.populateBackupsList();
@@ -55,6 +35,15 @@ namespace BackerUpper
             this.backupTimer.Interval = 1000;
             this.backupTimer.Tick += new EventHandler(backupTimer_Tick);
             this.backupQueue = new Queue<FileScanner>();
+
+            if (backupToRun != null) {
+                if (!this.backupsList.Items.Contains(backupToRun))
+                    this.showError("Backup '"+backupToRun+"' doesn't exist");
+                else {
+                    this.backupsList.SelectedItem = backupToRun;
+                    this.performBackup();
+                }
+            }
         }
 
         void backupTimer_Tick(object sender, EventArgs e) {
@@ -176,8 +165,8 @@ namespace BackerUpper
 
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             // Don't update *too* frequently, as this actually slows us down considerably
-            if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 50))
-                return;
+            //if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 50))
+            //    return;
             this.InvokeEx(f => f.statusLabelBackupAction.Text = item.To);
             this.lastStatusUpdate = DateTime.Now;
         }

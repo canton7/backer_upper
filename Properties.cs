@@ -110,7 +110,7 @@ namespace BackerUpper
             if (task == null) {
                 definition = new TaskService().NewTask();
                 string process = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-                definition.Actions.Add(new ExecAction(process, " --backup '"+this.settings.Name+"'"));
+                definition.Actions.Add(new ExecAction(process, " --backup=\""+this.settings.Name+"\""));
                 definition.Settings.DisallowStartIfOnBatteries = false;
                 definition.Settings.StartWhenAvailable = true;
             }

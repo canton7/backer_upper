@@ -11,10 +11,14 @@ namespace BackerUpper
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main() {
+        static void Main(string[] args) {
+            // Hacky option parser
+            string backup = args.FirstOrDefault(x => x.StartsWith("--backup="));
+            if (backup != null) backup = backup.Substring(9).Trim(new char[] { '\'', '"' });
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Main());
+            Application.Run(new Main(backup));
         }
     }
 }
