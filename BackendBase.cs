@@ -11,6 +11,9 @@ namespace BackerUpper
 
         public abstract string Name { get; }
 
+        public delegate void CopyProgressEventHandler(object sender, int percent);
+        public event CopyProgressEventHandler CopyProgress;
+
         public BackendBase(string dest) {
             this.Dest = dest;
         }
@@ -27,5 +30,9 @@ namespace BackerUpper
         public abstract bool FolderExists(string folder);
 
         public abstract void PurgeFiles(IEnumerable<string> files, IEnumerable<string> folders);
+
+        protected void ReportProcess(int percent) {
+            CopyProgress(this, percent);
+        }
     }
 }

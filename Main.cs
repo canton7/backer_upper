@@ -167,7 +167,14 @@ namespace BackerUpper
             // Don't update *too* frequently, as this actually slows us down considerably
             //if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 50))
             //    return;
-            this.InvokeEx(f => f.statusLabelBackupAction.Text = item.To);
+            string text = item.To;
+            if (this.currentBackupFilescanner.Backend.Name == "S3")
+                text = "S3\\" + text;
+            if (this.currentBackupFilescanner.Cancelled)
+                text = "Cancelling: " + text;
+            if (item.Percent < 100)
+                text += " ("+item.Percent+"%)";
+            this.InvokeEx(f => f.statusLabelBackupAction.Text = text);
             this.lastStatusUpdate = DateTime.Now;
         }
 
@@ -175,6 +182,7 @@ namespace BackerUpper
             if (this.currentBackupFilescanner == null || this.currentBackupFilescanner.Cancelled)
                 return;
             this.currentBackupFilescanner.Cancel();
+            // TODO: Remove duplication between this and fileScanner_BackupAction
             this.statusLabelBackupAction.Text = "Cancelling: "+this.statusLabelBackupAction.Text;
         }
 

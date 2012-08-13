@@ -103,9 +103,14 @@ namespace BackerUpper
                 Timeout = -1,
                 CannedACL = S3CannedACL.Private
             };
+            putRequest.PutObjectProgressEvent += new EventHandler<PutObjectProgressArgs>(putRequest_PutObjectProgressEvent);
             putRequest.AddHeader("x-amz-meta-md5", fileMD5);
             this.client.PutObject(putRequest);
             this.files.Add(file);
+        }
+
+        void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {
+            this.ReportProcess(e.PercentDone);
         }
 
         public override void UpdateFile(string file, string source, string fileMD5) {
