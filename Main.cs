@@ -176,14 +176,14 @@ namespace BackerUpper
 
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             // Don't update *too* frequently, as this actually slows us down considerably
-            //if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 100))
-            //    return;
+            if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 50))
+                return;
             this.InvokeEx(f => f.statusLabelBackupAction.Text = item.To);
             this.lastStatusUpdate = DateTime.Now;
         }
 
         private void cancelBackup() {
-            if (this.currentBackupFilescanner == null)
+            if (this.currentBackupFilescanner == null || this.currentBackupFilescanner.Cancelled)
                 return;
             this.currentBackupFilescanner.Cancel();
             this.statusLabelBackupAction.Text = "Cancelling: "+this.statusLabelBackupAction.Text;

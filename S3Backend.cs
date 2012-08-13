@@ -24,7 +24,7 @@ namespace BackerUpper
             : base(dest) {
             string[] parts = dest.Split(new char[] {'/'}, 2);
             this.bucket = parts[0];
-            this.prefix = parts.Length > 1 ? parts[1] : "";
+            this.prefix = parts.Length > 1 ? parts[1].TrimEnd(new char[]{ '/' }) + '/' : "/";
 
             this.client = new AmazonS3Client(publicKey, privateKey);
         }
@@ -47,7 +47,7 @@ namespace BackerUpper
                 listResponse = client.ListObjects(listRequest);
                 foreach (S3Object obj in listResponse.S3Objects) {
                     if (obj.Key.EndsWith("/") && obj.Size == 0)
-                        this.folders.Add(obj.Key.Substring(0, obj.Key.Length-1));
+                        this.folders.Add(obj.Key.TrimEnd(new char[] { '/' }));
                     else
                         this.files.Add(obj.Key);
                 }
@@ -59,7 +59,8 @@ namespace BackerUpper
             folder = folder.Replace('\\', '/');
             PutObjectRequest request = new PutObjectRequest() {
                 BucketName = this.bucket,
-                Key = Path.Combine(this.prefix, folder) + '/'
+                Key = this.prefix + folder + '/',
+                ContentBody = ""
             };
             this.client.PutObject(request);
             this.folders.Add(folder);
@@ -69,7 +70,7 @@ namespace BackerUpper
             folder = folder.Replace('\\', '/');
             DeleteObjectRequest request = new DeleteObjectRequest() {
                 BucketName = this.bucket,
-                Key = (Path.Combine(this.prefix, folder) + '/')
+                Key = (this.prefix + folder + '/')
             };
             this.client.DeleteObject(request);
             this.folders.Remove(folder);
@@ -82,7 +83,7 @@ namespace BackerUpper
 
         public override void CreateFile(string file, string source, string fileMD5) {
             file = file.Replace('\\', '/');
-            string key = Path.Combine(this.prefix, file);
+            string key = this.prefix + file;
 
             if (this.files.Contains(file)) {
                 GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
@@ -115,7 +116,7 @@ namespace BackerUpper
             file = file.Replace('\\', '/');
             DeleteObjectRequest request = new DeleteObjectRequest() {
                 BucketName = this.bucket,
-                Key = Path.Combine(this.prefix, file)
+                Key = this.prefix + file
             };
             this.client.DeleteObject(request);
             this.files.Remove(file);
@@ -132,8 +133,8 @@ namespace BackerUpper
             CopyObjectRequest request = new CopyObjectRequest() {
                 SourceBucket = this.bucket,
                 DestinationBucket = this.bucket,
-                SourceKey = Path.Combine(this.prefix, source),
-                DestinationKey = Path.Combine(this.prefix, file)
+                SourceKey = this.prefix + source,
+                DestinationKey = this.prefix + file
             };
             this.client.CopyObject(request);
             this.files.Add(file);
