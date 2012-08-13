@@ -47,9 +47,9 @@ namespace BackerUpper
                 listResponse = client.ListObjects(listRequest);
                 foreach (S3Object obj in listResponse.S3Objects) {
                     if (obj.Key.EndsWith("/") && obj.Size == 0)
-                        this.folders.Add(obj.Key.TrimEnd(new char[] { '/' }));
+                        this.folders.Add(obj.Key.TrimEnd(new char[] { '/' }).Substring(this.prefix.Length));
                     else
-                        this.files.Add(obj.Key);
+                        this.files.Add(obj.Key.Substring(this.prefix.Length));
                 }
                 listRequest.Marker = listResponse.NextMarker;
             } while (listResponse.NextMarker != null);
