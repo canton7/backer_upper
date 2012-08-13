@@ -27,6 +27,12 @@ namespace BackerUpper
             this.Execute("PRAGMA foreign_keys = ON;");
         }
 
+        public void Open() {
+            // Just ensure we're open
+            if (this.conn.State != ConnectionState.Open)
+                this.conn.Open();
+        }
+
         public void LoadToMemory() {
             if (this.diskConn != null)
                 return;

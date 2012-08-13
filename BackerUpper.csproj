@@ -36,6 +36,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AWSSDK, Version=1.4.15.1, Culture=neutral, PublicKeyToken=cd2d24cd2bace800, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Program Files (x86)\AWS SDK for .NET\bin\AWSSDK.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.SQLite">
@@ -56,6 +60,7 @@
   <ItemGroup>
     <Compile Include="BackendBase.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="S3Backend.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="FileDatabase.cs" />
     <Compile Include="FileScanner.cs" />

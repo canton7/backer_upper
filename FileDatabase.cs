@@ -121,7 +121,7 @@ namespace BackerUpper
             DataRow row;
             for (int i = 0; i < result.Rows.Count; i++) {
                 row = result.Rows[i];
-                fileRecords[i] = new FileRecord(Convert.ToInt32(row["id"]), Path.Combine((string)row["path"], (string)row["name"]));
+                fileRecords[i] = new FileRecord(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()));
             }
             return fileRecords;
         }

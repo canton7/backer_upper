@@ -8,8 +8,16 @@ namespace BackerUpper
 {
     class MirrorBackend : BackendBase, IBackend
     {
+        public override string Name {
+            get { return "Mirror"; }
+        }
+
         public MirrorBackend(string dest)
             : base(dest) {
+        }
+
+        public override void SetupInitial() {
+            // Don't need to do anything
         }
 
         public override void CreateFolder(string folder) {
@@ -28,7 +36,7 @@ namespace BackerUpper
             // If fileMD5 passed, check whether file already exists with this hash. If so, don't copy
             string dest = Path.Combine(this.Dest, file);
 
-            if (fileMD5 != null && File.Exists(dest)) {
+            if (File.Exists(dest)) {
                 string destMD5 = FileUtils.FileMD5(dest);
                 if (destMD5 == fileMD5)
                     return;
@@ -39,7 +47,7 @@ namespace BackerUpper
             fileInfo.IsReadOnly = false;
         }
 
-        public override void UpdateFile(string file, string source) {
+        public override void UpdateFile(string file, string source, string fileMD5) {
             File.Copy(source, Path.Combine(this.Dest, file), true);
         }
 

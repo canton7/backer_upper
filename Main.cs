@@ -19,6 +19,7 @@ namespace BackerUpper
         private DateTime lastStatusUpdate;
         private string[] backups;
         private bool closeAfterFinish;
+        private Queue<FileScanner> backupQueue;
 
         private FileScanner currentBackupFilescanner;
         private bool backupInProgress {
@@ -53,6 +54,7 @@ namespace BackerUpper
             this.backupTimer = new Timer();
             this.backupTimer.Interval = 1000;
             this.backupTimer.Tick += new EventHandler(backupTimer_Tick);
+            this.backupQueue = new Queue<FileScanner>();
         }
 
         void backupTimer_Tick(object sender, EventArgs e) {
@@ -127,20 +129,38 @@ namespace BackerUpper
             Database database = new Database(this.loadSelectedBackup());
             Settings settings = new Settings(database);
 
-            MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
-            this.currentBackupFilescanner = new FileScanner(settings.Source, database, backend);
-            this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
+            if (settings.MirrorEnabled) {
+                MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
+                FileScanner fileScanner = new FileScanner(settings.Source, database, backend);
+                fileScanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
+                this.backupQueue.Enqueue(fileScanner);
+            }
+            if (settings.S3Enabled) {
+                S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey);
+                FileScanner fileScanner = new FileScanner(settings.Source, database, backend);
+                fileScanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
+                this.backupQueue.Enqueue(fileScanner);
+            }
 
             this.backgroundWorkerBackup.RunWorkerAsync();
         }
 
         private void backgroundWorkerBackup_DoWork(object sender, DoWorkEventArgs e) {
-            this.currentBackupFilescanner.Database.LoadToMemory();
+            while (this.backupQueue.Count > 0) {
+                this.currentBackupFilescanner = this.backupQueue.Dequeue();
+                this.InvokeEx(f => f.statusLabelBackupAction.Text = "Setting up "+this.currentBackupFilescanner.Backend.Name+" backend...");
 
-            this.currentBackupFilescanner.PruneDatabase();
-            this.currentBackupFilescanner.Backup();
-            this.currentBackupFilescanner.PurgeDest();
-            this.currentBackupFilescanner.Database.Close();
+                this.currentBackupFilescanner.Backend.SetupInitial();
+                // Although databases auto-open, we can run multiple backends for a single db, and that can close the db
+                // Therefore, ensure it's actually open
+                this.currentBackupFilescanner.Database.Open(); 
+                this.currentBackupFilescanner.Database.LoadToMemory();
+
+                this.currentBackupFilescanner.PruneDatabase();
+                this.currentBackupFilescanner.Backup();
+                this.currentBackupFilescanner.PurgeDest();
+                this.currentBackupFilescanner.Database.Close();   
+            }
 
             this.backupTimer.Stop();
             this.InvokeEx(f => f.statusLabelBackupAction.Text = this.currentBackupFilescanner.Cancelled ? "Cancelled": "Completed");
@@ -156,17 +176,17 @@ namespace BackerUpper
 
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             // Don't update *too* frequently, as this actually slows us down considerably
-            if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 100))
-                return;
+            //if (DateTime.Now - this.lastStatusUpdate < new TimeSpan(0, 0, 0, 0, 100))
+            //    return;
             this.InvokeEx(f => f.statusLabelBackupAction.Text = item.To);
             this.lastStatusUpdate = DateTime.Now;
-            //this.Update();
         }
 
         private void cancelBackup() {
             if (this.currentBackupFilescanner == null)
                 return;
             this.currentBackupFilescanner.Cancel();
+            this.statusLabelBackupAction.Text = "Cancelling: "+this.statusLabelBackupAction.Text;
         }
 
         private void buttonProperties_Click(object sender, EventArgs e) {

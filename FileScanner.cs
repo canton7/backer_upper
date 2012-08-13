@@ -11,7 +11,7 @@ namespace BackerUpper
         private string startDir;
         private TreeTraverser treeTraverser;
         private FileDatabase fileDatabase;
-        private BackendBase backend;
+        public BackendBase Backend;
         public Database Database;
 
         private bool cancel = false;
@@ -27,7 +27,7 @@ namespace BackerUpper
             this.Database = database;
             this.treeTraverser = new TreeTraverser(startDir);
             this.fileDatabase = new FileDatabase(database);
-            this.backend = backend;
+            this.Backend = backend;
         }
 
         public void Cancel() {
@@ -41,7 +41,7 @@ namespace BackerUpper
             // Start with the files
             FileDatabase.FileRecord[] files = this.fileDatabase.RecordedFiles();
             foreach (FileDatabase.FileRecord file in files) {
-                if (!this.backend.FileExists(file.Path)) {
+                if (!this.Backend.FileExists(file.Path)) {
                     this.fileDatabase.DeleteFile(file.Id);
                 }
             }
@@ -49,7 +49,7 @@ namespace BackerUpper
             // Then the folders
             FileDatabase.FolderRecord[] folders = this.fileDatabase.RecordedFolders();
             foreach (FileDatabase.FolderRecord folder in folders) {
-                if (!this.backend.FolderExists(folder.Path)) {
+                if (!this.Backend.FolderExists(folder.Path)) {
                     this.fileDatabase.DeleteFolder(folder.Id);
                 }
             }
@@ -61,7 +61,7 @@ namespace BackerUpper
             IEnumerable<string> files = this.fileDatabase.RecordedFiles().Select(x => x.Path);
             IEnumerable<string> folders = this.fileDatabase.RecordedFolders().Select(x => x.Path);
 
-            this.backend.PurgeFiles(files, folders);
+            this.Backend.PurgeFiles(files, folders);
         }
 
         public void Backup() {
@@ -150,16 +150,16 @@ namespace BackerUpper
         }
 
         private int addFolder(string folder) {
-            this.backend.CreateFolder(folder);
-            int insertedId = this.fileDatabase.AddFolder(folder);
             this.BackupAction(this, new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add));
+            this.Backend.CreateFolder(folder);
+            int insertedId = this.fileDatabase.AddFolder(folder);
             return insertedId;
         }
 
         private void deleteFolder(int folderId, string folder) {
-            this.backend.DeleteFolder(folder);
-            this.fileDatabase.DeleteFolder(folderId);
             this.BackupAction(this, new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Delete));
+            this.Backend.DeleteFolder(folder);
+            this.fileDatabase.DeleteFolder(folderId);
         }
 
         private void addFile(int folderId, string file, DateTime lastModified) {
@@ -173,44 +173,43 @@ namespace BackerUpper
                 return;
             }
 
-            this.backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
-            this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
-
             this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add));
+            this.Backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+            this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
         }
 
         private void alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, string alternatePath, int alternateId) {
             // First: Is is a copy or a move?
             if (this.treeTraverser.FileExists(alternatePath)) {
                 // It's a copy
-                this.backend.CreateFromAlternateCopy(file, alternatePath);
-                this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                 this.BackupAction(this, new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Copy));
+                this.Backend.CreateFromAlternateCopy(file, alternatePath);
+                this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
             }
             else {
                 // It's a move
-                this.backend.CreateFromAlternateMove(file, alternatePath);
+                this.BackupAction(this, new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Move));
+                this.Backend.CreateFromAlternateMove(file, alternatePath);
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                 this.fileDatabase.DeleteFile(alternateId);
-                this.BackupAction(this, new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Move));
             }
         }
 
         private void updatefile(int folderId, string file, string remoteMD5, DateTime lastModified) {
             // Only copy if the file has actually changed
+            this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update));
             string fileMD5 = this.treeTraverser.FileMd5(file);
             if (remoteMD5 == fileMD5) {
-                this.backend.UpdateFile(file, this.treeTraverser.GetFileSource(file));
+                this.Backend.UpdateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
             }
             // But update the last modified time either way
             this.fileDatabase.UpdateFile(folderId, file, lastModified, fileMD5);
-            this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update));
         }
 
         private void deleteFile(int fileId, string file) {
-            this.backend.DeleteFile(file);
-            this.fileDatabase.DeleteFile(fileId);
             this.BackupAction(this, new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Delete));
+            this.Backend.DeleteFile(file);
+            this.fileDatabase.DeleteFile(fileId);
         }
 
         private struct FoundFolderItem
