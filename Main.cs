@@ -164,6 +164,8 @@ namespace BackerUpper
 
             this.InvokeEx(f => f.buttonBackup.Enabled = true);
             this.InvokeEx(f => f.buttonCancel.Enabled = false);
+            // Files/folders could will have changed
+            this.InvokeEx(f => f.updateInfoDisplay());
 
             if (this.closeAfterFinish)
                 this.InvokeEx(f => f.Close());
@@ -213,17 +215,21 @@ namespace BackerUpper
         }
 
         private void updateInfoDisplay() {
-            Settings settings = new Settings(new Database(this.loadSelectedBackup()));
+            Database database = new Database(this.loadSelectedBackup());
+            Settings settings = new Settings(database);
             DateTime lastRun = settings.LastRun;
             this.labelLastRun.Text = lastRun == new DateTime(1970, 1, 1) ? "Never" : lastRun.ToString();
             this.labelSource.Text = settings.Source;
+            int numFiles = database.NumFiles();
+            int numFolders = database.NumFolders();
+            this.labelStats.Text = String.Format("{0:n0} file{1}, {2:n0} folder{3}", numFiles, numFiles == 1 ? "" : "s", numFolders, numFolders == 1 ? "" : "s");
             List<string> dest = new List<string>();
             if (settings.MirrorEnabled)
                 dest.Add(settings.MirrorDest);
             if (settings.S3Enabled)
                 dest.Add("S3\\"+settings.S3Dest);
             this.labelDest.Text = dest.Count == 0 ? "None" : String.Join("\n", dest);
-            settings.Database.Close();
+            database.Close();
         }
 
         private void buttonCreate_Click(object sender, EventArgs e) {

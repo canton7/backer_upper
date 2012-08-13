@@ -42,6 +42,8 @@
             this.labelSource = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.labelDest = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.labelStats = new System.Windows.Forms.Label();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -93,7 +95,7 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabelBackupAction,
             this.statusLabelTime});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 238);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 274);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(427, 24);
             this.statusStrip1.TabIndex = 4;
@@ -102,7 +104,7 @@
             // statusLabelBackupAction
             // 
             this.statusLabelBackupAction.Name = "statusLabelBackupAction";
-            this.statusLabelBackupAction.Size = new System.Drawing.Size(208, 19);
+            this.statusLabelBackupAction.Size = new System.Drawing.Size(374, 19);
             this.statusLabelBackupAction.Spring = true;
             this.statusLabelBackupAction.Text = "Idle";
             this.statusLabelBackupAction.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -131,7 +133,8 @@
             // 
             // buttonExit
             // 
-            this.buttonExit.Location = new System.Drawing.Point(12, 212);
+            this.buttonExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.buttonExit.Location = new System.Drawing.Point(12, 248);
             this.buttonExit.Name = "buttonExit";
             this.buttonExit.Size = new System.Drawing.Size(75, 23);
             this.buttonExit.TabIndex = 5;
@@ -189,7 +192,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 173);
+            this.label3.Location = new System.Drawing.Point(12, 190);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(32, 13);
             this.label3.TabIndex = 11;
@@ -198,17 +201,37 @@
             // labelDest
             // 
             this.labelDest.AutoSize = true;
-            this.labelDest.Location = new System.Drawing.Point(68, 173);
+            this.labelDest.Location = new System.Drawing.Point(68, 190);
             this.labelDest.Name = "labelDest";
             this.labelDest.Size = new System.Drawing.Size(33, 13);
             this.labelDest.TabIndex = 12;
             this.labelDest.Text = "None";
             // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(12, 173);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(34, 13);
+            this.label4.TabIndex = 13;
+            this.label4.Text = "Stats:";
+            // 
+            // labelStats
+            // 
+            this.labelStats.AutoSize = true;
+            this.labelStats.Location = new System.Drawing.Point(68, 173);
+            this.labelStats.Name = "labelStats";
+            this.labelStats.Size = new System.Drawing.Size(33, 13);
+            this.labelStats.TabIndex = 14;
+            this.labelStats.Text = "None";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(427, 262);
+            this.ClientSize = new System.Drawing.Size(427, 298);
+            this.Controls.Add(this.labelStats);
+            this.Controls.Add(this.label4);
             this.Controls.Add(this.labelDest);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.labelSource);
@@ -252,6 +275,8 @@
         private System.Windows.Forms.Label labelSource;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label labelDest;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label labelStats;
 
     }
 }

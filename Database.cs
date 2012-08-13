@@ -63,6 +63,14 @@ namespace BackerUpper
             this.conn.Close();
         }
 
+        public int NumFiles() {
+            return Convert.ToInt32(this.ExecuteScalar("SELECT COUNT(id) FROM 'files'"));
+        }
+
+        public int NumFolders() {
+            return Convert.ToInt32(this.ExecuteScalar("SELECT COUNT(id) FROM 'folders'"));
+        }
+
         public DataTable ExecuteReader(string sql, params object[] parameters) {
             DataTable table = new DataTable();
             SQLiteCommand com = new SQLiteCommand(sql, this.conn);
