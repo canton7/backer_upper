@@ -198,10 +198,10 @@ namespace BackerUpper
         }
 
         private void updatefile(int folderId, string file, string remoteMD5, DateTime lastModified) {
-            // Only copy if the file has actually changed
             this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update));
+            // Only copy if the file has actually changed
             string fileMD5 = this.treeTraverser.FileMd5(file);
-            if (remoteMD5 == fileMD5) {
+            if (remoteMD5 != fileMD5) {
                 this.Backend.UpdateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
             }
             // But update the last modified time either way
