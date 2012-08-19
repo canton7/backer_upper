@@ -121,17 +121,18 @@ namespace BackerUpper
             Database database = new Database(this.loadSelectedBackup());
             Settings settings = new Settings(database);
             settings.LastRun = DateTime.Now;
+            Logger logger = new Logger("backup");
             this.updateInfoDisplay();
 
             if (settings.MirrorEnabled) {
                 MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
-                FileScanner fileScanner = new FileScanner(settings.Source, database, backend);
+                FileScanner fileScanner = new FileScanner(settings.Source, database, backend, logger);
                 fileScanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
                 this.backupQueue.Enqueue(fileScanner);
             }
             if (settings.S3Enabled) {
                 S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey);
-                FileScanner fileScanner = new FileScanner(settings.Source, database, backend);
+                FileScanner fileScanner = new FileScanner(settings.Source, database, backend, logger);
                 fileScanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
                 this.backupQueue.Enqueue(fileScanner);
             }
