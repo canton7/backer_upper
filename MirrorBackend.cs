@@ -105,6 +105,7 @@ namespace BackerUpper
                 action();
             }
             catch (IOException e) { throw new BackupOperationException(errorFile, e.Message); }
+            catch (UnauthorizedAccessException e) { throw new BackupOperationException(errorFile, e.Message); }
         }
     }
 }

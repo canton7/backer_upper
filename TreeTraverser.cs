@@ -49,9 +49,8 @@ namespace BackerUpper
             try {
                 return Directory.GetFiles(Path.Combine(this.startDir, folder)).Select(x => x.Substring(this.substringStart)).ToArray();
             }
-            catch (DirectoryNotFoundException e) {
-                throw new BackupOperationException(folder, e.Message);
-            }
+            catch (IOException e) { throw new BackupOperationException(folder, e.Message); }
+            catch (UnauthorizedAccessException e) { throw new BackupOperationException(folder, e.Message); }
         }
 
         public string GetFileSource(string file) {
@@ -66,9 +65,8 @@ namespace BackerUpper
             try {
                 return File.GetLastWriteTime(Path.Combine(this.startDir, file));
             }
-            catch (PathTooLongException e) {
-                throw new BackupOperationException(file, e.Message);
-            }
+            catch (IOException e) { throw new BackupOperationException(file, e.Message); }
+            catch (UnauthorizedAccessException e) { throw new BackupOperationException(file, e.Message); }
         }
 
         public string FileMd5(string fileName) {
@@ -76,6 +74,7 @@ namespace BackerUpper
                 return FileUtils.FileMD5(Path.Combine(this.startDir, fileName));
             }
             catch (IOException e) { throw new BackupOperationException(fileName, e.Message); }
+            catch (UnauthorizedAccessException e) { throw new BackupOperationException(fileName, e.Message); }
         }
 
         public bool FileExists(string file) {
