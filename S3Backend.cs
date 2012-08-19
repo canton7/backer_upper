@@ -132,7 +132,7 @@ namespace BackerUpper
             return this.files.Contains(file);
         }
 
-        public override void CreateFromAlternateCopy(string file, string source) {
+        public override bool CreateFromAlternateCopy(string file, string source) {
             file = file.Replace('\\', '/');
             source = source.Replace('\\', '/');
             CopyObjectRequest request = new CopyObjectRequest() {
@@ -143,6 +143,7 @@ namespace BackerUpper
             };
             this.client.CopyObject(request);
             this.files.Add(file);
+            return true;
         }
 
         public override void CreateFromAlternateMove(string file, string source) {

@@ -218,9 +218,13 @@ namespace BackerUpper
             if (this.treeTraverser.FileExists(alternatePath)) {
                 // It's a copy
                 this.reportBackupAction(new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Copy));
-                this.Backend.CreateFromAlternateCopy(file, alternatePath);
+                if (this.Backend.CreateFromAlternateCopy(file, alternatePath))
+                    this.Logger.Info("Added file: {0} from alternate {1} (copy)", file, alternatePath);
+                else {
+                    this.Backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+                    this.Logger.Info("Added file: {0} (backend refused alternate)", file);
+                }
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
-                this.Logger.Info("Added file: {0} from alternate {1} (copy)", file, alternatePath); 
             }
             else {
                 // It's a move

@@ -64,8 +64,9 @@ namespace BackerUpper
             return File.Exists(Path.Combine(this.Dest, file));
         }
 
-        public override void CreateFromAlternateCopy(string file, string source) {
-            File.Copy(Path.Combine(this.Dest, source), Path.Combine(this.Dest, file), true);
+        public override bool CreateFromAlternateCopy(string file, string source) {
+            // Copy time unaffected by whether are on the same drive; More by how many drives are USB, etc
+            return false;
         }
 
         public override void CreateFromAlternateMove(string file, string source) {
