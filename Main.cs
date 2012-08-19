@@ -152,8 +152,10 @@ namespace BackerUpper
 
                 this.currentBackupFilescanner.PruneDatabase();
                 this.currentBackupFilescanner.Backup();
-                this.currentBackupFilescanner.PurgeDest();
-                this.currentBackupFilescanner.Database.Close();   
+                if (!this.currentBackupFilescanner.Cancelled)
+                    this.currentBackupFilescanner.PurgeDest();
+                this.currentBackupFilescanner.Database.Close();
+                this.currentBackupFilescanner.Logger.Close();
             }
 
             this.backupTimer.Stop();

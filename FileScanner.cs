@@ -131,19 +131,27 @@ namespace BackerUpper
                 folder = this.treeTraverser.NextFolder(nextFolder);
             }
 
-            // Now we look for file deletions
-            FileDatabase.FileRecord[] recordedFiles = this.fileDatabase.RecordedFiles();
-            foreach (FileDatabase.FileRecord fileToCheck in recordedFiles) {
-                if (!this.treeTraverser.FileExists(fileToCheck.Path)) {
-                    this.deleteFile(fileToCheck.Id, fileToCheck.Path);
+            if (!this.cancel) {
+                // Now we look for file deletions
+                FileDatabase.FileRecord[] recordedFiles = this.fileDatabase.RecordedFiles();
+                foreach (FileDatabase.FileRecord fileToCheck in recordedFiles) {
+                    if (this.cancel)
+                        break;
+                    if (!this.treeTraverser.FileExists(fileToCheck.Path)) {
+                        this.deleteFile(fileToCheck.Id, fileToCheck.Path);
+                    }
                 }
             }
 
-            // And finally folder deletions
-            FileDatabase.FolderRecord[] recordedFolders = this.fileDatabase.RecordedFolders();
-            foreach (FileDatabase.FolderRecord folderToCheck in recordedFolders) {
-                if (!this.treeTraverser.FolderExists(folderToCheck.Path)) {
-                    this.deleteFolder(folderToCheck.Id, folderToCheck.Path);
+            if (!this.cancel) {
+                // And finally folder deletions
+                FileDatabase.FolderRecord[] recordedFolders = this.fileDatabase.RecordedFolders();
+                foreach (FileDatabase.FolderRecord folderToCheck in recordedFolders) {
+                    if (this.cancel)
+                        break;
+                    if (!this.treeTraverser.FolderExists(folderToCheck.Path)) {
+                        this.deleteFolder(folderToCheck.Id, folderToCheck.Path);
+                    }
                 }
             }
 
