@@ -218,7 +218,7 @@ namespace BackerUpper
                     this.Logger.Info("Added file: {0} from alternate {1} (copy)", file, alternatePath);
                 else {
                     this.Backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
-                    this.Logger.Info("Added file: {0} (backend refused alternate)", file);
+                    this.Logger.Info("Added file: {0} (backend refused alternate {1})", file, alternatePath);
                 }
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
             }

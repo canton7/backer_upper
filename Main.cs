@@ -152,6 +152,7 @@ namespace BackerUpper
                 this.currentBackupFilescanner.Database.Open(); 
                 this.currentBackupFilescanner.Database.LoadToMemory();
 
+                this.backupStatus = "Pruning database...";
                 this.currentBackupFilescanner.PruneDatabase();
                 this.currentBackupFilescanner.Backup();
                 if (!this.currentBackupFilescanner.Cancelled)
