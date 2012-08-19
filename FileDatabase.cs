@@ -103,7 +103,7 @@ namespace BackerUpper
         public void UpdateFile(int folderId, string name, DateTime lastModified, string md5) {
             int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
 
-            this.db.Execute("UPDATE files SET date_modified = @date_modified, md5 = @md5 WHERE folder_id = @folder_id AND name = @name;", "@date_modified", lastModifiedEpoch, "@md5", md5, "@folder_id", folderId, "@name", name);
+            this.db.Execute("UPDATE files SET date_modified = @date_modified, md5 = @md5 WHERE folder_id = @folder_id AND name = @name;", "@date_modified", lastModifiedEpoch, "@md5", md5, "@folder_id", folderId, "@name", Path.GetFileName(name));
         }
 
         public void DeleteFile(int fileId) {
