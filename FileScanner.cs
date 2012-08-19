@@ -90,25 +90,31 @@ namespace BackerUpper
             while (folder.Level >= 0 && !this.cancel) {
                 if (newFolderLevel >= 0 && folder.Level > newFolderLevel) {
                     // Just automatically add it, as a parent somewhere is new
-                    curFolderId = this.addFolder(folder.Name);
+                    try {
+                        curFolderId = this.addFolder(folder.Name);
+                    }
+                    catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
                 else {
                     newFolderLevel = -1;
 
-                    folderStatus = this.fileDatabase.InspectFolder(folder.Name);
+                    try {
+                        folderStatus = this.fileDatabase.InspectFolder(folder.Name);
 
-                    switch (folderStatus.FolderModStatus) {
-                        case FileDatabase.FolderModStatus.New:
-                            newFolderLevel = folder.Level;
-                            nextFolder = true;
-                            curFolderId = this.addFolder(folder.Name);
-                            break;
-                        case FileDatabase.FolderModStatus.StillThere:
-                            //this.Logger.Info("Skipping folder: {0}", folder.Name);
-                            nextFolder = true;
-                            curFolderId = folderStatus.Id;
-                            break;
+                        switch (folderStatus.FolderModStatus) {
+                            case FileDatabase.FolderModStatus.New:
+                                newFolderLevel = folder.Level;
+                                nextFolder = true;
+                                curFolderId = this.addFolder(folder.Name);
+                                break;
+                            case FileDatabase.FolderModStatus.StillThere:
+                                //this.Logger.Info("Skipping folder: {0}", folder.Name);
+                                nextFolder = true;
+                                curFolderId = folderStatus.Id;
+                                break;
+                        }
                     }
+                    catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
 
                 // Check for files in this folder
@@ -116,21 +122,24 @@ namespace BackerUpper
                 foreach (string file in files) {
                     if (this.cancel)
                         break;
-                    fileLastModified = this.treeTraverser.GetFileLastModified(file);
-                    fileStatus = this.fileDatabase.InspectFile(curFolderId, file, fileLastModified);
+                    try {
+                        fileLastModified = this.treeTraverser.GetFileLastModified(file);
+                        fileStatus = this.fileDatabase.InspectFile(curFolderId, file, fileLastModified);
 
-                    switch (fileStatus.FileModStatus) {
-                        case FileDatabase.FileModStatus.New:
-                            this.addFile(curFolderId, file, fileLastModified);
-                            break;
-                        case FileDatabase.FileModStatus.Modified:
-                            this.updatefile(curFolderId, file, fileStatus.MD5, fileLastModified);
-                            break;
-                        default:
-                            //this.Logger.Info("Skipping file: {0}", file);
-                            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
-                            break;
+                        switch (fileStatus.FileModStatus) {
+                            case FileDatabase.FileModStatus.New:
+                                this.addFile(curFolderId, file, fileLastModified);
+                                break;
+                            case FileDatabase.FileModStatus.Modified:
+                                this.updatefile(curFolderId, file, fileStatus.MD5, fileLastModified);
+                                break;
+                            default:
+                                //this.Logger.Info("Skipping file: {0}", file);
+                                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
+                                break;
+                        }
                     }
+                    catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
 
                 // Move onto the next folder
@@ -242,6 +251,10 @@ namespace BackerUpper
         private void reportBackupAction(BackupActionItem item) {
             this.lastBackupActionItem = item;
             BackupAction(this, item);
+        }
+
+        private void handleOperationException(BackupOperationException e) {
+            this.Logger.Warn(e.Message);
         }
 
         private void Backend_CopyProgress(object sender, int percent) {

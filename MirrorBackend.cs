@@ -42,7 +42,12 @@ namespace BackerUpper
                     return;
             }
 
-            File.Copy(source, dest, true);
+            try {
+                File.Copy(source, dest, true);
+            }
+            catch (PathTooLongException e) {
+                throw new BackupOperationException(file, e.Message);
+            }
             FileInfo fileInfo = new FileInfo(dest);
             fileInfo.IsReadOnly = false;
         }

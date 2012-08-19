@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackendBase.cs" />
+    <Compile Include="BackupOperationException.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="S3Backend.cs" />

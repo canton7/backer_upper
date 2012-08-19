@@ -58,7 +58,12 @@ namespace BackerUpper
         }
 
         public DateTime GetFileLastModified(string file) {
-            return File.GetLastWriteTime(Path.Combine(this.startDir, file));
+            try {
+                return File.GetLastWriteTime(Path.Combine(this.startDir, file));
+            }
+            catch (PathTooLongException e) {
+                throw new BackupOperationException(file, e.Message);
+            }
         }
 
         public string FileMd5(string fileName) {
