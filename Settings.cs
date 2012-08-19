@@ -7,7 +7,6 @@ namespace BackerUpper
 {
     class Settings
     {
-        
         Database db;
         public Database Database {
             get { return this.db; }
@@ -58,12 +57,24 @@ namespace BackerUpper
             set { this.setKey("lastRun", ((int)(value - new DateTime(1970, 1, 1)).TotalSeconds).ToString()); }
         }
 
+        public bool LastRunCancelled {
+            get { return (this.getKey("lastRunCancelled") == "1"); }
+            set { this.setKey("lastRunCancelled", value ? "1" : "0"); }
+        }
+
+        public bool LastRunErrorFree {
+            get { return (this.getKey("lastRunErrorFree") == "1"); }
+            set { this.setKey("lastRunErrorFree", value ? "1" : "0"); }
+        }
+
         public Settings(Database db) {
             this.db = db;
         }
 
         private void setKey(string name, string value) {
-            this.db.Execute("UPDATE settings SET value = @value WHERE name = @name", "@name", name, "@value", value);
+            // Handle settings being added in on-the-fly (e.g. from upgrade)
+            if (this.db.Execute("UPDATE settings SET value = @value WHERE name = @name", "@name", name, "@value", value) == 0)
+                this.db.Execute("INSERT INTO settings (name, value) VALUES (@name, @value)", "@name", name, "@value", value);
         }
 
         private string getKey(string name) {
@@ -75,7 +86,7 @@ namespace BackerUpper
                 ('name', @name), ('source', ''),
                 ('mirrorEnabled', '0'), ('mirrorDest', ''),
                 ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', ''),
-                ('lastRun', '0');", "@name", name);
+                ('lastRun', '0'), ('lastRunCancelled', '0'), ('lastRunErrorFree', '1'); ", "@name", name);
         }
     }
 }

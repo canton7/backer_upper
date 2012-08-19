@@ -22,7 +22,7 @@ namespace BackerUpper
         }
 
         private bool warningOccurred = false;
-        public bool WarnerOccurred {
+        public bool WarningOccurred {
             get { return this.warningOccurred; }
         }
 

@@ -114,6 +114,7 @@ namespace BackerUpper
             this.buttonBackup.Enabled = false;
             this.buttonCancel.Enabled = true;
 
+            this.backupStatus = "Starting...";
             this.backupTimerElapsed = 0;
             this.backupTimer.Start();
             this.backupStatusTimer.Start();
@@ -155,6 +156,11 @@ namespace BackerUpper
                 this.currentBackupFilescanner.Backup();
                 if (!this.currentBackupFilescanner.Cancelled)
                     this.currentBackupFilescanner.PurgeDest();
+
+                Settings settings = new Settings(this.currentBackupFilescanner.Database);
+                settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;
+                settings.LastRunErrorFree = !this.currentBackupFilescanner.WarningOccurred;
+
                 this.currentBackupFilescanner.Database.Close();
                 this.currentBackupFilescanner.Logger.Close();
             }
@@ -163,7 +169,7 @@ namespace BackerUpper
             this.backupStatusTimer.Stop();
             this.InvokeEx(f => f.statusLabelBackupAction.Text = this.currentBackupFilescanner.Cancelled ? "Cancelled" : "Completed");
 
-            if (this.currentBackupFilescanner.WarnerOccurred) {
+            if (this.currentBackupFilescanner.WarningOccurred) {
                 DialogResult result = MessageBox.Show("One or more warnings occurred. Do you want to view the log file?", "Some warnings happened", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes) {
                     Process.Start(this.currentBackupFilescanner.Logger.LogFilePath);
@@ -227,7 +233,9 @@ namespace BackerUpper
             Database database = new Database(this.loadSelectedBackup());
             Settings settings = new Settings(database);
             DateTime lastRun = settings.LastRun;
-            this.labelLastRun.Text = lastRun == new DateTime(1970, 1, 1) ? "Never" : lastRun.ToString();
+            this.labelLastRun.Text = lastRun == new DateTime(1970, 1, 1) ? "Never" : (lastRun.ToString() + 
+                    (settings.LastRunCancelled ? ". Cancelled" : ". Completed") + 
+                    (settings.LastRunErrorFree ? (settings.LastRunCancelled ? "" : " successfully") : " with warnings"));
             this.labelSource.Text = settings.Source;
             int numFiles = database.NumFiles();
             int numFolders = database.NumFolders();
