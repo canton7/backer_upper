@@ -161,8 +161,14 @@ namespace BackerUpper
 
             this.backupTimer.Stop();
             this.backupStatusTimer.Stop();
-            this.InvokeEx(f => f.statusLabelBackupAction.Text = this.currentBackupFilescanner.Cancelled ? "Cancelled": "Completed");
+            this.InvokeEx(f => f.statusLabelBackupAction.Text = this.currentBackupFilescanner.Cancelled ? "Cancelled" : "Completed");
 
+            if (this.currentBackupFilescanner.WarnerOccurred) {
+                DialogResult result = MessageBox.Show("One or more warnings occurred. Do you want to view the log file?", "Some warnings happened", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes) {
+                    Process.Start(this.currentBackupFilescanner.Logger.LogFilePath);
+                }
+            }
             this.currentBackupFilescanner = null;
 
             this.InvokeEx(f => f.buttonBackup.Enabled = true);

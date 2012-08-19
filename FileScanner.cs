@@ -21,6 +21,11 @@ namespace BackerUpper
             get { return this.cancel; }
         }
 
+        private bool warningOccurred = false;
+        public bool WarnerOccurred {
+            get { return this.warningOccurred; }
+        }
+
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
@@ -73,6 +78,7 @@ namespace BackerUpper
 
         public void Backup() {
             this.cancel = false;
+            this.warningOccurred = false;
 
             TreeTraverser.FolderEntry folder = this.treeTraverser.FirstFolder();
             FileDatabase.FolderStatus folderStatus;
@@ -254,6 +260,7 @@ namespace BackerUpper
         }
 
         private void handleOperationException(BackupOperationException e) {
+            this.warningOccurred = true;
             this.Logger.Warn(e.Message);
         }
 

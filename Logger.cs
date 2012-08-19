@@ -18,12 +18,18 @@ namespace BackerUpper
             {Level.ERROR, "ERROR"},
         };
 
+        private string logFilePath;
+        public string LogFilePath {
+            get { return this.logFilePath; }
+        }
+
         public Logger(string type) {
             string logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
             if (!Directory.Exists(logsPath))
                 Directory.CreateDirectory(logsPath);
             string fileName = String.Format("{0}-{1:yyyyMMdd-HHmmss}.log", type, DateTime.Now);
-            this.writer = new StreamWriter(Path.Combine(logsPath, fileName));
+            this.logFilePath = Path.Combine(logsPath, fileName);
+            this.writer = new StreamWriter(this.logFilePath);
 
             this.writer.WriteLine("To find warnings or errors, search for [{0}] or [{1}]\n", levelStrings[Level.WARN], levelStrings[Level.ERROR]);
         }
