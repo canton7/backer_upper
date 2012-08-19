@@ -46,7 +46,12 @@ namespace BackerUpper
         }
 
         public string[] ListFiles(string folder) {
-            return Directory.GetFiles(Path.Combine(this.startDir, folder)).Select(x => x.Substring(this.substringStart)).ToArray();
+            try {
+                return Directory.GetFiles(Path.Combine(this.startDir, folder)).Select(x => x.Substring(this.substringStart)).ToArray();
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new BackupOperationException(folder, e.Message);
+            }
         }
 
         public string GetFileSource(string file) {
@@ -67,7 +72,10 @@ namespace BackerUpper
         }
 
         public string FileMd5(string fileName) {
-            return FileUtils.FileMD5(Path.Combine(this.startDir, fileName));
+            try {
+                return FileUtils.FileMD5(Path.Combine(this.startDir, fileName));
+            }
+            catch (IOException e) { throw new BackupOperationException(fileName, e.Message); }
         }
 
         public bool FileExists(string file) {

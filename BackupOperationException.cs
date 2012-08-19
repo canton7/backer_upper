@@ -7,6 +7,6 @@ namespace BackerUpper
 {
     class BackupOperationException : Exception
     {
-        public BackupOperationException(string fileOrFolder, string message) : base(String.Format("{0}: {1}", fileOrFolder, message)) { }
+        public BackupOperationException(string fileOrFolder, string message) : base(String.Format("{0}: {1}", fileOrFolder, message.Trim())) { }
     }
 }

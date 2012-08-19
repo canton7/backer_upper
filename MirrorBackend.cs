@@ -21,11 +21,11 @@ namespace BackerUpper
         }
 
         public override void CreateFolder(string folder) {
-            Directory.CreateDirectory(Path.Combine(this.Dest, folder));
+            this.withHandling(() => Directory.CreateDirectory(Path.Combine(this.Dest, folder)), folder);
         }
 
         public override void DeleteFolder(string folder) {
-            Directory.Delete(Path.Combine(this.Dest, folder));
+            this.withHandling(() => Directory.Delete(Path.Combine(this.Dest, folder)), folder);
         }
 
         public override bool FolderExists(string folder) {
@@ -36,28 +36,26 @@ namespace BackerUpper
             // If fileMD5 passed, check whether file already exists with this hash. If so, don't copy
             string dest = Path.Combine(this.Dest, file);
 
-            if (File.Exists(dest)) {
-                string destMD5 = FileUtils.FileMD5(dest);
-                if (destMD5 == fileMD5)
-                    return;
-            }
-
             try {
-                File.Copy(source, dest, true);
+                if (File.Exists(dest)) {
+                    string destMD5 = FileUtils.FileMD5(dest);
+                    if (destMD5 == fileMD5)
+                        return;
+                }
             }
-            catch (PathTooLongException e) {
-                throw new BackupOperationException(file, e.Message);
-            }
+            catch (IOException e) { throw new BackupOperationException(dest, e.Message); }
+
+            this.withHandling(() => File.Copy(source, dest, true), file);
             FileInfo fileInfo = new FileInfo(dest);
             fileInfo.IsReadOnly = false;
         }
 
         public override void UpdateFile(string file, string source, string fileMD5) {
-            File.Copy(source, Path.Combine(this.Dest, file), true);
+            this.withHandling(() => File.Copy(source, Path.Combine(this.Dest, file), true), file);
         }
 
         public override void DeleteFile(string file) {
-            File.Delete(Path.Combine(this.Dest, file));
+            this.withHandling(() => File.Delete(Path.Combine(this.Dest, file)), file);
         }
 
         public override bool FileExists(string file) {
@@ -70,7 +68,10 @@ namespace BackerUpper
         }
 
         public override void CreateFromAlternateMove(string file, string source) {
-            File.Move(Path.Combine(this.Dest, source), Path.Combine(this.Dest, file));
+            string dest = Path.Combine(this.Dest, file);
+            if (File.Exists(dest))
+                this.withHandling(() => File.Delete(dest), dest);
+            this.withHandling(() => File.Move(Path.Combine(this.Dest, source), dest), file);
         }
 
         public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn) {
@@ -97,6 +98,13 @@ namespace BackerUpper
 
                 folder = treeTraverser.NextFolder(true);
             }
+        }
+
+        private void withHandling(Action action, string errorFile) {
+            try {
+                action();
+            }
+            catch (IOException e) { throw new BackupOperationException(errorFile, e.Message); }
         }
     }
 }

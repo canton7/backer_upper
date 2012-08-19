@@ -94,17 +94,13 @@ namespace BackerUpper
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
 
             while (folder.Level >= 0 && !this.cancel) {
-                if (newFolderLevel >= 0 && folder.Level > newFolderLevel) {
-                    // Just automatically add it, as a parent somewhere is new
-                    try {
+                try {
+                    if (newFolderLevel >= 0 && folder.Level > newFolderLevel) {
+                        // Just automatically add it, as a parent somewhere is new
                         curFolderId = this.addFolder(folder.Name);
                     }
-                    catch (BackupOperationException e) { this.handleOperationException(e); }
-                }
-                else {
-                    newFolderLevel = -1;
-
-                    try {
+                    else {
+                        newFolderLevel = -1;
                         folderStatus = this.fileDatabase.InspectFolder(folder.Name);
 
                         switch (folderStatus.FolderModStatus) {
@@ -120,8 +116,8 @@ namespace BackerUpper
                                 break;
                         }
                     }
-                    catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
+                catch (BackupOperationException e) { this.handleOperationException(e); }
 
                 // Check for files in this folder
                 files = this.treeTraverser.ListFiles(folder.Name);
