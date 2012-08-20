@@ -5,6 +5,7 @@ using System.Text;
 using System.Data.SQLite;
 using System.Data;
 using System.IO;
+using System.Timers;
 
 namespace BackerUpper
 {
@@ -14,6 +15,19 @@ namespace BackerUpper
         // If we're working from memoroy, conn contains the memory db and diskConn the disk db
         private SQLiteConnection conn;
         private SQLiteConnection diskConn;
+        private Timer syncTimer;
+        private bool nonScalarExecuted = false;
+
+        public bool AutoSyncToDisk {
+            get { return this.syncTimer.Enabled; }
+            set {
+                this.syncTimer.Enabled = value;
+                if (value)
+                    this.syncTimer.Start();
+                else
+                    this.syncTimer.Stop();
+            }
+        }
 
         public Database(string path) {
             if (!File.Exists(path))
@@ -25,6 +39,21 @@ namespace BackerUpper
             this.diskConn = null;
 
             this.Execute("PRAGMA foreign_keys = ON;");
+
+            // 5 minutes
+            this.syncTimer = new Timer(300000) {
+                AutoReset = true,
+                Enabled = false,
+            };
+            this.syncTimer.Elapsed += new ElapsedEventHandler(syncTimer_Elapsed);
+        }
+
+        void syncTimer_Elapsed(object sender, ElapsedEventArgs e) {
+            // Periodically sync the DB back to disk if a nonScalar execution has occurred -- most likely to be UPDATE/INSERT etc
+            if (!this.nonScalarExecuted)
+                return;
+            this.SyncToDisk();
+            this.nonScalarExecuted = false;
         }
 
         public void Open() {
@@ -45,7 +74,9 @@ namespace BackerUpper
         }
 
         public void SyncToDisk() {
-            this.conn.BackupDatabase(this.diskConn, "main", "main", -1, null, 0);
+            // Only if we're using a memory db
+            if (this.diskConn != null)
+                this.conn.BackupDatabase(this.diskConn, "main", "main", -1, null, 0);
         }
 
         public void UnloadFromMemory() {
@@ -127,6 +158,8 @@ namespace BackerUpper
          */
 
         public int Execute(string sql, params object[] parameters) {
+            this.nonScalarExecuted = true;
+
             SQLiteCommand com = new SQLiteCommand(sql, this.conn);
 
             for (int i=0; i<parameters.Length; i+=2) {

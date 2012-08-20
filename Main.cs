@@ -120,6 +120,7 @@ namespace BackerUpper
             this.backupStatusTimer.Start();
 
             Database database = new Database(this.loadSelectedBackup());
+            database.AutoSyncToDisk = true;
             Settings settings = new Settings(database);
             settings.LastRun = DateTime.Now;
             Logger logger = new Logger("backup");
