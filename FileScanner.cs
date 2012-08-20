@@ -94,6 +94,9 @@ namespace BackerUpper
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
 
             while (folder.Level >= 0 && !this.cancel) {
+                // May not get assigned, due to try/catch, so assign empty as a default
+                files = new string[0];
+
                 try {
                     if (newFolderLevel >= 0 && folder.Level > newFolderLevel) {
                         // Just automatically add it, as a parent somewhere is new
@@ -116,11 +119,12 @@ namespace BackerUpper
                                 break;
                         }
                     }
+
+                    // Check for files in this folder
+                    files = this.treeTraverser.ListFiles(folder.Name);
                 }
                 catch (BackupOperationException e) { this.handleOperationException(e); }
 
-                // Check for files in this folder
-                files = this.treeTraverser.ListFiles(folder.Name);
                 foreach (string file in files) {
                     if (this.cancel)
                         break;
@@ -144,9 +148,12 @@ namespace BackerUpper
                     catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
 
-                // Move onto the next folder
-                prevLevel = folder.Level;
-                folder = this.treeTraverser.NextFolder(nextFolder);
+                try {
+                    // Move onto the next folder
+                    prevLevel = folder.Level;
+                    folder = this.treeTraverser.NextFolder(nextFolder);
+                }
+                catch (BackupOperationException e) { this.handleOperationException(e); }
             }
 
             if (!this.cancel) {

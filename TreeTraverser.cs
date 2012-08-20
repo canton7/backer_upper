@@ -33,8 +33,8 @@ namespace BackerUpper
                         this.stack.Push(new FolderEntry(folderEntry.Level + 1, child));
                     }
                 }
-                catch (DirectoryNotFoundException) {
-                }
+                catch (IOException e) { throw new BackupOperationException(folderEntry.Name, e.Message); }
+                catch (UnauthorizedAccessException e) { throw new BackupOperationException(folderEntry.Name, e.Message); }
             }
 
             if (this.stack.Count == 0) {
