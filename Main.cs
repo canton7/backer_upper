@@ -56,7 +56,7 @@ namespace BackerUpper
         private void populateBackupsList() {
             if (!Directory.Exists(this.backupsPath))
                 return;
-            this.backups = Directory.GetFiles(this.backupsPath).Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
+            this.backups = Directory.GetFiles(this.backupsPath).Where(file => Path.GetExtension(file) == Constants.BACKUP_EXTENSION).Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
             this.backupsList.DataSource = this.backups;
         }
 
@@ -145,7 +145,14 @@ namespace BackerUpper
             BackendBase[] backends = backupArgs.BackendBases;
 
             database.Open();
-            database.LoadToMemory();
+            try {
+                database.LoadToMemory();
+            }
+            catch (Database.DatabaseInUseException ex) {
+                this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?\n\nIf you're certain this is the only instance of the program running, delete "+ex.LockFile);
+                this.finishBackup(database, logger, "Error");
+                return;
+            }
 
             foreach (BackendBase backend in backends) {
                 this.InvokeEx(f => f.statusLabelBackupAction.Text = "Setting up "+backend.Name+" backend...");
@@ -167,16 +174,20 @@ namespace BackerUpper
             settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;
             settings.LastRunErrors = this.currentBackupFilescanner.WarningOccurred;
 
-            this.backupTimer.Stop();
-            this.backupStatusTimer.Stop();
-            this.InvokeEx(f => f.statusLabelBackupAction.Text = this.currentBackupFilescanner.Cancelled ? "Cancelled" : "Completed");
-
             if (this.currentBackupFilescanner.WarningOccurred && !(backupArgs.FromScheduler && settings.IgnoreWarnings)) {
                 DialogResult result = MessageBox.Show("One or more warnings occurred. Do you want to view the log file?", "Some warnings happened", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes) {
                     Process.Start(this.currentBackupFilescanner.Logger.LogFilePath);
                 }
             }
+
+            this.finishBackup(database, logger, this.currentBackupFilescanner.Cancelled ? "Cancelled" : "Completed");
+        }
+
+        private void finishBackup(Database database, Logger logger, string status) {
+            this.backupTimer.Stop();
+            this.backupStatusTimer.Stop();
+            this.InvokeEx(f => f.statusLabelBackupAction.Text = status);
 
             this.currentBackupFilescanner = null;
             database.Close();

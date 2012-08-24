@@ -17,6 +17,8 @@ namespace BackerUpper
         private SQLiteConnection diskConn;
         private Timer syncTimer;
         private bool nonScalarExecuted = false;
+        private string lockName;
+        private FileStream dbLock;
 
         public bool AutoSyncToDisk {
             get { return this.syncTimer.Enabled; }
@@ -32,6 +34,8 @@ namespace BackerUpper
         public Database(string path) {
             if (!File.Exists(path))
                 throw new FileNotFoundException("Could not find database "+path);
+
+            this.lockName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + ".lock");
 
             this.conn = new SQLiteConnection("Data Source="+path);
             this.conn.Open();
@@ -66,6 +70,13 @@ namespace BackerUpper
             if (this.diskConn != null)
                 return;
 
+            try {
+                this.dbLock = new FileStream(this.lockName, FileMode.CreateNew);
+            }
+            catch (IOException) {
+                throw new DatabaseInUseException(this.lockName);
+            }
+
             SQLiteConnection memoryConn = new SQLiteConnection("Data Source=:memory:");
             memoryConn.Open();
             this.conn.BackupDatabase(memoryConn, "main", "main", -1, null, 0);
@@ -87,6 +98,9 @@ namespace BackerUpper
             this.conn.Close();
             this.conn = this.diskConn;
             this.diskConn = null;
+
+            this.dbLock.Close();
+            File.Delete(this.lockName);
         }
 
         public void Close() {
@@ -204,6 +218,15 @@ namespace BackerUpper
             database.Execute("CREATE INDEX settings_name_idx ON settings(name)");
 
             return database;
+        }
+
+        public class DatabaseInUseException : IOException
+        {
+            public string LockFile;
+            public DatabaseInUseException(string lockFile)
+                    : base() {
+                this.LockFile = lockFile;
+            }
         }
     }
 }
