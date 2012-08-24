@@ -62,9 +62,19 @@ namespace BackerUpper
             set { this.setKey("lastRunCancelled", value ? "1" : "0"); }
         }
 
-        public bool LastRunErrorFree {
-            get { return (this.getKey("lastRunErrorFree") == "1"); }
-            set { this.setKey("lastRunErrorFree", value ? "1" : "0"); }
+        public bool LastRunErrors {
+            get { return (this.getKey("lastRunErrors") == "1"); }
+            set { this.setKey("lastRunErrors", value ? "1" : "0"); }
+        }
+
+        public bool Autoclose {
+            get { return (this.getKey("autoclose") == "1"); }
+            set { this.setKey("autoclose", value ? "1" : "0"); }
+        }
+
+        public bool IgnoreWarnings {
+            get { return (this.getKey("ignoreWarnings") == "1"); }
+            set { this.setKey("ignoreWarnings", value ? "1" : "0"); }
         }
 
         public Settings(Database db) {
@@ -86,7 +96,8 @@ namespace BackerUpper
                 ('name', @name), ('source', ''),
                 ('mirrorEnabled', '0'), ('mirrorDest', ''),
                 ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', ''),
-                ('lastRun', '0'), ('lastRunCancelled', '0'), ('lastRunErrorFree', '1'); ", "@name", name);
+                ('lastRun', '0'), ('lastRunCancelled', '0'), ('lastRunErrors', '0'),
+                ('autoclose', '1'), ('ignoreWarnings', '0'); ", "@name", name);
         }
     }
 }

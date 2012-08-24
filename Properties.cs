@@ -36,6 +36,8 @@ namespace BackerUpper
             this.textBoxS3Dest.Text = this.settings.S3Dest;
             this.textBoxS3PublicKey.Text = this.settings.S3PublicKey;
             this.textBoxS3PrivateKey.Text = this.settings.S3PrivateKey;
+            this.checkBoxAutoclose.Checked = this.settings.Autoclose;
+            this.checkBoxIgnoreWarnings.Checked = this.settings.IgnoreWarnings;
 
             this.enableDisableDests();
 
@@ -51,6 +53,8 @@ namespace BackerUpper
             this.settings.S3Dest = this.textBoxS3Dest.Text;
             this.settings.S3PublicKey = this.textBoxS3PublicKey.Text;
             this.settings.S3PrivateKey = this.textBoxS3PrivateKey.Text;
+            this.settings.Autoclose = this.checkBoxAutoclose.Checked;
+            this.settings.IgnoreWarnings = this.checkBoxIgnoreWarnings.Checked;
 
             this.setupTask();
         }

@@ -49,6 +49,9 @@
             this.textBoxS3Dest = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.checkBoxIgnoreWarnings = new System.Windows.Forms.CheckBox();
+            this.checkBoxAutoclose = new System.Windows.Forms.CheckBox();
+            this.label7 = new System.Windows.Forms.Label();
             this.dateTimePickerScheduleTime = new System.Windows.Forms.DateTimePicker();
             this.checkBoxScheduleSun = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleSat = new System.Windows.Forms.CheckBox();
@@ -57,7 +60,6 @@
             this.checkBoxScheduleWeds = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleTues = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleMon = new System.Windows.Forms.CheckBox();
-            this.label7 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBoxMirror.SuspendLayout();
             this.groupBoxS3.SuspendLayout();
@@ -295,6 +297,8 @@
             // 
             this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox2.Controls.Add(this.checkBoxIgnoreWarnings);
+            this.groupBox2.Controls.Add(this.checkBoxAutoclose);
             this.groupBox2.Controls.Add(this.label7);
             this.groupBox2.Controls.Add(this.dateTimePickerScheduleTime);
             this.groupBox2.Controls.Add(this.checkBoxScheduleSun);
@@ -311,11 +315,40 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Schedule";
             // 
+            // checkBoxIgnoreWarnings
+            // 
+            this.checkBoxIgnoreWarnings.AutoSize = true;
+            this.checkBoxIgnoreWarnings.Location = new System.Drawing.Point(264, 24);
+            this.checkBoxIgnoreWarnings.Name = "checkBoxIgnoreWarnings";
+            this.checkBoxIgnoreWarnings.Size = new System.Drawing.Size(104, 17);
+            this.checkBoxIgnoreWarnings.TabIndex = 4;
+            this.checkBoxIgnoreWarnings.Text = "Ignore Warnings";
+            this.checkBoxIgnoreWarnings.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxAutoclose
+            // 
+            this.checkBoxAutoclose.AutoSize = true;
+            this.checkBoxAutoclose.Location = new System.Drawing.Point(138, 24);
+            this.checkBoxAutoclose.Name = "checkBoxAutoclose";
+            this.checkBoxAutoclose.Size = new System.Drawing.Size(120, 17);
+            this.checkBoxAutoclose.TabIndex = 3;
+            this.checkBoxAutoclose.Text = "Close when finished";
+            this.checkBoxAutoclose.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(8, 25);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(41, 13);
+            this.label7.TabIndex = 2;
+            this.label7.Text = "Start at";
+            // 
             // dateTimePickerScheduleTime
             // 
             this.dateTimePickerScheduleTime.CustomFormat = "h:mm tt";
             this.dateTimePickerScheduleTime.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateTimePickerScheduleTime.Location = new System.Drawing.Point(55, 19);
+            this.dateTimePickerScheduleTime.Location = new System.Drawing.Point(55, 24);
             this.dateTimePickerScheduleTime.Name = "dateTimePickerScheduleTime";
             this.dateTimePickerScheduleTime.ShowUpDown = true;
             this.dateTimePickerScheduleTime.Size = new System.Drawing.Size(68, 20);
@@ -406,15 +439,6 @@
             this.checkBoxScheduleMon.Text = "Mon";
             this.checkBoxScheduleMon.UseVisualStyleBackColor = true;
             // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(8, 25);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(41, 13);
-            this.label7.TabIndex = 2;
-            this.label7.Text = "Start at";
-            // 
             // Properties
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -480,5 +504,7 @@
         private System.Windows.Forms.CheckBox checkBoxScheduleTues;
         private System.Windows.Forms.CheckBox checkBoxScheduleMon;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.CheckBox checkBoxAutoclose;
+        private System.Windows.Forms.CheckBox checkBoxIgnoreWarnings;
     }
 }

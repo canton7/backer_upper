@@ -11,7 +11,14 @@ namespace BackerUpper
         private string startDir;
         private TreeTraverser treeTraverser;
         private FileDatabase fileDatabase;
-        public BackendBase Backend;
+        private BackendBase backend;
+        public BackendBase Backend {
+            get { return this.backend; }
+            set {
+                this.backend = value;
+                this.backend.CopyProgress += new BackendBase.CopyProgressEventHandler(Backend_CopyProgress);
+            }
+        }
         public Database Database;
         private BackupActionItem lastBackupActionItem;
         public Logger Logger;
@@ -29,13 +36,13 @@ namespace BackerUpper
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
-        public FileScanner(string startDir, Database database, BackendBase backend, Logger logger) {
+        public FileScanner(string startDir, Database database, Logger logger, BackendBase backend=null) {
             this.startDir = startDir;
             this.Database = database;
             this.treeTraverser = new TreeTraverser(startDir);
             this.fileDatabase = new FileDatabase(database);
-            this.Backend = backend;
-            this.Backend.CopyProgress += new BackendBase.CopyProgressEventHandler(Backend_CopyProgress);
+            if (backend != null)
+                this.Backend = backend;
             this.Logger = logger;
         }
 
