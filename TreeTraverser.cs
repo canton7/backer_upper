@@ -27,14 +27,17 @@ namespace BackerUpper
         public FolderEntry NextFolder(bool further) {
             FolderEntry folderEntry = this.stack.Pop();
             if (further) {
-                // Directories can disappear from under our feet. Just carry on
+                // Directories can disappear from under our feet. Just carr y on
                 try {
                     foreach (string child in Directory.GetDirectories(folderEntry.Name)) {
                         this.stack.Push(new FolderEntry(folderEntry.Level + 1, child));
                     }
                 }
-                catch (IOException e) { throw new BackupOperationException(folderEntry.Name, e.Message); }
-                catch (UnauthorizedAccessException e) { throw new BackupOperationException(folderEntry.Name, e.Message); }
+                // We CAN NOT exit now, as we won't return a new folder, and stuff breaks badly.
+                // We'll already get a log entry from when we try and find files in this folder, so stay with that
+                catch (DirectoryNotFoundException) { }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
             }
 
             if (this.stack.Count == 0) {
