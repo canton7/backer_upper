@@ -11,14 +11,7 @@ namespace BackerUpper
         private string startDir;
         private TreeTraverser treeTraverser;
         private FileDatabase fileDatabase;
-        private BackendBase backend;
-        public BackendBase Backend {
-            get { return this.backend; }
-            set {
-                this.backend = value;
-                this.backend.CopyProgress += new BackendBase.CopyProgressEventHandler(Backend_CopyProgress);
-            }
-        }
+        private BackendBase[] backends;
         public Database Database;
         private BackupActionItem lastBackupActionItem;
         public Logger Logger;
@@ -36,13 +29,15 @@ namespace BackerUpper
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
-        public FileScanner(string startDir, Database database, Logger logger, BackendBase backend=null) {
+        public FileScanner(string startDir, Database database, Logger logger, BackendBase[] backends) {
             this.startDir = startDir;
             this.Database = database;
             this.treeTraverser = new TreeTraverser(startDir);
             this.fileDatabase = new FileDatabase(database);
-            if (backend != null)
-                this.Backend = backend;
+            this.backends = backends;
+            foreach (BackendBase backend in this.backends) {
+                backend.CopyProgress += new BackendBase.CopyProgressEventHandler(Backend_CopyProgress);
+            }
             this.Logger = logger;
         }
 
@@ -57,7 +52,7 @@ namespace BackerUpper
             // Start with the files
             FileDatabase.FileRecord[] files = this.fileDatabase.RecordedFiles();
             foreach (FileDatabase.FileRecord file in files) {
-                if (!this.Backend.FileExists(file.Path)) {
+                if (this.backends.Any(b => !b.FileExists(file.Path))) {
                     this.Logger.Info("Pruning database entry: file {0}", file.Path);
                     this.fileDatabase.DeleteFile(file.Id);
                 }
@@ -66,7 +61,7 @@ namespace BackerUpper
             // Then the folders
             FileDatabase.FolderRecord[] folders = this.fileDatabase.RecordedFolders();
             foreach (FileDatabase.FolderRecord folder in folders) {
-                if (!this.Backend.FolderExists(folder.Path)) {
+                if (this.backends.Any(b => !b.FolderExists(folder.Path))) {
                     this.Logger.Info("Pruning database entry: folder {0}", folder.Path);
                     this.fileDatabase.DeleteFolder(folder.Id);
                 }
@@ -79,8 +74,10 @@ namespace BackerUpper
             IEnumerable<string> files = this.fileDatabase.RecordedFiles().Select(x => x.Path);
             IEnumerable<string> folders = this.fileDatabase.RecordedFolders().Select(x => x.Path);
 
-            this.Logger.Info("Removing files from the destination which aren't in the database or source filesystem");
-            this.Backend.PurgeFiles(files, folders);
+            foreach (BackendBase backend in this.backends) {
+                this.Logger.Info("{0}: Removing files from the destination which aren't in the database or source filesystem", backend.Name);
+                backend.PurgeFiles(files, folders);
+            }
         }
 
         public void Backup() {
@@ -148,7 +145,7 @@ namespace BackerUpper
                                 break;
                             default:
                                 //this.Logger.Info("Skipping file: {0}", file);
-                                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
+                                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing, null));
                                 break;
                         }
                     }
@@ -195,18 +192,22 @@ namespace BackerUpper
         }
 
         private int addFolder(string folder) {
-            this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add));
-            this.Backend.CreateFolder(folder);
+            foreach (BackendBase backend in this.backends) {
+                this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add, backend.Name));
+                backend.CreateFolder(folder);
+                this.Logger.Info("{0}: Added folder: {1}", backend.Name, folder);
+            }
             int insertedId = this.fileDatabase.AddFolder(folder);
-            this.Logger.Info("Added folder: {0}", folder);
             return insertedId;
         }
 
         private void deleteFolder(int folderId, string folder) {
-            this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Delete));
-            this.Backend.DeleteFolder(folder);
+            foreach (BackendBase backend in this.backends) {
+                this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Delete, backend.Name));
+                backend.DeleteFolder(folder);
+                this.Logger.Info("{0}: Deleted folder: {1}", backend.Name, folder);
+            }
             this.fileDatabase.DeleteFolder(folderId);
-            this.Logger.Info("Deleted folder: {0}", folder);
         }
 
         private void addFile(int folderId, string file, DateTime lastModified) {
@@ -220,42 +221,52 @@ namespace BackerUpper
                 return;
             }
 
-            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add));
-            this.Backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+            foreach (BackendBase backend in this.backends) {
+                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
+                backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+                this.Logger.Info("{0}: Added file: {1}", backend.Name, file);
+            }
             this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
-            this.Logger.Info("Added file: {0}", file);
+            
         }
 
         private void alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, string alternatePath, int alternateId) {
             // First: Is is a copy or a move?
             if (this.treeTraverser.FileExists(alternatePath)) {
                 // It's a copy
-                this.reportBackupAction(new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Copy));
-                if (this.Backend.CreateFromAlternateCopy(file, alternatePath))
-                    this.Logger.Info("Added file: {0} from alternate {1} (copy)", file, alternatePath);
-                else {
-                    this.Backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
-                    this.Logger.Info("Added file: {0} (backend refused alternate {1})", file, alternatePath);
+                foreach (BackendBase backend in this.backends) {
+                    this.reportBackupAction(new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Copy, backend.Name));
+                    if (backend.CreateFromAlternateCopy(file, alternatePath))
+                        this.Logger.Info("{0}: Added file: {1} from alternate {2} (copy)", backend.Name, file, alternatePath);
+                    else {
+                        backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+                        this.Logger.Info("{0}: Added file: {1} (backend refused alternate {2})", backend.Name, file, alternatePath);
+                    }
                 }
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
             }
             else {
                 // It's a move
-                this.reportBackupAction(new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Move));
-                this.Backend.CreateFromAlternateMove(file, alternatePath);
+                foreach (BackendBase backend in this.backends) {
+                    this.reportBackupAction(new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Move, backend.Name));
+                    backend.CreateFromAlternateMove(file, alternatePath);
+                    this.Logger.Info("{0}: Added file: {1} from alternate {2} (move)", backend.Name, file, alternatePath); 
+                }
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                 this.fileDatabase.DeleteFile(alternateId);
-                this.Logger.Info("Added file: {0} from alternate {1} (move)", file, alternatePath); 
             }
         }
 
         private void updatefile(int folderId, string file, string remoteMD5, DateTime lastModified) {
-            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update));
+           
             // Only copy if the file has actually changed
             string fileMD5 = this.treeTraverser.FileMd5(file);
             if (remoteMD5 != fileMD5) {
-                this.Backend.UpdateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
-                this.Logger.Info("Updated file: {0}", file);
+                foreach (BackendBase backend in this.backends) {
+                    this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
+                    backend.UpdateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+                    this.Logger.Info("{0}: Updated file: {1}", backend.Name, file);
+                }
             }
             else {
                 this.Logger.Info("Skipped file: {0} (mtime changed but file unchanged)", file);
@@ -265,10 +276,12 @@ namespace BackerUpper
         }
 
         private void deleteFile(int fileId, string file) {
-            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Delete));
-            this.Backend.DeleteFile(file);
+            foreach (BackendBase backend in this.backends) {
+                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Delete, backend.Name));
+                backend.DeleteFile(file);
+                this.Logger.Info("{0}: Deleted file: {1}", backend.Name, file);
+            }
             this.fileDatabase.DeleteFile(fileId);
-            this.Logger.Info("Deleted file: {0}", file);
         }
 
         private void reportBackupAction(BackupActionItem item) {
@@ -306,12 +319,14 @@ namespace BackerUpper
             public BackupActionEntity Entity;
             public BackupActionOperation Operation;
             public int Percent;
+            public string Backend;
 
-            public BackupActionItem(string from, string to, BackupActionEntity entity, BackupActionOperation operation, int percent=100) {
+            public BackupActionItem(string from, string to, BackupActionEntity entity, BackupActionOperation operation, string backend, int percent=100) {
                 this.From = from;
                 this.To = to;
                 this.Entity = entity;
                 this.Operation = operation;
+                this.Backend = backend;
                 this.Percent = percent;
             }
         }

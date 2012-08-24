@@ -20,7 +20,6 @@ namespace BackerUpper
         public int backupTimerElapsed = 0;
         private string[] backups;
         private bool closeAfterFinish;
-        private Queue<BackendBase> backupQueue;
 
         private FileScanner currentBackupFilescanner;
         private bool backupInProgress {
@@ -38,7 +37,6 @@ namespace BackerUpper
             this.backupStatusTimer = new Timer();
             this.backupStatusTimer.Interval = 250;
             this.backupStatusTimer.Tick += new EventHandler(backupStatusTimer_Tick);
-            this.backupQueue = new Queue<BackendBase>();
 
             if (backupToRun != null) {
                 if (!this.backupsList.Items.Contains(backupToRun))
@@ -121,22 +119,22 @@ namespace BackerUpper
             database.AutoSyncToDisk = true;
             Settings settings = new Settings(database);
             settings.LastRun = DateTime.Now;
-            settings.LastRunCancelled = false;
-            settings.LastRunErrors = false;
             Logger logger = new Logger("backup");
             this.updateInfoDisplay();
             this.closeAfterFinish = (fromScheduler && settings.Autoclose);
 
+            List<BackendBase> backendBases = new List<BackendBase>();
+
             if (settings.MirrorEnabled) {
                 MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
-                this.backupQueue.Enqueue(backend);
+                backendBases.Add(backend);
             }
             if (settings.S3Enabled) {
                 S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey);
-                this.backupQueue.Enqueue(backend);
+                backendBases.Add(backend);
             }
 
-            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(database, settings, logger, fromScheduler));
+            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(database, settings, logger, backendBases.ToArray(), fromScheduler));
         }
 
         private void backgroundWorkerBackup_DoWork(object sender, DoWorkEventArgs e) {
@@ -144,31 +142,30 @@ namespace BackerUpper
             Settings settings = backupArgs.Settings;
             Database database = backupArgs.Database;
             Logger logger = backupArgs.Logger;
+            BackendBase[] backends = backupArgs.BackendBases;
 
             database.Open();
             database.LoadToMemory();
 
-            this.currentBackupFilescanner = new FileScanner(settings.Source, database, logger);
+            foreach (BackendBase backend in backends) {
+                this.InvokeEx(f => f.statusLabelBackupAction.Text = "Setting up "+backend.Name+" backend...");
+                backend.SetupInitial();
+            }
+
+            this.currentBackupFilescanner = new FileScanner(settings.Source, database, logger, backends);
             this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
-            while (this.backupQueue.Count > 0) {
-                this.currentBackupFilescanner.Backend = this.backupQueue.Dequeue();
-                this.InvokeEx(f => f.statusLabelBackupAction.Text = "Setting up "+this.currentBackupFilescanner.Backend.Name+" backend...");
-
-                this.currentBackupFilescanner.Backend.SetupInitial();
-
-                this.backupStatus = "Pruning database...";
-                this.currentBackupFilescanner.PruneDatabase();
-                if (!this.currentBackupFilescanner.Cancelled)
-                    this.currentBackupFilescanner.Backup();
-                if (!this.currentBackupFilescanner.Cancelled) {
-                    this.backupStatus = "Purging...";
-                    this.currentBackupFilescanner.PurgeDest();
-                }
-
-                settings.LastRunCancelled = settings.LastRunCancelled || this.currentBackupFilescanner.Cancelled;
-                settings.LastRunErrors = settings.LastRunErrors || this.currentBackupFilescanner.WarningOccurred;
+            this.backupStatus = "Pruning database...";
+            this.currentBackupFilescanner.PruneDatabase();
+            if (!this.currentBackupFilescanner.Cancelled)
+                this.currentBackupFilescanner.Backup();
+            if (!this.currentBackupFilescanner.Cancelled) {
+                this.backupStatus = "Purging...";
+                this.currentBackupFilescanner.PurgeDest();
             }
+
+            settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;
+            settings.LastRunErrors = this.currentBackupFilescanner.WarningOccurred;
 
             this.backupTimer.Stop();
             this.backupStatusTimer.Stop();
@@ -196,7 +193,7 @@ namespace BackerUpper
 
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             string text = item.To;
-            if (this.currentBackupFilescanner.Backend.Name == "S3")
+            if (item.Backend == "S3")
                 text = "S3://" + text;
             if (this.currentBackupFilescanner.Cancelled)
                 text = "Cancelling: " + text;
@@ -294,12 +291,14 @@ namespace BackerUpper
             public Database Database;
             public Settings Settings;
             public Logger Logger;
+            public BackendBase[] BackendBases;
             public bool FromScheduler;
 
-            public BackupItem(Database database, Settings settings, Logger logger, bool fromScheduler) {
+            public BackupItem(Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler) {
                 this.Database = database;
                 this.Settings = settings;
                 this.Logger = logger;
+                this.BackendBases = backendBases;
                 this.FromScheduler = fromScheduler;
             }
         }
