@@ -156,8 +156,10 @@ namespace BackerUpper
                 this.backupStatus = "Pruning database...";
                 this.currentBackupFilescanner.PruneDatabase();
                 this.currentBackupFilescanner.Backup();
-                if (!this.currentBackupFilescanner.Cancelled)
+                if (!this.currentBackupFilescanner.Cancelled) {
+                    this.backupStatus = "Purging...";
                     this.currentBackupFilescanner.PurgeDest();
+                }
 
                 Settings settings = new Settings(this.currentBackupFilescanner.Database);
                 settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;

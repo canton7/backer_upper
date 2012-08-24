@@ -174,9 +174,12 @@ namespace BackerUpper
                 foreach (FileDatabase.FolderRecord folderToCheck in recordedFolders) {
                     if (this.cancel)
                         break;
-                    if (!this.treeTraverser.FolderExists(folderToCheck.Path)) {
-                        this.deleteFolder(folderToCheck.Id, folderToCheck.Path);
+                    try {
+                        if (!this.treeTraverser.FolderExists(folderToCheck.Path)) {
+                            this.deleteFolder(folderToCheck.Id, folderToCheck.Path);
+                        }
                     }
+                    catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
             }
 

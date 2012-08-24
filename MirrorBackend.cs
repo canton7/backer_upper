@@ -84,19 +84,23 @@ namespace BackerUpper
             string[] filesInDir;
 
             while (folder.Level >= 0) {
-                if (folders.Contains(folder.Name)) {
-                    filesInDir = treeTraverser.ListFiles(folder.Name);
-                    foreach (string file in filesInDir) {
-                        if (!files.Contains(file)) {
-                            File.Delete(treeTraverser.GetFileSource(file));
+                try {
+                    if (folders.Contains(folder.Name)) {
+                        filesInDir = treeTraverser.ListFiles(folder.Name);
+                        foreach (string file in filesInDir) {
+                            if (!files.Contains(file)) {
+                                File.Delete(treeTraverser.GetFileSource(file));
+                            }
                         }
                     }
-                }
-                else {
-                    Directory.Delete(treeTraverser.GetFolderSource(folder.Name), true);
-                }
+                    else {
+                        Directory.Delete(treeTraverser.GetFolderSource(folder.Name), true);
+                    }
 
-                folder = treeTraverser.NextFolder(true);
+                    folder = treeTraverser.NextFolder(true);
+                }
+                // Don't yet have a way of logging from in here
+                catch (BackupOperationException) { }
             }
         }
 
