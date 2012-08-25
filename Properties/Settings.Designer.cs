@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace backer_upper.Properties
+namespace BackerUpper.Properties
 {
 
 

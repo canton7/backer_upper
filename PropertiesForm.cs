@@ -11,14 +11,14 @@ using Microsoft.Win32.TaskScheduler;
 
 namespace BackerUpper
 {
-    partial class Properties : Form
+    partial class PropertiesForm : Form
     {
         public bool Saved = false;
         private Settings settings;
         private string[] takenBackupNames;
         private string initialBackupName;
 
-        public Properties(Settings settings, string[] takenBackupNames) {
+        public PropertiesForm(Settings settings, string[] takenBackupNames) {
             InitializeComponent();
 
             this.settings = settings;

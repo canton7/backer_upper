@@ -1,6 +1,6 @@
 ﻿namespace BackerUpper
 {
-    partial class Properties
+    partial class PropertiesForm
     {
         /// <summary>
         /// Required designer variable.
@@ -132,7 +132,7 @@
             // 
             this.buttonSourceBrowser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSourceBrowser.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonSourceBrowser.Image = global::backer_upper.Properties.Resources.IconFolderOpen;
+            this.buttonSourceBrowser.Image = global::BackerUpper.Properties.Resources.IconFolderOpen;
             this.buttonSourceBrowser.Location = new System.Drawing.Point(346, 17);
             this.buttonSourceBrowser.Name = "buttonSourceBrowser";
             this.buttonSourceBrowser.Size = new System.Drawing.Size(26, 23);
@@ -144,7 +144,7 @@
             // 
             this.buttonDestBrowser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonDestBrowser.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonDestBrowser.Image = global::backer_upper.Properties.Resources.IconFolderOpen;
+            this.buttonDestBrowser.Image = global::BackerUpper.Properties.Resources.IconFolderOpen;
             this.buttonDestBrowser.Location = new System.Drawing.Point(346, 17);
             this.buttonDestBrowser.Name = "buttonDestBrowser";
             this.buttonDestBrowser.Size = new System.Drawing.Size(26, 23);
@@ -439,7 +439,7 @@
             this.checkBoxScheduleMon.Text = "Mon";
             this.checkBoxScheduleMon.UseVisualStyleBackColor = true;
             // 
-            // Properties
+            // PropertiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -454,7 +454,7 @@
             this.Controls.Add(this.buttonSave);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBoxName);
-            this.Name = "Properties";
+            this.Name = "PropertiesForm";
             this.Text = "Properties";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();

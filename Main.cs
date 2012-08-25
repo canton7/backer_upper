@@ -74,7 +74,7 @@ namespace BackerUpper
             Settings settings = new Settings(database);
             settings.PopulateInitial("Unnamed Backup");
 
-            Properties propertiesForm = new Properties(settings, this.backups);
+            PropertiesForm propertiesForm = new PropertiesForm(settings, this.backups);
             propertiesForm.ShowDialog();
 
             if (propertiesForm.Saved == false)
@@ -230,7 +230,7 @@ namespace BackerUpper
             Database database = new Database(fileName);
             Settings settings = new Settings(database);
 
-            Properties propertiesForm = new Properties(settings, this.backups);
+            PropertiesForm propertiesForm = new PropertiesForm(settings, this.backups);
             propertiesForm.ShowDialog();
             propertiesForm.Close();
 
