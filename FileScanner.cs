@@ -213,6 +213,7 @@ namespace BackerUpper
         }
 
         private void addFile(int folderId, string file, DateTime lastModified) {
+            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null));
             string fileMD5 = this.treeTraverser.FileMd5(file);
             // Just do a search for alternates (files in a different place on the remote location with the same hash)
             // as this will speed up copying
@@ -260,7 +261,7 @@ namespace BackerUpper
         }
 
         private void updatefile(int folderId, string file, string remoteMD5, DateTime lastModified) {
-           
+            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null));
             // Only copy if the file has actually changed
             string fileMD5 = this.treeTraverser.FileMd5(file);
             if (remoteMD5 != fileMD5) {
@@ -313,7 +314,7 @@ namespace BackerUpper
         }
 
         public enum BackupActionEntity { File, Folder };
-        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Nothing };
+        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Nothing };
         public struct BackupActionItem
         {
             public string From;

@@ -155,7 +155,7 @@
             // 
             // buttonSave
             // 
-            this.buttonSave.Location = new System.Drawing.Point(4, 410);
+            this.buttonSave.Location = new System.Drawing.Point(12, 410);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(75, 23);
             this.buttonSave.TabIndex = 3;
@@ -165,7 +165,7 @@
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Location = new System.Drawing.Point(85, 410);
+            this.buttonCancel.Location = new System.Drawing.Point(93, 410);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 4;
@@ -329,6 +329,8 @@
             // checkBoxAutoclose
             // 
             this.checkBoxAutoclose.AutoSize = true;
+            this.checkBoxAutoclose.Checked = true;
+            this.checkBoxAutoclose.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxAutoclose.Location = new System.Drawing.Point(138, 24);
             this.checkBoxAutoclose.Name = "checkBoxAutoclose";
             this.checkBoxAutoclose.Size = new System.Drawing.Size(120, 17);

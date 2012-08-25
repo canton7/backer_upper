@@ -119,7 +119,7 @@ namespace BackerUpper
             database.AutoSyncToDisk = true;
             Settings settings = new Settings(database);
             settings.LastRun = DateTime.Now;
-            Logger logger = new Logger("backup");
+            Logger logger = new Logger(settings.Name);
             this.updateInfoDisplay();
             this.closeAfterFinish = (fromScheduler && settings.Autoclose);
 
@@ -187,12 +187,12 @@ namespace BackerUpper
         private void finishBackup(Database database, Logger logger, string status) {
             this.backupTimer.Stop();
             this.backupStatusTimer.Stop();
-            this.InvokeEx(f => f.statusLabelBackupAction.Text = status);
 
             this.currentBackupFilescanner = null;
             database.Close();
             logger.Close();
 
+            this.InvokeEx(f => f.statusLabelBackupAction.Text = status);
             this.InvokeEx(f => f.buttonBackup.Enabled = true);
             this.InvokeEx(f => f.buttonCancel.Enabled = false);
             // Files/folders could will have changed

@@ -109,7 +109,7 @@ namespace BackerUpper
             this.files.Add(file);
         }
 
-        void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {
+        private void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {
             this.ReportProcess(e.PercentDone);
         }
 
