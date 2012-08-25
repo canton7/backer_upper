@@ -45,13 +45,21 @@ namespace BackerUpper
             }
             catch (IOException e) { throw new BackupOperationException(dest, e.Message); }
 
-            this.withHandling(() => File.Copy(source, dest, true), file);
+            this.withHandling(() => XCopy.Copy(source, dest, true, true, (percent) => {
+                this.ReportProcess(percent);
+                return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
+            }), file);
+            if (this.Cancelled)
+                return;
             FileInfo fileInfo = new FileInfo(dest);
             fileInfo.IsReadOnly = false;
         }
 
         public override void UpdateFile(string file, string source, string fileMD5) {
-            this.withHandling(() => File.Copy(source, Path.Combine(this.Dest, file), true), file);
+            this.withHandling(() => XCopy.Copy(source, Path.Combine(this.Dest, file), true, true, (percent) => {
+                this.ReportProcess(percent);
+                return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
+            }), file);
         }
 
         public override void DeleteFile(string file) {

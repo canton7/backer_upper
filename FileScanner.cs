@@ -43,6 +43,8 @@ namespace BackerUpper
 
         public void Cancel() {
             this.cancel = true;
+            foreach (BackendBase backend in this.backends)
+                backend.Cancel();
         }
 
         public void PruneDatabase() {

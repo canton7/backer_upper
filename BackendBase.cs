@@ -8,14 +8,18 @@ namespace BackerUpper
     abstract class BackendBase : IBackend
     {
         public string Dest;
-
         public abstract string Name { get; }
+        private bool cancelled;
+        public bool Cancelled {
+            get { return this.cancelled; }
+        }
 
         public delegate void CopyProgressEventHandler(object sender, int percent);
         public event CopyProgressEventHandler CopyProgress;
 
         public BackendBase(string dest) {
             this.Dest = dest;
+            this.cancelled = false;
         }
 
         public abstract void SetupInitial();
@@ -33,6 +37,10 @@ namespace BackerUpper
 
         protected void ReportProcess(int percent) {
             CopyProgress(this, percent);
+        }
+
+        public void Cancel() {
+            this.cancelled = true;
         }
     }
 }
