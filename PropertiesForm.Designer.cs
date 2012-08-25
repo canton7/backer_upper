@@ -25,6 +25,7 @@
         /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PropertiesForm));
             this.sourceBrowser = new System.Windows.Forms.FolderBrowserDialog();
             this.destBrowser = new System.Windows.Forms.FolderBrowserDialog();
             this.textBoxSource = new System.Windows.Forms.TextBox();
@@ -454,6 +455,7 @@
             this.Controls.Add(this.buttonSave);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBoxName);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "PropertiesForm";
             this.Text = "Properties";
             this.groupBox1.ResumeLayout(false);
