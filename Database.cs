@@ -71,7 +71,7 @@ namespace BackerUpper
                 return;
 
             try {
-                this.dbLock = new FileStream(this.lockName, FileMode.CreateNew);
+                this.dbLock = new FileStream(this.lockName, FileMode.Create);
             }
             catch (IOException) {
                 throw new DatabaseInUseException(this.lockName);
