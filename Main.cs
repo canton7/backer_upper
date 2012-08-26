@@ -67,6 +67,12 @@ namespace BackerUpper
         }
 
         private string loadSelectedBackup() {
+            if (this.backupsList.SelectedItem == null) {
+                string message = (this.backups == null || this.backups.Length == 0) ? "You don't have any backups. Please make one and try again" : 
+                    "You haven't selected a backup. Please select one and try again";
+                MessageBox.Show(message, "No backup selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return null;
+            }
             return Path.Combine(this.backupsPath, this.backupsList.SelectedItem.ToString()) + Constants.BACKUP_EXTENSION;
         }
 
@@ -94,11 +100,15 @@ namespace BackerUpper
         }
 
         private void deleteBackup() {
-            string backupName = this.backupsList.SelectedItem.ToString();
+            string backupName = this.loadSelectedBackup();
+            if (backupName == null)
+                return;
             DialogResult result = MessageBox.Show("Are you sure you want to delete the backup "+backupName+"?", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.No)
                 return;
             string filepath = this.loadSelectedBackup();
+            if (filepath == null)
+                return;
             Database database = new Database(filepath);
             Settings settings = new Settings(database);
             string name = settings.Name;
@@ -145,6 +155,10 @@ namespace BackerUpper
         }
 
         private void performBackup(bool fromScheduler=false, bool performTest=false) {
+            string backup = this.loadSelectedBackup();
+            if (backup == null)
+                return;
+
             this.buttonBackup.Enabled = false;
             this.buttonTest.Enabled = false;
             this.buttonCancel.Enabled = true;
@@ -154,7 +168,7 @@ namespace BackerUpper
             this.backupTimer.Start();
             this.backupStatusTimer.Start();
 
-            Database database = new Database(this.loadSelectedBackup());
+            Database database = new Database(backup);
             database.AutoSyncToDisk = true;
             Settings settings = new Settings(database);
             settings.LastRun = DateTime.Now;
@@ -289,6 +303,8 @@ namespace BackerUpper
 
         private void buttonProperties_Click(object sender, EventArgs e) {
             string fileName = this.loadSelectedBackup();
+            if (fileName == null)
+                return;
             Database database = new Database(fileName);
             Settings settings = new Settings(database);
 
@@ -308,7 +324,10 @@ namespace BackerUpper
         }
 
         private void updateInfoDisplay() {
-            Database database = new Database(this.loadSelectedBackup());
+            string fileName = this.loadSelectedBackup();
+            if (fileName == null)
+                return;
+            Database database = new Database(fileName);
             Settings settings = new Settings(database);
             DateTime lastRun = settings.LastRun;
             this.labelLastRun.Text = lastRun == new DateTime(1970, 1, 1) ? "Never" : (lastRun.ToString() + 
