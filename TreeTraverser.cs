@@ -72,9 +72,9 @@ namespace BackerUpper
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(file, e.Message); }
         }
 
-        public string FileMd5(string fileName) {
+        public string FileMd5(string fileName, FileUtils.HashProgress handler = null) {
             try {
-                return FileUtils.FileMD5(Path.Combine(this.startDir, fileName));
+                return FileUtils.FileMD5(Path.Combine(this.startDir, fileName), handler);
             }
             catch (IOException e) { throw new BackupOperationException(fileName, e.Message); }
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(fileName, e.Message); }

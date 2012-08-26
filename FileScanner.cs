@@ -232,7 +232,7 @@ namespace BackerUpper
             }
             int insertedId = this.fileDatabase.AddFolder(folder);
             return insertedId;
-        }
+        } 
 
         private void deleteFolder(int folderId, string folder) {
             foreach (BackendBase backend in this.backends) {
@@ -244,8 +244,13 @@ namespace BackerUpper
         }
 
         private void addFile(int folderId, string file, DateTime lastModified) {
-            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null));
-            string fileMD5 = this.treeTraverser.FileMd5(file);
+            string fileMD5 = this.treeTraverser.FileMd5(file, (percent) => {
+                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                return !this.cancel;
+            });
+            if (this.cancel)
+                return;
+
             // Just do a search for alternates (files in a different place on the remote location with the same hash)
             // as this will speed up copying
             FileDatabase.FileRecord alternate = this.fileDatabase.SearchForAlternates(fileMD5);
@@ -261,7 +266,6 @@ namespace BackerUpper
                 this.Logger.Info("{0}: Added file: {1}", backend.Name, file);
             }
             this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
-            
         }
 
         private void alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, string alternatePath, int alternateId) {
@@ -294,7 +298,13 @@ namespace BackerUpper
         private void updatefile(int folderId, string file, string remoteMD5, DateTime lastModified) {
             this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null));
             // Only copy if the file has actually changed
-            string fileMD5 = this.treeTraverser.FileMd5(file);
+            string fileMD5 = this.treeTraverser.FileMd5(file, (percent) => {
+                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                return !this.cancel;
+            });
+            if (this.cancel)
+                return;
+
             if (remoteMD5 != fileMD5) {
                 foreach (BackendBase backend in this.backends) {
                     this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
