@@ -264,6 +264,8 @@ namespace BackerUpper
 
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             string text = item.To;
+            if (item.Operation == FileScanner.BackupActionOperation.Hash)
+                text = "Hash: " + text;
             if (item.Backend == "S3")
                 text = "S3://" + text;
             if (this.currentBackupFilescanner.Cancelled)
