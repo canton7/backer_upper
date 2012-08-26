@@ -85,9 +85,7 @@ namespace BackerUpper
         public static void BackupDatabase(string databasePath, BackendBase[] backends) {
             foreach (BackendBase backend in backends) {
                 string dbFile = Database.GetExportableFile(databasePath, backend.StripFilesFoldersOnDBBackup);
-                // Want to backup database to the parent directory of where the backup files are stored
-                // So if the files are backed up to C:\Some Path\Dest Folder, the database goes to C:\Some Path\Backup Name.extension
-                backend.UpdateFile(Path.Combine("..", Path.GetFileName(databasePath)), dbFile, null);
+                backend.BackupDatabase(Path.GetFileName(databasePath), dbFile);
             }
         }
 

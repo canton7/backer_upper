@@ -18,6 +18,7 @@ namespace BackerUpper
         void CreateFolder(string folder);
         void DeleteFolder(string folder);
         bool FolderExists(string folder);
+        void BackupDatabase(string file, string source);
 
         void PurgeFiles(IEnumerable<string> files, IEnumerable<string> folders);
     }

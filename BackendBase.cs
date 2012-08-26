@@ -34,6 +34,7 @@ namespace BackerUpper
         public abstract void UpdateFile(string file, string source, string fileMD5);
         public abstract void DeleteFile(string file);
         public abstract bool FolderExists(string folder);
+        public abstract void BackupDatabase(string file, string source);
 
         public abstract void PurgeFiles(IEnumerable<string> files, IEnumerable<string> folders);
 

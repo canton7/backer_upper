@@ -113,6 +113,10 @@ namespace BackerUpper
             this.files.Add(file);
         }
 
+        public override void BackupDatabase(string file, string source) {
+            this.CreateFile(file, source, null);
+        }
+
         private void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {
             this.ReportProcess(e.PercentDone);
         }

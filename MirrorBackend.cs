@@ -67,6 +67,10 @@ namespace BackerUpper
             }), file);
         }
 
+        public override void BackupDatabase(string file, string source) {
+            this.UpdateFile(Path.Combine(this.Dest, file), source, null);
+        }
+
         public override void DeleteFile(string file) {
             this.withHandling(() => File.Delete(Path.Combine(this.Dest, file)), file);
         }
