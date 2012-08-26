@@ -460,7 +460,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(394, 459);
+            this.ClientSize = new System.Drawing.Size(394, 462);
             this.Controls.Add(this.checkBoxUseScheduler);
             this.Controls.Add(this.groupBoxScheduler);
             this.Controls.Add(this.groupBoxS3);
@@ -473,6 +473,7 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBoxName);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MinimumSize = new System.Drawing.Size(410, 500);
             this.Name = "PropertiesForm";
             this.Text = "Properties";
             this.groupBox1.ResumeLayout(false);
