@@ -71,7 +71,10 @@ namespace BackerUpper
 
         public static void Delete(string name) {
             TaskFolder folder = loadTaskFolder();
-            folder.DeleteTask(name);
+            try {
+                folder.DeleteTask(name);
+            }
+            catch (FileNotFoundException) { }
         }
 
         public void Save(string name) {

@@ -97,12 +97,17 @@ namespace BackerUpper
             if (result == DialogResult.No)
                 return;
             string filepath = this.loadSelectedBackup();
+            Database database = new Database(filepath);
+            Settings settings = new Settings(database);
+            string name = settings.Name;
+            database.Close();
             try {
                 File.Delete(filepath);
             }
             catch (IOException e) {
                 this.showError("Could not delete "+backupName+": "+e.Message);
             }
+            Scheduler.Delete(name);
             this.populateBackupsList();
         }
 

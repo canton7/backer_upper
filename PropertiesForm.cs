@@ -91,7 +91,7 @@ namespace BackerUpper
             if (this.checkBoxScheduleSat.Checked) { dow |= DaysOfTheWeek.Saturday; }
             if (this.checkBoxScheduleSun.Checked) { dow |= DaysOfTheWeek.Sunday; }
 
-            if (this.initialBackupName != this.settings.Name)
+            if (this.initialBackupName != null && this.initialBackupName != this.settings.Name)
                 Scheduler.Delete(this.initialBackupName);
             Scheduler scheduler = new Scheduler(this.checkBoxUseScheduler.Checked, start, dow);
             scheduler.Save(this.settings.Name);
