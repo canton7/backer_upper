@@ -38,6 +38,8 @@ namespace BackerUpper
             this.backupStatusTimer.Interval = 250;
             this.backupStatusTimer.Tick += new EventHandler(backupStatusTimer_Tick);
 
+            Logger.Purge();
+
             if (backupToRun != null) {
                 if (!this.backupsList.Items.Contains(backupToRun))
                     this.showError("Backup '"+backupToRun+"' doesn't exist");

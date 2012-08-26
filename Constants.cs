@@ -12,5 +12,6 @@ namespace BackerUpper
         public const string BACKUP_EXTENSION = ".sqlite";
         public const string LOG_FOLDER = "Logs";
         public const string TASK_SCHEDULER_FOLDER = "BackerUpper";
+        public const int LOGS_KEEP_NUM = 5;
     }
 }

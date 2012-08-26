@@ -27,11 +27,47 @@ namespace BackerUpper
             string logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
             if (!Directory.Exists(logsPath))
                 Directory.CreateDirectory(logsPath);
-            string fileName = String.Format("{0}-{1:yyyyMMdd-HHmmss}.log", type, DateTime.Now);
+            string fileName = String.Format("{0}-{1:yyyyMMddTHHmmss}.log", type, DateTime.Now);
             this.logFilePath = Path.Combine(logsPath, fileName);
             this.writer = new StreamWriter(this.logFilePath);
 
             this.writer.WriteLine("To find warnings or errors, search for [{0}] or [{1}]\n", levelStrings[Level.WARN], levelStrings[Level.ERROR]);
+        }
+
+        public static void Purge() {
+            // Keep only a certain number of each type of backup
+            string logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
+            // If there's no folder, there probably aren't any logs
+            if (!Directory.Exists(logsPath))
+                return;
+            string[] files = Directory.GetFiles(logsPath, "*.log");
+            Array.Sort(files);
+
+            string currentBackup = null;
+            string backup;
+            List<string> logsForBackup = new List<string>();
+
+            foreach (string file in files) {
+                backup = Path.GetFileNameWithoutExtension(file);
+                backup = backup.Remove(backup.LastIndexOf('-'));
+                if (backup != currentBackup) {
+                    // Delete all but the last n files currently in the list
+                    if (logsForBackup.Count > Constants.LOGS_KEEP_NUM) {
+                        foreach (string fileToDelete in logsForBackup.GetRange(0, logsForBackup.Count - Constants.LOGS_KEEP_NUM)) {
+                            File.Delete(fileToDelete);
+                        }
+                    }
+                    logsForBackup.Clear();
+                    currentBackup = backup;
+                }
+                logsForBackup.Add(file);
+            }
+            // And the final lot
+            if (logsForBackup.Count > Constants.LOGS_KEEP_NUM) {
+                foreach (string fileToDelete in logsForBackup.GetRange(0, logsForBackup.Count - Constants.LOGS_KEEP_NUM)) {
+                    File.Delete(fileToDelete);
+                }
+            }
         }
 
         public void Debug(string message) {
