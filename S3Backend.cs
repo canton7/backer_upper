@@ -20,11 +20,15 @@ namespace BackerUpper
             get { return "S3"; }
         }
 
+        public override bool StripFilesFoldersOnDBBackup {
+            get { return true; }
+        }
+
         public S3Backend(string dest, string publicKey, string privateKey)
             : base(dest) {
             string[] parts = dest.Split(new char[] {'/'}, 2);
             this.bucket = parts[0];
-            this.prefix = parts.Length > 1 ? parts[1].TrimEnd(new char[]{ '/' }) + '/' : "/";
+            this.prefix = parts.Length > 1 ? parts[1].Replace('\\', '/').TrimEnd(new char[] { '/' }) + '/' : "/";
 
             this.client = new AmazonS3Client(publicKey, privateKey);
         }

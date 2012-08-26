@@ -12,6 +12,10 @@ namespace BackerUpper
             get { return "Mirror"; }
         }
 
+        public override bool StripFilesFoldersOnDBBackup {
+            get { return false; }
+        }
+
         public MirrorBackend(string dest)
             : base(dest) {
         }

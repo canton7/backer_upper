@@ -19,6 +19,10 @@ namespace BackerUpper
         private bool nonScalarExecuted = false;
         private string lockName;
         private FileStream dbLock;
+        private string filePath;
+        public string FilePath {
+            get { return this.filePath; }
+        }
 
         public bool AutoSyncToDisk {
             get { return this.syncTimer.Enabled; }
@@ -32,12 +36,14 @@ namespace BackerUpper
         }
 
         public Database(string path) {
-            if (!File.Exists(path))
-                throw new FileNotFoundException("Could not find database "+path);
+            this.filePath = path;
 
-            this.lockName = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path) + ".lock");
+            if (!File.Exists(this.filePath))
+                throw new FileNotFoundException("Could not find database "+this.filePath);
 
-            this.conn = new SQLiteConnection("Data Source="+path);
+            this.lockName = Path.Combine(Path.GetDirectoryName(this.filePath), Path.GetFileNameWithoutExtension(this.filePath) + ".lock");
+
+            this.conn = new SQLiteConnection("Data Source="+this.filePath);
             this.conn.Open();
 
             this.diskConn = null;
@@ -114,6 +120,20 @@ namespace BackerUpper
 
         public int NumFolders() {
             return Convert.ToInt32(this.ExecuteScalar("SELECT COUNT(id) FROM 'folders'"));
+        }
+
+        public static string GetExportableFile(string filePath, bool stripFilesFolders=false) {
+            // If we're not stripping files and folders, just return the file path
+            if (!stripFilesFolders)
+                return filePath;
+            // Otherwise copy, open, truncate files and folders, close
+            string destPath = Path.GetTempFileName();
+            File.Copy(filePath, destPath, true);
+            Database db = new Database(destPath);
+            db.Execute("DELETE FROM 'files'");
+            db.Execute("DELETE FROM 'folders'");
+            db.Close();
+            return destPath;
         }
 
         public DataTable ExecuteReader(string sql, params object[] parameters) {

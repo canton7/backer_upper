@@ -9,6 +9,7 @@ namespace BackerUpper
     {
         public string Dest;
         public abstract string Name { get; }
+        public abstract bool StripFilesFoldersOnDBBackup { get; }
         private bool cancelled;
         public bool Cancelled {
             get { return this.cancelled; }

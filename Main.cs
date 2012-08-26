@@ -126,11 +126,11 @@ namespace BackerUpper
             List<BackendBase> backendBases = new List<BackendBase>();
 
             if (settings.MirrorEnabled) {
-                MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
+                MirrorBackend backend = new MirrorBackend(Path.Combine(settings.MirrorDest, settings.Name));
                 backendBases.Add(backend);
             }
             if (settings.S3Enabled) {
-                S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey);
+                S3Backend backend = new S3Backend(Path.Combine(settings.S3Dest, settings.Name), settings.S3PublicKey, settings.S3PrivateKey);
                 backendBases.Add(backend);
             }
 
@@ -149,6 +149,7 @@ namespace BackerUpper
                 database.LoadToMemory();
             }
             catch (Database.DatabaseInUseException ex) {
+                database.Close();
                 this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?\n\nIf you're certain this is the only instance of the program running, delete "+ex.LockFile);
                 this.finishBackup(database, logger, "Error");
                 return;
@@ -174,10 +175,17 @@ namespace BackerUpper
             settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;
             settings.LastRunErrors = this.currentBackupFilescanner.WarningOccurred;
 
+            // Need to close to actually back up the database
+            database.Close();
+            if (!this.currentBackupFilescanner.Cancelled) {
+                this.backupStatus = "Backing up database...";
+                FileScanner.BackupDatabase(database.FilePath, backends);
+            }
+
             if (this.currentBackupFilescanner.WarningOccurred && !(backupArgs.FromScheduler && settings.IgnoreWarnings)) {
                 DialogResult result = MessageBox.Show("One or more warnings occurred. Do you want to view the log file?", "Some warnings happened", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes) {
-                    Process.Start(this.currentBackupFilescanner.Logger.LogFilePath);
+                    Process.Start(logger.LogFilePath);
                 }
             }
 
@@ -189,7 +197,6 @@ namespace BackerUpper
             this.backupStatusTimer.Stop();
 
             this.currentBackupFilescanner = null;
-            database.Close();
             logger.Close();
 
             this.InvokeEx(f => f.statusLabelBackupAction.Text = status);
