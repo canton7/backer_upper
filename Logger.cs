@@ -30,6 +30,7 @@ namespace BackerUpper
             string fileName = String.Format("{0}-{1:yyyyMMddTHHmmss}.log", type, DateTime.Now);
             this.logFilePath = Path.Combine(logsPath, fileName);
             this.writer = new StreamWriter(this.logFilePath);
+            this.writer.AutoFlush = true;
 
             this.writer.WriteLine("To find warnings or errors, search for [{0}] or [{1}]\n", levelStrings[Level.WARN], levelStrings[Level.ERROR]);
         }
