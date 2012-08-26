@@ -383,6 +383,10 @@ namespace BackerUpper
         private void buttonTest_Click(object sender, EventArgs e) {
             this.performBackup(false, true);
         }
+
+        private void buttonViewLogs_Click(object sender, EventArgs e) {
+            Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER));
+        }
     }
 
     public static class ISynchronizeInvokeExtensions

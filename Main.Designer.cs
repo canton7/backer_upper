@@ -48,6 +48,7 @@
             this.buttonImport = new System.Windows.Forms.Button();
             this.openFileDialogImport = new System.Windows.Forms.OpenFileDialog();
             this.buttonTest = new System.Windows.Forms.Button();
+            this.buttonViewLogs = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -85,7 +86,7 @@
             // buttonCreate
             // 
             this.buttonCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCreate.Location = new System.Drawing.Point(349, 12);
+            this.buttonCreate.Location = new System.Drawing.Point(349, 13);
             this.buttonCreate.Name = "buttonCreate";
             this.buttonCreate.Size = new System.Drawing.Size(75, 23);
             this.buttonCreate.TabIndex = 3;
@@ -149,7 +150,7 @@
             // buttonDelete
             // 
             this.buttonDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDelete.Location = new System.Drawing.Point(349, 41);
+            this.buttonDelete.Location = new System.Drawing.Point(349, 42);
             this.buttonDelete.Name = "buttonDelete";
             this.buttonDelete.Size = new System.Drawing.Size(75, 23);
             this.buttonDelete.TabIndex = 6;
@@ -232,7 +233,7 @@
             // buttonImport
             // 
             this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonImport.Location = new System.Drawing.Point(349, 70);
+            this.buttonImport.Location = new System.Drawing.Point(349, 71);
             this.buttonImport.Name = "buttonImport";
             this.buttonImport.Size = new System.Drawing.Size(75, 23);
             this.buttonImport.TabIndex = 15;
@@ -254,11 +255,23 @@
             this.buttonTest.UseVisualStyleBackColor = true;
             this.buttonTest.Click += new System.EventHandler(this.buttonTest_Click);
             // 
+            // buttonViewLogs
+            // 
+            this.buttonViewLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonViewLogs.Location = new System.Drawing.Point(349, 100);
+            this.buttonViewLogs.Name = "buttonViewLogs";
+            this.buttonViewLogs.Size = new System.Drawing.Size(75, 23);
+            this.buttonViewLogs.TabIndex = 17;
+            this.buttonViewLogs.Text = "View Logs";
+            this.buttonViewLogs.UseVisualStyleBackColor = true;
+            this.buttonViewLogs.Click += new System.EventHandler(this.buttonViewLogs_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(429, 298);
+            this.Controls.Add(this.buttonViewLogs);
             this.Controls.Add(this.buttonTest);
             this.Controls.Add(this.buttonImport);
             this.Controls.Add(this.labelStats);
@@ -312,6 +325,7 @@
         private System.Windows.Forms.Button buttonImport;
         private System.Windows.Forms.OpenFileDialog openFileDialogImport;
         private System.Windows.Forms.Button buttonTest;
+        private System.Windows.Forms.Button buttonViewLogs;
 
     }
 }
