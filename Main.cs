@@ -162,11 +162,11 @@ namespace BackerUpper
             List<BackendBase> backendBases = new List<BackendBase>();
 
             if (settings.MirrorEnabled) {
-                MirrorBackend backend = new MirrorBackend(Path.Combine(settings.MirrorDest, settings.Name));
+                MirrorBackend backend = new MirrorBackend(settings.MirrorDest);
                 backendBases.Add(backend);
             }
             if (settings.S3Enabled) {
-                S3Backend backend = new S3Backend(Path.Combine(settings.S3Dest, settings.Name), settings.S3PublicKey, settings.S3PrivateKey);
+                S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey);
                 backendBases.Add(backend);
             }
 
