@@ -21,7 +21,8 @@ namespace BackerUpper
         }
 
         public override void SetupInitial() {
-            // Don't need to do anything
+            if (!Directory.Exists(this.Dest))
+                throw new IOException("Destination folder "+this.Dest+" doesn't exist!");
         }
 
         public override void CreateFolder(string folder) {

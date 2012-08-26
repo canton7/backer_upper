@@ -23,6 +23,7 @@ namespace BackerUpper
             this.cancelled = false;
         }
 
+        // This is the place to make sure the dest actually exists, etc
         public abstract void SetupInitial();
         public abstract void CreateFolder(string folder);
         public abstract void DeleteFolder(string folder);

@@ -191,9 +191,17 @@ namespace BackerUpper
                 return;
             }
 
-            foreach (BackendBase backend in backends) {
-                this.InvokeEx(f => f.statusLabelBackupAction.Text = "Setting up "+backend.Name+" backend...");
-                backend.SetupInitial();
+            try {
+                foreach (BackendBase backend in backends) {
+                    this.InvokeEx(f => f.statusLabelBackupAction.Text = "Setting up "+backend.Name+" backend...");
+                    backend.SetupInitial();
+                }
+            }
+            catch (IOException ex) {
+                this.showError("Error setting up backends: "+ex.Message);
+                database.Close();
+                this.finishBackup(database, logger, "Error");
+                return;
             }
 
             this.currentBackupFilescanner = new FileScanner(settings.Source, database, logger, backends);
