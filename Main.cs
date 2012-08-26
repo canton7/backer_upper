@@ -242,6 +242,7 @@ namespace BackerUpper
             settings.LastRunErrors = this.currentBackupFilescanner.WarningOccurred;
 
             // Need to close to actually back up the database
+            this.backupStatus = "Closing database...";
             database.Close();
             if (!this.currentBackupFilescanner.Cancelled) {
                 this.backupStatus = "Backing up database...";
@@ -280,6 +281,10 @@ namespace BackerUpper
             string text = item.To;
             if (item.Operation == FileScanner.BackupActionOperation.Hash)
                 text = "Hash: " + text;
+            else if (item.Operation == FileScanner.BackupActionOperation.Purge)
+                text = "Purge: " + text;
+            else if (item.Operation == FileScanner.BackupActionOperation.Prune)
+                text = "Prune: " + text;
             if (item.Backend == "S3")
                 text = "S3://" + text;
             if (this.currentBackupFilescanner.Cancelled)

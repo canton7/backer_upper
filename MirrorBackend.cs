@@ -6,7 +6,7 @@ using System.IO;
 
 namespace BackerUpper
 {
-    class MirrorBackend : BackendBase, IBackend
+    class MirrorBackend : BackendBase
     {
         public override string Name {
             get { return "Mirror"; }
@@ -103,7 +103,7 @@ namespace BackerUpper
             this.withHandling(() => File.Move(Path.Combine(this.Dest, source), dest), file);
         }
 
-        public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn) {
+        public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn, PurgeProgressHandler handler=null) {
             HashSet<string> files = new HashSet<string>(filesIn);
             HashSet<string> folders = new HashSet<string>(foldersIn);
             // Just use a TreeTraverser here
@@ -113,10 +113,14 @@ namespace BackerUpper
             string[] filesInDir;
 
             while (folder.Level >= 0) {
+                if (handler != null && !handler(PurgeEntity.Folder, folder.Name))
+                    return;
                 try {
                     if (folders.Contains(folder.Name)) {
                         filesInDir = treeTraverser.ListFiles(folder.Name);
                         foreach (string file in filesInDir) {
+                            if (handler != null && !handler(PurgeEntity.File, file))
+                                return;
                             if (!files.Contains(file)) {
                                 File.Delete(treeTraverser.GetFileSource(file));
                             }

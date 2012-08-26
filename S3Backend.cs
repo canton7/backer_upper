@@ -8,7 +8,7 @@ using Amazon.S3.Model;
 
 namespace BackerUpper
 {
-    class S3Backend : BackendBase, IBackend
+    class S3Backend : BackendBase
     {
         private AmazonS3Client client;
         private string bucket;
@@ -193,13 +193,15 @@ namespace BackerUpper
             this.withHandling(() => this.DeleteFile(source), file);
         }
 
-        public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn) {
+        public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn, PurgeProgressHandler handler=null) {
             HashSet<string> limitFiles = new HashSet<string>(filesIn.Select(x => x.Replace('\\', '/')));
             HashSet<string> limitFolders = new HashSet<string>(foldersIn.Select(x => x.Replace('\\', '/')));
 
             // We can't modify the list we're iterating over, and DeleteFile does modify it
             string[] iterateFiles = this.files.ToArray();
             foreach (string file in iterateFiles) {
+                if (handler != null && !handler(PurgeEntity.Folder, file))
+                    return;
                 if (!limitFiles.Contains(file)) {
                     this.DeleteFile(file);
                 }
@@ -207,6 +209,9 @@ namespace BackerUpper
 
             string[] iterateFolders = this.folders.ToArray();
             foreach (string folder in iterateFolders) {
+                if (handler != null && !handler(PurgeEntity.Folder, folder))
+                    return;
+
                 if (!limitFolders.Contains(folder)) {
                     this.DeleteFolder(folder);
                 }

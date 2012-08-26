@@ -56,6 +56,7 @@ namespace BackerUpper
             foreach (FileDatabase.FileRecord file in files) {
                 if (this.cancel)
                     break;
+                this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Prune));
                 if (this.backends.Any(b => !b.FileExists(file.Path))) {
                     this.Logger.Info("Pruning database entry: file {0}", file.Path);
                     this.fileDatabase.DeleteFile(file.Id);
@@ -67,6 +68,7 @@ namespace BackerUpper
             foreach (FileDatabase.FolderRecord folder in folders) {
                 if (this.cancel)
                     break;
+                this.reportBackupAction(new BackupActionItem(null, folder.Path, BackupActionEntity.File, BackupActionOperation.Prune));
                 if (this.backends.Any(b => !b.FolderExists(folder.Path))) {
                     this.Logger.Info("Pruning database entry: folder {0}", folder.Path);
                     this.fileDatabase.DeleteFolder(folder.Id);
@@ -82,7 +84,11 @@ namespace BackerUpper
 
             foreach (BackendBase backend in this.backends) {
                 this.Logger.Info("{0}: Removing files from the destination which aren't in the database or source filesystem", backend.Name);
-                backend.PurgeFiles(files, folders);
+                backend.PurgeFiles(files, folders, (entity, file) => {
+                    this.reportBackupAction(new BackupActionItem(null, file, entity == BackendBase.PurgeEntity.File ? BackupActionEntity.File : BackupActionEntity.Folder,
+                        BackupActionOperation.Purge));
+                    return !this.cancel;
+                });
             }
         }
 
@@ -178,7 +184,7 @@ namespace BackerUpper
                                 break;
                             default:
                                 //this.Logger.Info("Skipping file: {0}", file);
-                                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing, null));
+                                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
                                 break;
                         }
                     }
@@ -296,7 +302,7 @@ namespace BackerUpper
         }
 
         private void updatefile(int folderId, string file, string remoteMD5, DateTime lastModified) {
-            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null));
+            this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash));
             // Only copy if the file has actually changed
             string fileMD5 = this.treeTraverser.FileMd5(file, (percent) => {
                 this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
@@ -355,7 +361,7 @@ namespace BackerUpper
         }
 
         public enum BackupActionEntity { File, Folder };
-        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Nothing };
+        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Prune, Purge, Nothing };
         public struct BackupActionItem
         {
             public string From;
@@ -365,7 +371,7 @@ namespace BackerUpper
             public int Percent;
             public string Backend;
 
-            public BackupActionItem(string from, string to, BackupActionEntity entity, BackupActionOperation operation, string backend, int percent=100) {
+            public BackupActionItem(string from, string to, BackupActionEntity entity, BackupActionOperation operation, string backend=null, int percent=100) {
                 this.From = from;
                 this.To = to;
                 this.Entity = entity;

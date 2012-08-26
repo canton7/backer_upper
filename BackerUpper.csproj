@@ -70,7 +70,6 @@
     <Compile Include="FileDatabase.cs" />
     <Compile Include="FileScanner.cs" />
     <Compile Include="FileUtils.cs" />
-    <Compile Include="IBackend.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BackerUpper
 {
-    abstract class BackendBase : IBackend
+    abstract class BackendBase
     {
         public string Dest;
         public abstract string Name { get; }
@@ -37,7 +37,7 @@ namespace BackerUpper
         public abstract bool FolderExists(string folder);
         public abstract void BackupDatabase(string file, string source);
 
-        public abstract void PurgeFiles(IEnumerable<string> files, IEnumerable<string> folders);
+        public abstract void PurgeFiles(IEnumerable<string> files, IEnumerable<string> folders, PurgeProgressHandler handler=null);
 
         protected void ReportProcess(int percent) {
             CopyProgress(this, percent);
@@ -46,5 +46,8 @@ namespace BackerUpper
         public void Cancel() {
             this.cancelled = true;
         }
+
+        public enum PurgeEntity { File, Folder };
+        public delegate bool PurgeProgressHandler(PurgeEntity entity, string file);
     }
 }
