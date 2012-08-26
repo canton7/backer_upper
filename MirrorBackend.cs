@@ -44,8 +44,10 @@ namespace BackerUpper
             try {
                 if (File.Exists(dest)) {
                     string destMD5 = FileUtils.FileMD5(dest);
-                    if (destMD5 == fileMD5)
+                    if (destMD5 == fileMD5) {
+                        File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source));
                         return;
+                    }
                 }
             }
             catch (IOException e) { throw new BackupOperationException(dest, e.Message); }
@@ -58,13 +60,16 @@ namespace BackerUpper
                 return;
             FileInfo fileInfo = new FileInfo(dest);
             fileInfo.IsReadOnly = false;
+            this.withHandling(() => File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source)), file); ;
         }
 
         public override void UpdateFile(string file, string source, string fileMD5) {
-            this.withHandling(() => XCopy.Copy(source, Path.Combine(this.Dest, file), true, true, (percent) => {
+            string dest = Path.Combine(this.Dest, file);
+            this.withHandling(() => XCopy.Copy(source, dest, true, true, (percent) => {
                 this.ReportProcess(percent);
                 return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
             }), file);
+            this.withHandling(() => File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source)), file);
         }
 
         public override void BackupDatabase(string file, string source) {
