@@ -47,16 +47,25 @@ namespace BackerUpper
             // This needs fixing, but somewhere else
             this.folders.Add("");
 
-            do {
-                listResponse = client.ListObjects(listRequest);
-                foreach (S3Object obj in listResponse.S3Objects) {
-                    if (obj.Key.EndsWith("/") && obj.Size == 0)
-                        this.folders.Add(obj.Key.TrimEnd(new char[] { '/' }).Substring(this.prefix.Length));
-                    else
-                        this.files.Add(obj.Key.Substring(this.prefix.Length));
-                }
-                listRequest.Marker = listResponse.NextMarker;
-            } while (listResponse.NextMarker != null);
+            try {
+                do {
+                    listResponse = client.ListObjects(listRequest);
+                    foreach (S3Object obj in listResponse.S3Objects) {
+                        if (obj.Key.EndsWith("/") && obj.Size == 0)
+                            this.folders.Add(obj.Key.TrimEnd(new char[] { '/' }).Substring(this.prefix.Length));
+                        else
+                            this.files.Add(obj.Key.Substring(this.prefix.Length));
+                    }
+                    listRequest.Marker = listResponse.NextMarker;
+                } while (listResponse.NextMarker != null);
+            }
+            catch (AmazonS3Exception ex) {
+                string message = ex.Message;
+                // Clarify this error
+                if (ex.ErrorCode == "SignatureDoesNotMatch")
+                    message += "\n\nThis can be caused by an invalid S3 secret key credential.";
+                throw new IOException(message);
+            }
         }
 
         public override void CreateFolder(string folder) {
@@ -66,7 +75,7 @@ namespace BackerUpper
                 Key = this.prefix + folder + '/',
                 ContentBody = ""
             };
-            this.client.PutObject(request);
+            this.withHandling(() => this.client.PutObject(request), folder);
             this.folders.Add(folder);
         }
 
@@ -76,7 +85,7 @@ namespace BackerUpper
                 BucketName = this.bucket,
                 Key = (this.prefix + folder + '/')
             };
-            this.client.DeleteObject(request);
+            this.withHandling(() => this.client.DeleteObject(request), folder);
             this.folders.Remove(folder);
         }
 
@@ -109,7 +118,7 @@ namespace BackerUpper
             };
             putRequest.PutObjectProgressEvent += new EventHandler<PutObjectProgressArgs>(putRequest_PutObjectProgressEvent);
             putRequest.AddHeader("x-amz-meta-md5", fileMD5);
-            this.client.PutObject(putRequest);
+            this.withHandling(() => this.client.PutObject(putRequest), file);
             this.files.Add(file);
         }
 
@@ -131,7 +140,7 @@ namespace BackerUpper
                 BucketName = this.bucket,
                 Key = this.prefix + file
             };
-            this.client.DeleteObject(request);
+            this.withHandling(() => this.client.DeleteObject(request), file);
             this.files.Remove(file);
         }
 
@@ -149,14 +158,14 @@ namespace BackerUpper
                 SourceKey = this.prefix + source,
                 DestinationKey = this.prefix + file
             };
-            this.client.CopyObject(request);
+            this.withHandling(() => this.client.CopyObject(request), file);
             this.files.Add(file);
             return true;
         }
 
         public override void CreateFromAlternateMove(string file, string source) {
             this.CreateFromAlternateCopy(file, source);
-            this.DeleteFile(source);
+            this.withHandling(() => this.DeleteFile(source), file);
         }
 
         public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn) {
@@ -177,6 +186,13 @@ namespace BackerUpper
                     this.DeleteFolder(folder);
                 }
             }
+        }
+
+        private void withHandling(Action action, string errorFile) {
+            try {
+                action();
+            }
+            catch (AmazonS3Exception e) { throw new BackupOperationException(errorFile, e.Message); }
         }
     }
 }
