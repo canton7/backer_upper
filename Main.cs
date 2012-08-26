@@ -106,6 +106,37 @@ namespace BackerUpper
             this.populateBackupsList();
         }
 
+        private void importBackup() {
+            this.openFileDialogImport.Filter = "Database files|*" + Constants.BACKUP_EXTENSION;
+            DialogResult result = this.openFileDialogImport.ShowDialog();
+            if (result == DialogResult.Cancel)
+                return;
+            string orgPath = this.openFileDialogImport.FileName;
+            // Get a copy of it, so we can change stuff
+            string path = Path.GetTempFileName();
+            File.Copy(orgPath, path, true);
+            // Get its name out
+            Database database = new Database(path);
+            Settings settings = new Settings(database);
+            
+            // Invoking the properties form ensures that everything's valid: unique name, etc
+            PropertiesForm propertiesForm = new PropertiesForm(settings, this.backups, true);
+            propertiesForm.ShowDialog();
+            propertiesForm.Close();
+
+            string name = settings.Name;
+            database.Close();
+
+            if (!propertiesForm.Saved) {
+                File.Delete(path);
+                return;
+            }
+
+            // Move it to the right dir
+            File.Move(path, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER, name + Constants.BACKUP_EXTENSION));
+            this.populateBackupsList();
+        }
+
         private void performBackup(bool fromScheduler=false) {
             this.buttonBackup.Enabled = false;
             this.buttonCancel.Enabled = true;
@@ -319,6 +350,10 @@ namespace BackerUpper
                 this.BackendBases = backendBases;
                 this.FromScheduler = fromScheduler;
             }
+        }
+
+        private void buttonImport_Click(object sender, EventArgs e) {
+            this.importBackup();
         }
     }
 

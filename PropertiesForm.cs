@@ -18,12 +18,13 @@ namespace BackerUpper
         private string[] takenBackupNames;
         private string initialBackupName;
 
-        public PropertiesForm(Settings settings, string[] takenBackupNames) {
+        public PropertiesForm(Settings settings, string[] takenBackupNames, bool backupIsNew=false) {
             InitializeComponent();
 
             this.settings = settings;
             this.takenBackupNames = takenBackupNames;
-            this.initialBackupName = settings.Name;
+            // Only use this info if the backup isn't new. New backups don't yet exist, in the scheduler or in the filesystem
+            this.initialBackupName = backupIsNew ? null : settings.Name;
             this.loadValues();
         }
 

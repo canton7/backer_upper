@@ -45,6 +45,8 @@
             this.labelDest = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.labelStats = new System.Windows.Forms.Label();
+            this.buttonImport = new System.Windows.Forms.Button();
+            this.openFileDialogImport = new System.Windows.Forms.OpenFileDialog();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -226,11 +228,27 @@
             this.labelStats.TabIndex = 14;
             this.labelStats.Text = "None";
             // 
+            // buttonImport
+            // 
+            this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonImport.Location = new System.Drawing.Point(341, 71);
+            this.buttonImport.Name = "buttonImport";
+            this.buttonImport.Size = new System.Drawing.Size(75, 23);
+            this.buttonImport.TabIndex = 15;
+            this.buttonImport.Text = "Import";
+            this.buttonImport.UseVisualStyleBackColor = true;
+            this.buttonImport.Click += new System.EventHandler(this.buttonImport_Click);
+            // 
+            // openFileDialogImport
+            // 
+            this.openFileDialogImport.FileName = "openFileDialog1";
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(427, 298);
+            this.Controls.Add(this.buttonImport);
             this.Controls.Add(this.labelStats);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.labelDest);
@@ -279,6 +297,8 @@
         private System.Windows.Forms.Label labelDest;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label labelStats;
+        private System.Windows.Forms.Button buttonImport;
+        private System.Windows.Forms.OpenFileDialog openFileDialogImport;
 
     }
 }
