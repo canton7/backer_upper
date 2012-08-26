@@ -49,9 +49,14 @@ namespace BackerUpper
 
         private void loadScheduler(string name) {
             Task task = loadTask(name);
-            // Form defaults are fine if the task doesn't exist
-            if (task == null)
+
+            if (task == null) {
+                this.ScheduleTime = new DateTime(1970, 1, 1, 20, 0, 0);
+                this.DaysOfTheWeek = DaysOfTheWeek.Monday | DaysOfTheWeek.Tuesday | DaysOfTheWeek.Wednesday | DaysOfTheWeek.Thursday |
+                    DaysOfTheWeek.Friday | DaysOfTheWeek.Saturday | DaysOfTheWeek.Sunday;
+                this.Enabled = true;
                 return;
+            }
 
             Trigger trigger = task.Definition.Triggers.FirstOrDefault(x => x.TriggerType == TaskTriggerType.Weekly);
             // Don't have an appropriate trigger -- select no days
