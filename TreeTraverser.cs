@@ -66,7 +66,7 @@ namespace BackerUpper
 
         public DateTime GetFileLastModified(string file) {
             try {
-                return File.GetLastWriteTime(Path.Combine(this.startDir, file));
+                return File.GetLastWriteTimeUtc(Path.Combine(this.startDir, file));
             }
             catch (IOException e) { throw new BackupOperationException(file, e.Message); }
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(file, e.Message); }

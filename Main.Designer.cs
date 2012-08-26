@@ -47,6 +47,7 @@
             this.labelStats = new System.Windows.Forms.Label();
             this.buttonImport = new System.Windows.Forms.Button();
             this.openFileDialogImport = new System.Windows.Forms.OpenFileDialog();
+            this.buttonTest = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,7 +58,7 @@
             this.backupsList.FormattingEnabled = true;
             this.backupsList.Location = new System.Drawing.Point(12, 12);
             this.backupsList.Name = "backupsList";
-            this.backupsList.Size = new System.Drawing.Size(322, 82);
+            this.backupsList.Size = new System.Drawing.Size(331, 82);
             this.backupsList.TabIndex = 0;
             this.backupsList.SelectedIndexChanged += new System.EventHandler(this.backupsList_SelectedIndexChanged);
             // 
@@ -73,7 +74,7 @@
             // 
             // buttonProperties
             // 
-            this.buttonProperties.Location = new System.Drawing.Point(173, 100);
+            this.buttonProperties.Location = new System.Drawing.Point(268, 100);
             this.buttonProperties.Name = "buttonProperties";
             this.buttonProperties.Size = new System.Drawing.Size(75, 23);
             this.buttonProperties.TabIndex = 2;
@@ -84,7 +85,7 @@
             // buttonCreate
             // 
             this.buttonCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCreate.Location = new System.Drawing.Point(340, 12);
+            this.buttonCreate.Location = new System.Drawing.Point(349, 12);
             this.buttonCreate.Name = "buttonCreate";
             this.buttonCreate.Size = new System.Drawing.Size(75, 23);
             this.buttonCreate.TabIndex = 3;
@@ -100,14 +101,14 @@
             this.statusLabelTime});
             this.statusStrip1.Location = new System.Drawing.Point(0, 274);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(427, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(429, 24);
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // statusLabelBackupAction
             // 
             this.statusLabelBackupAction.Name = "statusLabelBackupAction";
-            this.statusLabelBackupAction.Size = new System.Drawing.Size(374, 19);
+            this.statusLabelBackupAction.Size = new System.Drawing.Size(376, 19);
             this.statusLabelBackupAction.Spring = true;
             this.statusLabelBackupAction.Text = "Idle";
             this.statusLabelBackupAction.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -126,7 +127,7 @@
             // buttonCancel
             // 
             this.buttonCancel.Enabled = false;
-            this.buttonCancel.Location = new System.Drawing.Point(93, 100);
+            this.buttonCancel.Location = new System.Drawing.Point(187, 100);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 2;
@@ -148,7 +149,7 @@
             // buttonDelete
             // 
             this.buttonDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDelete.Location = new System.Drawing.Point(340, 41);
+            this.buttonDelete.Location = new System.Drawing.Point(349, 41);
             this.buttonDelete.Name = "buttonDelete";
             this.buttonDelete.Size = new System.Drawing.Size(75, 23);
             this.buttonDelete.TabIndex = 6;
@@ -231,7 +232,7 @@
             // buttonImport
             // 
             this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonImport.Location = new System.Drawing.Point(341, 71);
+            this.buttonImport.Location = new System.Drawing.Point(349, 70);
             this.buttonImport.Name = "buttonImport";
             this.buttonImport.Size = new System.Drawing.Size(75, 23);
             this.buttonImport.TabIndex = 15;
@@ -243,11 +244,22 @@
             // 
             this.openFileDialogImport.FileName = "openFileDialog1";
             // 
+            // buttonTest
+            // 
+            this.buttonTest.Location = new System.Drawing.Point(93, 100);
+            this.buttonTest.Name = "buttonTest";
+            this.buttonTest.Size = new System.Drawing.Size(88, 23);
+            this.buttonTest.TabIndex = 16;
+            this.buttonTest.Text = "Test && Backup";
+            this.buttonTest.UseVisualStyleBackColor = true;
+            this.buttonTest.Click += new System.EventHandler(this.buttonTest_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(427, 298);
+            this.ClientSize = new System.Drawing.Size(429, 298);
+            this.Controls.Add(this.buttonTest);
             this.Controls.Add(this.buttonImport);
             this.Controls.Add(this.labelStats);
             this.Controls.Add(this.label4);
@@ -299,6 +311,7 @@
         private System.Windows.Forms.Label labelStats;
         private System.Windows.Forms.Button buttonImport;
         private System.Windows.Forms.OpenFileDialog openFileDialogImport;
+        private System.Windows.Forms.Button buttonTest;
 
     }
 }

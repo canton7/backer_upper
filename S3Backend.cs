@@ -99,14 +99,17 @@ namespace BackerUpper
             string key = this.prefix + file;
 
             if (this.files.Contains(file)) {
-                GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
-                    BucketName = this.bucket,
-                    Key = key
-                };
-                GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
-                string destMD5 = metaResponse.Headers["x-amz-meta-md5"];
-                if (destMD5 == fileMD5)
-                    return;
+                try {
+                    GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
+                        BucketName = this.bucket,
+                        Key = key
+                    };
+                    GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
+                    string destMD5 = metaResponse.Headers["x-amz-meta-md5"];
+                    if (destMD5 == fileMD5)
+                        return;
+                }
+                catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
             }
 
             PutObjectRequest putRequest = new PutObjectRequest() {
@@ -120,6 +123,28 @@ namespace BackerUpper
             putRequest.AddHeader("x-amz-meta-md5", fileMD5);
             this.withHandling(() => this.client.PutObject(putRequest), file);
             this.files.Add(file);
+        }
+
+        public override bool TestFile(string file, DateTime lastModified, string fileMD5) {
+            // lastModified isn't much of an indication, since we can't update it at will (updateLastModified does nothing)
+            // But we can use the md5 for a good test
+            file = file.Replace('\\', '/');
+            string key = this.prefix + file;
+
+            if (!this.files.Contains(file))
+                throw new BackupOperationException(file, "Could not find file, in order to test");
+
+            try {
+                GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
+                    BucketName = this.bucket,
+                    Key = key
+                };
+                GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
+                string destMD5 = metaResponse.Headers["x-amz-meta-md5"];
+
+                return destMD5 == fileMD5;
+            }
+            catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
         }
 
         public override void BackupDatabase(string file, string source) {

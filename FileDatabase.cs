@@ -63,6 +63,7 @@ namespace BackerUpper
             return folderRecords;
         }
 
+
         public FileStatus InspectFile(int folderId, string name, DateTime lastModified) {
             int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
 
@@ -125,6 +126,20 @@ namespace BackerUpper
             }
             return fileRecords;
         }
+
+        public FileRecordExtended[] RecordedFilesExtended() {
+            DataTable result = this.db.ExecuteReader(@"SELECT files.id, folders.path, files.name, files.date_modified, files.md5 FROM files LEFT JOIN folders ON files.folder_id = folders.id");
+            FileRecordExtended[] fileRecords = new FileRecordExtended[result.Rows.Count];
+
+            DataRow row;
+            for (int i = 0; i < result.Rows.Count; i++) {
+                row = result.Rows[i];
+                DateTime lastModified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Convert.ToInt32(row["date_modified"]));
+                fileRecords[i] = new FileRecordExtended(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()), lastModified, row["md5"].ToString());
+            }
+            return fileRecords;
+        }
+
 
         /*
         public void FinishAndSync() {
@@ -217,6 +232,21 @@ namespace BackerUpper
             public FileRecord(int id, string path) {
                 this.Id = id;
                 this.Path = path;
+            }
+        }
+
+        public struct FileRecordExtended
+        {
+            public int Id;
+            public string Path;
+            public DateTime LastModified;
+            public string FileMd5;
+
+            public FileRecordExtended(int id, string path, DateTime lastModified, string fileMd5) {
+                this.Id = id;
+                this.Path = path;
+                this.LastModified = lastModified;
+                this.FileMd5 = fileMd5;
             }
         }
 

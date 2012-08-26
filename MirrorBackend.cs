@@ -75,6 +75,18 @@ namespace BackerUpper
             this.withHandling(() => File.Delete(Path.Combine(this.Dest, file)), file);
         }
 
+        public override bool TestFile(string file, DateTime lastModified, string fileMd5) {
+            // Don't bother testing the MD% (too slow); just look at the last modified
+            try {
+                // Remove milliseconds
+                DateTime fileLastMod = File.GetLastWriteTimeUtc(Path.Combine(this.Dest, file));
+                return Math.Abs((fileLastMod - lastModified).TotalSeconds) < 1;
+            }
+            catch (IOException e) {
+                throw new BackupOperationException(file, e.Message);
+            }
+        }
+
         public override bool FileExists(string file) {
             return File.Exists(Path.Combine(this.Dest, file));
         }

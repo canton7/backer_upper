@@ -142,8 +142,9 @@ namespace BackerUpper
             this.populateBackupsList();
         }
 
-        private void performBackup(bool fromScheduler=false) {
+        private void performBackup(bool fromScheduler=false, bool performTest=false) {
             this.buttonBackup.Enabled = false;
+            this.buttonTest.Enabled = false;
             this.buttonCancel.Enabled = true;
 
             this.backupStatus = "Starting...";
@@ -170,7 +171,7 @@ namespace BackerUpper
                 backendBases.Add(backend);
             }
 
-            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(database, settings, logger, backendBases.ToArray(), fromScheduler));
+            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(database, settings, logger, backendBases.ToArray(), fromScheduler, performTest));
         }
 
         private void backgroundWorkerBackup_DoWork(object sender, DoWorkEventArgs e) {
@@ -209,6 +210,11 @@ namespace BackerUpper
 
             this.backupStatus = "Pruning database...";
             this.currentBackupFilescanner.PruneDatabase();
+            // Test has to come after prune, but before backup
+            if (!this.currentBackupFilescanner.Cancelled && backupArgs.PerformTest) {
+                this.backupStatus = "Testing...";
+                this.currentBackupFilescanner.TestDest();
+            }
             if (!this.currentBackupFilescanner.Cancelled)
                 this.currentBackupFilescanner.Backup();
             if (!this.currentBackupFilescanner.Cancelled) {
@@ -245,6 +251,7 @@ namespace BackerUpper
 
             this.InvokeEx(f => f.statusLabelBackupAction.Text = status);
             this.InvokeEx(f => f.buttonBackup.Enabled = true);
+            this.InvokeEx(f => f.buttonTest.Enabled = true);
             this.InvokeEx(f => f.buttonCancel.Enabled = false);
             // Files/folders could will have changed
             this.InvokeEx(f => f.updateInfoDisplay());
@@ -355,18 +362,24 @@ namespace BackerUpper
             public Logger Logger;
             public BackendBase[] BackendBases;
             public bool FromScheduler;
+            public bool PerformTest;
 
-            public BackupItem(Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler) {
+            public BackupItem(Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler, bool performTest) {
                 this.Database = database;
                 this.Settings = settings;
                 this.Logger = logger;
                 this.BackendBases = backendBases;
                 this.FromScheduler = fromScheduler;
+                this.PerformTest = performTest;
             }
         }
 
         private void buttonImport_Click(object sender, EventArgs e) {
             this.importBackup();
+        }
+
+        private void buttonTest_Click(object sender, EventArgs e) {
+            this.performBackup(false, true);
         }
     }
 

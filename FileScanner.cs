@@ -54,6 +54,8 @@ namespace BackerUpper
             // Start with the files
             FileDatabase.FileRecord[] files = this.fileDatabase.RecordedFiles();
             foreach (FileDatabase.FileRecord file in files) {
+                if (this.cancel)
+                    break;
                 if (this.backends.Any(b => !b.FileExists(file.Path))) {
                     this.Logger.Info("Pruning database entry: file {0}", file.Path);
                     this.fileDatabase.DeleteFile(file.Id);
@@ -63,6 +65,8 @@ namespace BackerUpper
             // Then the folders
             FileDatabase.FolderRecord[] folders = this.fileDatabase.RecordedFolders();
             foreach (FileDatabase.FolderRecord folder in folders) {
+                if (this.cancel)
+                    break;
                 if (this.backends.Any(b => !b.FolderExists(folder.Path))) {
                     this.Logger.Info("Pruning database entry: folder {0}", folder.Path);
                     this.fileDatabase.DeleteFolder(folder.Id);
@@ -79,6 +83,26 @@ namespace BackerUpper
             foreach (BackendBase backend in this.backends) {
                 this.Logger.Info("{0}: Removing files from the destination which aren't in the database or source filesystem", backend.Name);
                 backend.PurgeFiles(files, folders);
+            }
+        }
+
+        public void TestDest() {
+            // WE ASSUME THE FILES EXIST. (handled) errors happen if not
+            // Check the dest against the database.
+            // If the mtime or md5 (whichever is available) doesn't match, then we have a problem
+            // What do we do? Remove it from the DB! Slightly drastic, but safe
+
+            FileDatabase.FileRecordExtended[] files = this.fileDatabase.RecordedFilesExtended();
+            foreach (FileDatabase.FileRecordExtended file in files) {
+                if (this.cancel)
+                    break;
+                try {
+                    if (this.backends.Any(b => !b.TestFile(file.Path, file.LastModified, file.FileMd5))) {
+                        this.Logger.Info("File {0} modified on a backend. Removing from database", file.Path);
+                        this.fileDatabase.DeleteFile(file.Id);
+                    }
+                }
+                catch (BackupOperationException e) { this.handleOperationException(e); }
             }
         }
 

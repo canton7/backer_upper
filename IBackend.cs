@@ -15,6 +15,7 @@ namespace BackerUpper
         bool CreateFromAlternateCopy(string file, string source);
         void CreateFromAlternateMove(string file, string source);
         bool FileExists(string file);
+        bool TestFile(string file, DateTime lastModified, string fileMd5);
         void CreateFolder(string folder);
         void DeleteFolder(string folder);
         bool FolderExists(string folder);
