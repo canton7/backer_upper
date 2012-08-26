@@ -19,7 +19,7 @@ namespace BackerUpper
             int oldBytesRead;
             long size;
             long totalBytesRead = 0;
-            string result;
+            StringBuilder result;
             int prevPrecentage = -1;
             int percentage;
             bool cancel = false;
@@ -53,9 +53,12 @@ namespace BackerUpper
                 } while (!cancel && bytesRead != 0);
                 if (cancel)
                     return null;
-                result = ASCIIEncoding.ASCII.GetString(hashAlgorithm.Hash);
+                byte[] finalBytes = hashAlgorithm.Hash;
+                result = new StringBuilder(finalBytes.Length * 2);
+                foreach (byte b in finalBytes)
+                    result.AppendFormat("{0:x2}", b);
             }
-            return result;
+            return result.ToString();
         }
     }
 }
