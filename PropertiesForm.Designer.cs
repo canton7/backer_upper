@@ -49,7 +49,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.textBoxS3Dest = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.groupBoxScheduler = new System.Windows.Forms.GroupBox();
             this.checkBoxIgnoreWarnings = new System.Windows.Forms.CheckBox();
             this.checkBoxAutoclose = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
@@ -61,10 +61,11 @@
             this.checkBoxScheduleWeds = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleTues = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleMon = new System.Windows.Forms.CheckBox();
+            this.checkBoxUseScheduler = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBoxMirror.SuspendLayout();
             this.groupBoxS3.SuspendLayout();
-            this.groupBox2.SuspendLayout();
+            this.groupBoxScheduler.SuspendLayout();
             this.SuspendLayout();
             // 
             // sourceBrowser
@@ -133,7 +134,7 @@
             // 
             this.buttonSourceBrowser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSourceBrowser.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonSourceBrowser.Image = global::BackerUpper.Properties.Resources.IconFolderOpen;
+            this.buttonSourceBrowser.Image = ((System.Drawing.Image)(resources.GetObject("buttonSourceBrowser.Image")));
             this.buttonSourceBrowser.Location = new System.Drawing.Point(346, 17);
             this.buttonSourceBrowser.Name = "buttonSourceBrowser";
             this.buttonSourceBrowser.Size = new System.Drawing.Size(26, 23);
@@ -145,7 +146,7 @@
             // 
             this.buttonDestBrowser.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonDestBrowser.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonDestBrowser.Image = global::BackerUpper.Properties.Resources.IconFolderOpen;
+            this.buttonDestBrowser.Image = ((System.Drawing.Image)(resources.GetObject("buttonDestBrowser.Image")));
             this.buttonDestBrowser.Location = new System.Drawing.Point(346, 17);
             this.buttonDestBrowser.Name = "buttonDestBrowser";
             this.buttonDestBrowser.Size = new System.Drawing.Size(26, 23);
@@ -155,7 +156,7 @@
             // 
             // buttonSave
             // 
-            this.buttonSave.Location = new System.Drawing.Point(12, 410);
+            this.buttonSave.Location = new System.Drawing.Point(12, 423);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(75, 23);
             this.buttonSave.TabIndex = 3;
@@ -165,7 +166,7 @@
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Location = new System.Drawing.Point(93, 410);
+            this.buttonCancel.Location = new System.Drawing.Point(93, 423);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 4;
@@ -294,27 +295,27 @@
             this.label4.TabIndex = 0;
             this.label4.Text = "Location";
             // 
-            // groupBox2
+            // groupBoxScheduler
             // 
-            this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBoxScheduler.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox2.Controls.Add(this.checkBoxIgnoreWarnings);
-            this.groupBox2.Controls.Add(this.checkBoxAutoclose);
-            this.groupBox2.Controls.Add(this.label7);
-            this.groupBox2.Controls.Add(this.dateTimePickerScheduleTime);
-            this.groupBox2.Controls.Add(this.checkBoxScheduleSun);
-            this.groupBox2.Controls.Add(this.checkBoxScheduleSat);
-            this.groupBox2.Controls.Add(this.checkBoxScheduleFri);
-            this.groupBox2.Controls.Add(this.checkBoxScheduleThurs);
-            this.groupBox2.Controls.Add(this.checkBoxScheduleWeds);
-            this.groupBox2.Controls.Add(this.checkBoxScheduleTues);
-            this.groupBox2.Controls.Add(this.checkBoxScheduleMon);
-            this.groupBox2.Location = new System.Drawing.Point(4, 312);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(378, 77);
-            this.groupBox2.TabIndex = 10;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Schedule";
+            this.groupBoxScheduler.Controls.Add(this.checkBoxIgnoreWarnings);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxAutoclose);
+            this.groupBoxScheduler.Controls.Add(this.label7);
+            this.groupBoxScheduler.Controls.Add(this.dateTimePickerScheduleTime);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleSun);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleSat);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleFri);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleThurs);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleWeds);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleTues);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleMon);
+            this.groupBoxScheduler.Location = new System.Drawing.Point(4, 335);
+            this.groupBoxScheduler.Name = "groupBoxScheduler";
+            this.groupBoxScheduler.Size = new System.Drawing.Size(378, 77);
+            this.groupBoxScheduler.TabIndex = 10;
+            this.groupBoxScheduler.TabStop = false;
+            this.groupBoxScheduler.Text = "Schedule";
             // 
             // checkBoxIgnoreWarnings
             // 
@@ -442,12 +443,26 @@
             this.checkBoxScheduleMon.Text = "Mon";
             this.checkBoxScheduleMon.UseVisualStyleBackColor = true;
             // 
+            // checkBoxUseScheduler
+            // 
+            this.checkBoxUseScheduler.AutoSize = true;
+            this.checkBoxUseScheduler.Checked = true;
+            this.checkBoxUseScheduler.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxUseScheduler.Location = new System.Drawing.Point(12, 312);
+            this.checkBoxUseScheduler.Name = "checkBoxUseScheduler";
+            this.checkBoxUseScheduler.Size = new System.Drawing.Size(96, 17);
+            this.checkBoxUseScheduler.TabIndex = 11;
+            this.checkBoxUseScheduler.Text = "Use Scheduler";
+            this.checkBoxUseScheduler.UseVisualStyleBackColor = true;
+            this.checkBoxUseScheduler.CheckedChanged += new System.EventHandler(this.checkBoxUseScheduler_CheckedChanged);
+            // 
             // PropertiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(394, 443);
-            this.Controls.Add(this.groupBox2);
+            this.ClientSize = new System.Drawing.Size(394, 459);
+            this.Controls.Add(this.checkBoxUseScheduler);
+            this.Controls.Add(this.groupBoxScheduler);
             this.Controls.Add(this.groupBoxS3);
             this.Controls.Add(this.checkBoxS3);
             this.Controls.Add(this.checkBoxMirror);
@@ -466,8 +481,8 @@
             this.groupBoxMirror.PerformLayout();
             this.groupBoxS3.ResumeLayout(false);
             this.groupBoxS3.PerformLayout();
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            this.groupBoxScheduler.ResumeLayout(false);
+            this.groupBoxScheduler.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -498,7 +513,7 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox textBoxS3Dest;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.GroupBox groupBoxScheduler;
         private System.Windows.Forms.DateTimePicker dateTimePickerScheduleTime;
         private System.Windows.Forms.CheckBox checkBoxScheduleSun;
         private System.Windows.Forms.CheckBox checkBoxScheduleSat;
@@ -510,5 +525,6 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.CheckBox checkBoxAutoclose;
         private System.Windows.Forms.CheckBox checkBoxIgnoreWarnings;
+        private System.Windows.Forms.CheckBox checkBoxUseScheduler;
     }
 }

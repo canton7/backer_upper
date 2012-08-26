@@ -102,6 +102,8 @@ namespace BackerUpper
             this.checkBoxScheduleFri.Checked = dow.HasFlag(DaysOfTheWeek.Friday);
             this.checkBoxScheduleSat.Checked = dow.HasFlag(DaysOfTheWeek.Saturday);
             this.checkBoxScheduleSun.Checked = dow.HasFlag(DaysOfTheWeek.Sunday);
+
+            this.checkBoxUseScheduler.Checked = task.Definition.Settings.Enabled;
         }
 
         private void setupTask() {
@@ -146,6 +148,9 @@ namespace BackerUpper
             
             if (set)
                 definition.Triggers.Add(trigger);
+
+            definition.Settings.Enabled = this.checkBoxUseScheduler.Checked;
+
             folder.RegisterTaskDefinition(this.settings.Name, definition);
         }
 
@@ -231,6 +236,10 @@ namespace BackerUpper
 
         private void checkBoxS3_CheckedChanged(object sender, EventArgs e) {
             this.enableDisableDests();
+        }
+
+        private void checkBoxUseScheduler_CheckedChanged(object sender, EventArgs e) {
+            this.groupBoxScheduler.Enabled = this.checkBoxUseScheduler.Checked;
         }
     }
 }
