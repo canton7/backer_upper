@@ -310,6 +310,7 @@
             this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleWeds);
             this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleTues);
             this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleMon);
+            this.groupBoxScheduler.Enabled = false;
             this.groupBoxScheduler.Location = new System.Drawing.Point(4, 335);
             this.groupBoxScheduler.Name = "groupBoxScheduler";
             this.groupBoxScheduler.Size = new System.Drawing.Size(378, 77);
@@ -446,8 +447,6 @@
             // checkBoxUseScheduler
             // 
             this.checkBoxUseScheduler.AutoSize = true;
-            this.checkBoxUseScheduler.Checked = true;
-            this.checkBoxUseScheduler.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBoxUseScheduler.Location = new System.Drawing.Point(12, 312);
             this.checkBoxUseScheduler.Name = "checkBoxUseScheduler";
             this.checkBoxUseScheduler.Size = new System.Drawing.Size(96, 17);
