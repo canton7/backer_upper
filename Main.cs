@@ -80,7 +80,11 @@ namespace BackerUpper
             string tempFile = Path.GetTempFileName();
             Database database = Database.CreateDatabase(tempFile);
             Settings settings = new Settings(database);
-            settings.PopulateInitial("Unnamed Backup");
+            string backupName = "Unnamed Backup";
+            for (int i=2; this.backups.Contains(backupName); i++) {
+                backupName = String.Format("Unnamed Backup {0}", i);
+            }
+            settings.PopulateInitial(backupName);
 
             PropertiesForm propertiesForm = new PropertiesForm(settings, this.backups);
             propertiesForm.ShowDialog();
