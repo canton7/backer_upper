@@ -22,15 +22,14 @@ namespace BackerUpper
         private bool closeAfterFinish;
 
         private FileScanner currentBackupFilescanner;
-        private bool backupInProgress {
-            get { return this.currentBackupFilescanner != null; }
-        }
+        private bool backupInProgress = false;
 
         public Main(string backupToRun=null) {
             InitializeComponent();
 
             this.backupsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER);
             this.populateBackupsList();
+            this.setButtonStates();
             this.backupTimer = new Timer();
             this.backupTimer.Interval = 1000;
             this.backupTimer.Tick += new EventHandler(backupTimer_Tick);
@@ -67,6 +66,14 @@ namespace BackerUpper
 
         private void showError(string message, string caption="Error") {
             MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        private void setButtonStates() {
+            this.buttonBackup.Enabled = !this.backupInProgress && this.backups.Length > 0;
+            this.buttonTest.Enabled = !this.backupInProgress && this.backups.Length > 0;
+            this.buttonCancel.Enabled = this.backupInProgress;
+            // careful: backupInProgress is true before backupFilescanner is set
+            this.buttonProperties.Enabled = this.backups.Length > 0 && (!this.backupInProgress || (this.currentBackupFilescanner != null && this.currentBackupFilescanner.Name != this.backupsList.SelectedItem.ToString()));
         }
 
         private string loadSelectedBackup() {
@@ -166,9 +173,8 @@ namespace BackerUpper
             if (backup == null)
                 return;
 
-            this.buttonBackup.Enabled = false;
-            this.buttonTest.Enabled = false;
-            this.buttonCancel.Enabled = true;
+            this.backupInProgress = true;
+            this.setButtonStates();
 
             this.backupStatus = "Starting...";
             this.backupTimerElapsed = 0;
@@ -228,7 +234,7 @@ namespace BackerUpper
                 return;
             }
 
-            this.currentBackupFilescanner = new FileScanner(settings.Source, database, logger, backends);
+            this.currentBackupFilescanner = new FileScanner(settings.Source, database, logger, settings.Name, backends);
             this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
             this.backupStatus = "Pruning database...";
@@ -271,14 +277,13 @@ namespace BackerUpper
             this.backupStatusTimer.Stop();
 
             this.currentBackupFilescanner = null;
+            this.backupInProgress = false;
             logger.Close();
 
             this.InvokeEx(f => f.statusLabelBackupAction.Text = status);
-            this.InvokeEx(f => f.buttonBackup.Enabled = true);
-            this.InvokeEx(f => f.buttonTest.Enabled = true);
-            this.InvokeEx(f => f.buttonCancel.Enabled = false);
             // Files/folders could will have changed
             this.InvokeEx(f => f.updateInfoDisplay());
+            this.InvokeEx(f => f.setButtonStates());
 
             if (this.closeAfterFinish)
                 this.InvokeEx(f => f.Close());
@@ -389,6 +394,7 @@ namespace BackerUpper
         }
 
         private void backupsList_SelectedIndexChanged(object sender, EventArgs e) {
+            this.setButtonStates();
             this.updateInfoDisplay();
         }
 

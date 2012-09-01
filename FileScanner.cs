@@ -15,6 +15,7 @@ namespace BackerUpper
         public Database Database;
         private BackupActionItem lastBackupActionItem;
         public Logger Logger;
+        public string Name { get; private set; }
 
         private bool cancel = false;
         public bool Cancelled {
@@ -29,7 +30,7 @@ namespace BackerUpper
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
-        public FileScanner(string startDir, Database database, Logger logger, BackendBase[] backends) {
+        public FileScanner(string startDir, Database database, Logger logger, string name, BackendBase[] backends) {
             this.startDir = startDir;
             this.Database = database;
             this.treeTraverser = new TreeTraverser(startDir);
@@ -39,6 +40,7 @@ namespace BackerUpper
                 backend.CopyProgress += new BackendBase.CopyProgressEventHandler(Backend_CopyProgress);
             }
             this.Logger = logger;
+            this.Name = name;
         }
 
         public void Cancel() {
