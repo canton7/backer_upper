@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using Microsoft.Win32.TaskScheduler;
+using System.Diagnostics;
 
 namespace BackerUpper
 {
@@ -185,6 +186,10 @@ namespace BackerUpper
 
         private void checkBoxUseScheduler_CheckedChanged(object sender, EventArgs e) {
             this.groupBoxScheduler.Enabled = this.checkBoxUseScheduler.Checked;
+        }
+
+        private void linkLabelAWSCredientials_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
+            Process.Start(Constants.AWS_CREDENTIALS_URL);
         }
     }
 }

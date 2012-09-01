@@ -63,6 +63,7 @@
             this.checkBoxScheduleTues = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleMon = new System.Windows.Forms.CheckBox();
             this.checkBoxUseScheduler = new System.Windows.Forms.CheckBox();
+            this.linkLabelAWSCredientials = new System.Windows.Forms.LinkLabel();
             this.groupBox1.SuspendLayout();
             this.groupBoxMirror.SuspendLayout();
             this.groupBoxS3.SuspendLayout();
@@ -229,6 +230,7 @@
             // 
             this.groupBoxS3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxS3.Controls.Add(this.linkLabelAWSCredientials);
             this.groupBoxS3.Controls.Add(this.checkBoxUseRRS);
             this.groupBoxS3.Controls.Add(this.textBoxS3PrivateKey);
             this.groupBoxS3.Controls.Add(this.textBoxS3PublicKey);
@@ -467,6 +469,17 @@
             this.checkBoxUseScheduler.UseVisualStyleBackColor = true;
             this.checkBoxUseScheduler.CheckedChanged += new System.EventHandler(this.checkBoxUseScheduler_CheckedChanged);
             // 
+            // linkLabelAWSCredientials
+            // 
+            this.linkLabelAWSCredientials.AutoSize = true;
+            this.linkLabelAWSCredientials.Location = new System.Drawing.Point(192, 95);
+            this.linkLabelAWSCredientials.Name = "linkLabelAWSCredientials";
+            this.linkLabelAWSCredientials.Size = new System.Drawing.Size(107, 13);
+            this.linkLabelAWSCredientials.TabIndex = 6;
+            this.linkLabelAWSCredientials.TabStop = true;
+            this.linkLabelAWSCredientials.Text = "View your credentials";
+            this.linkLabelAWSCredientials.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelAWSCredientials_LinkClicked);
+            // 
             // PropertiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -539,5 +552,6 @@
         private System.Windows.Forms.CheckBox checkBoxIgnoreWarnings;
         private System.Windows.Forms.CheckBox checkBoxUseScheduler;
         private System.Windows.Forms.CheckBox checkBoxUseRRS;
+        private System.Windows.Forms.LinkLabel linkLabelAWSCredientials;
     }
 }

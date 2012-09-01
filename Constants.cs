@@ -13,5 +13,6 @@ namespace BackerUpper
         public const string LOG_FOLDER = "Logs";
         public const string TASK_SCHEDULER_FOLDER = "BackerUpper";
         public const int LOGS_KEEP_NUM = 5;
+        public const string AWS_CREDENTIALS_URL = "http://aws.amazon.com/security-credentials";
     }
 }
