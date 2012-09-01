@@ -241,10 +241,6 @@
             this.buttonImport.UseVisualStyleBackColor = true;
             this.buttonImport.Click += new System.EventHandler(this.buttonImport_Click);
             // 
-            // openFileDialogImport
-            // 
-            this.openFileDialogImport.FileName = "openFileDialog1";
-            // 
             // buttonTest
             // 
             this.buttonTest.Location = new System.Drawing.Point(93, 100);
