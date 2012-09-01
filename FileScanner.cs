@@ -102,6 +102,7 @@ namespace BackerUpper
             foreach (FileDatabase.FileRecordExtended file in files) {
                 if (this.cancel)
                     break;
+                this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Test));
                 try {
                     if (this.backends.Any(b => !b.TestFile(file.Path, file.LastModified, file.FileMd5))) {
                         this.Logger.Info("File {0} modified on a backend. Removing from database", file.Path);
@@ -361,7 +362,7 @@ namespace BackerUpper
         }
 
         public enum BackupActionEntity { File, Folder };
-        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Prune, Purge, Nothing };
+        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Prune, Purge, Test, Nothing };
         public struct BackupActionItem
         {
             public string From;

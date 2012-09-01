@@ -291,6 +291,8 @@ namespace BackerUpper
                 text = "Purge: " + text;
             else if (item.Operation == FileScanner.BackupActionOperation.Prune)
                 text = "Prune: " + text;
+            else if (item.Operation == FileScanner.BackupActionOperation.Test)
+                text = "Test: " + text;
             if (item.Backend == "S3")
                 text = "S3://" + text;
             if (this.currentBackupFilescanner.Cancelled)
