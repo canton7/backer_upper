@@ -37,6 +37,7 @@ namespace BackerUpper
             this.textBoxS3Dest.Text = this.settings.S3Dest;
             this.textBoxS3PublicKey.Text = this.settings.S3PublicKey;
             this.textBoxS3PrivateKey.Text = this.settings.S3PrivateKey;
+            this.checkBoxUseRRS.Checked = this.settings.S3UseRRS;
             this.checkBoxAutoclose.Checked = this.settings.Autoclose;
             this.checkBoxIgnoreWarnings.Checked = this.settings.IgnoreWarnings;
 
@@ -54,6 +55,7 @@ namespace BackerUpper
             this.settings.S3Dest = this.textBoxS3Dest.Text;
             this.settings.S3PublicKey = this.textBoxS3PublicKey.Text;
             this.settings.S3PrivateKey = this.textBoxS3PrivateKey.Text;
+            this.settings.S3UseRRS = this.checkBoxUseRRS.Checked;
             this.settings.Autoclose = this.checkBoxAutoclose.Checked;
             this.settings.IgnoreWarnings = this.checkBoxIgnoreWarnings.Checked;
 

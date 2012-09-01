@@ -47,6 +47,11 @@ namespace BackerUpper
             set { this.setKey("s3PrivateKey", value); }
         }
 
+        public bool S3UseRRS {
+            get { return this.getKey("s3UseRRS") == "1"; }
+            set { this.setKey("s3UseRRS", value ? "1" : "0"); }
+        }
+
         public string Name {
             get { return this.getKey("name"); }
             set { this.setKey("name", value); }
@@ -95,7 +100,7 @@ namespace BackerUpper
             this.db.Execute(@"INSERT INTO settings(name, value) VALUES
                 ('name', @name), ('source', ''),
                 ('mirrorEnabled', '0'), ('mirrorDest', ''),
-                ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', ''),
+                ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', ''), ('s3UseRRS', '0'),
                 ('lastRun', '0'), ('lastRunCancelled', '0'), ('lastRunErrors', '0'),
                 ('autoclose', '1'), ('ignoreWarnings', '0'); ", "@name", name);
         }

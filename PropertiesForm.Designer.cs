@@ -43,6 +43,7 @@
             this.checkBoxMirror = new System.Windows.Forms.CheckBox();
             this.checkBoxS3 = new System.Windows.Forms.CheckBox();
             this.groupBoxS3 = new System.Windows.Forms.GroupBox();
+            this.checkBoxUseRRS = new System.Windows.Forms.CheckBox();
             this.textBoxS3PrivateKey = new System.Windows.Forms.TextBox();
             this.textBoxS3PublicKey = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
@@ -156,7 +157,7 @@
             // 
             // buttonSave
             // 
-            this.buttonSave.Location = new System.Drawing.Point(12, 423);
+            this.buttonSave.Location = new System.Drawing.Point(12, 449);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(75, 23);
             this.buttonSave.TabIndex = 3;
@@ -166,7 +167,7 @@
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Location = new System.Drawing.Point(93, 423);
+            this.buttonCancel.Location = new System.Drawing.Point(93, 449);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 4;
@@ -228,6 +229,7 @@
             // 
             this.groupBoxS3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxS3.Controls.Add(this.checkBoxUseRRS);
             this.groupBoxS3.Controls.Add(this.textBoxS3PrivateKey);
             this.groupBoxS3.Controls.Add(this.textBoxS3PublicKey);
             this.groupBoxS3.Controls.Add(this.label6);
@@ -236,10 +238,20 @@
             this.groupBoxS3.Controls.Add(this.label4);
             this.groupBoxS3.Location = new System.Drawing.Point(4, 211);
             this.groupBoxS3.Name = "groupBoxS3";
-            this.groupBoxS3.Size = new System.Drawing.Size(378, 94);
+            this.groupBoxS3.Size = new System.Drawing.Size(378, 120);
             this.groupBoxS3.TabIndex = 9;
             this.groupBoxS3.TabStop = false;
             this.groupBoxS3.Text = "S3 Destination";
+            // 
+            // checkBoxUseRRS
+            // 
+            this.checkBoxUseRRS.AutoSize = true;
+            this.checkBoxUseRRS.Location = new System.Drawing.Point(11, 95);
+            this.checkBoxUseRRS.Name = "checkBoxUseRRS";
+            this.checkBoxUseRRS.Size = new System.Drawing.Size(174, 17);
+            this.checkBoxUseRRS.TabIndex = 5;
+            this.checkBoxUseRRS.Text = "Reduced Redundancy Storage";
+            this.checkBoxUseRRS.UseVisualStyleBackColor = true;
             // 
             // textBoxS3PrivateKey
             // 
@@ -311,7 +323,7 @@
             this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleTues);
             this.groupBoxScheduler.Controls.Add(this.checkBoxScheduleMon);
             this.groupBoxScheduler.Enabled = false;
-            this.groupBoxScheduler.Location = new System.Drawing.Point(4, 335);
+            this.groupBoxScheduler.Location = new System.Drawing.Point(4, 361);
             this.groupBoxScheduler.Name = "groupBoxScheduler";
             this.groupBoxScheduler.Size = new System.Drawing.Size(378, 77);
             this.groupBoxScheduler.TabIndex = 10;
@@ -447,7 +459,7 @@
             // checkBoxUseScheduler
             // 
             this.checkBoxUseScheduler.AutoSize = true;
-            this.checkBoxUseScheduler.Location = new System.Drawing.Point(12, 312);
+            this.checkBoxUseScheduler.Location = new System.Drawing.Point(12, 338);
             this.checkBoxUseScheduler.Name = "checkBoxUseScheduler";
             this.checkBoxUseScheduler.Size = new System.Drawing.Size(96, 17);
             this.checkBoxUseScheduler.TabIndex = 11;
@@ -459,7 +471,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(394, 462);
+            this.ClientSize = new System.Drawing.Size(394, 482);
             this.Controls.Add(this.checkBoxUseScheduler);
             this.Controls.Add(this.groupBoxScheduler);
             this.Controls.Add(this.groupBoxS3);
@@ -472,7 +484,7 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBoxName);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(410, 500);
+            this.MinimumSize = new System.Drawing.Size(410, 520);
             this.Name = "PropertiesForm";
             this.Text = "Properties";
             this.groupBox1.ResumeLayout(false);
@@ -526,5 +538,6 @@
         private System.Windows.Forms.CheckBox checkBoxAutoclose;
         private System.Windows.Forms.CheckBox checkBoxIgnoreWarnings;
         private System.Windows.Forms.CheckBox checkBoxUseScheduler;
+        private System.Windows.Forms.CheckBox checkBoxUseRRS;
     }
 }

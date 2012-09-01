@@ -189,7 +189,7 @@ namespace BackerUpper
                 backendBases.Add(backend);
             }
             if (settings.S3Enabled) {
-                S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey);
+                S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey, settings.S3UseRRS);
                 backendBases.Add(backend);
             }
 

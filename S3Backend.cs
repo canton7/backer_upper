@@ -13,8 +13,9 @@ namespace BackerUpper
         private AmazonS3Client client;
         private string bucket;
         private string prefix;
-        List<string> files;
-        List<string> folders;
+        private List<string> files;
+        private List<string> folders;
+        private S3StorageClass storageClass;
 
         public override string Name {
             get { return "S3"; }
@@ -24,13 +25,14 @@ namespace BackerUpper
             get { return true; }
         }
 
-        public S3Backend(string dest, string publicKey, string privateKey)
+        public S3Backend(string dest, string publicKey, string privateKey, bool useRRS)
             : base(dest) {
             string[] parts = dest.Split(new char[] {'/'}, 2);
             this.bucket = parts[0];
             this.prefix = parts.Length > 1 ? parts[1].Replace('\\', '/').TrimEnd(new char[] { '/' }) + '/' : "/";
 
             this.client = new AmazonS3Client(publicKey, privateKey);
+            this.storageClass = useRRS ? S3StorageClass.ReducedRedundancy : S3StorageClass.Standard;
         }
 
         public override void SetupInitial() {
@@ -73,7 +75,8 @@ namespace BackerUpper
             PutObjectRequest request = new PutObjectRequest() {
                 BucketName = this.bucket,
                 Key = this.prefix + folder + '/',
-                ContentBody = ""
+                ContentBody = "",
+                StorageClass = this.storageClass,
             };
             this.withHandling(() => this.client.PutObject(request), folder);
             this.folders.Add(folder);
@@ -117,7 +120,8 @@ namespace BackerUpper
                 FilePath = source,
                 Key = key,
                 Timeout = -1,
-                CannedACL = S3CannedACL.Private
+                CannedACL = S3CannedACL.Private,
+                StorageClass = this.storageClass,
             };
             putRequest.PutObjectProgressEvent += new EventHandler<PutObjectProgressArgs>(putRequest_PutObjectProgressEvent);
             putRequest.AddHeader("x-amz-meta-md5", fileMD5);

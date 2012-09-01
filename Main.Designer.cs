@@ -100,7 +100,7 @@
             this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.statusLabelBackupAction,
             this.statusLabelTime});
-            this.statusStrip1.Location = new System.Drawing.Point(0, 238);
+            this.statusStrip1.Location = new System.Drawing.Point(0, 258);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(429, 24);
             this.statusStrip1.TabIndex = 4;
@@ -139,7 +139,7 @@
             // buttonExit
             // 
             this.buttonExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonExit.Location = new System.Drawing.Point(12, 212);
+            this.buttonExit.Location = new System.Drawing.Point(12, 232);
             this.buttonExit.Name = "buttonExit";
             this.buttonExit.Size = new System.Drawing.Size(75, 23);
             this.buttonExit.TabIndex = 5;
@@ -270,7 +270,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(429, 262);
+            this.ClientSize = new System.Drawing.Size(429, 282);
             this.Controls.Add(this.buttonViewLogs);
             this.Controls.Add(this.buttonTest);
             this.Controls.Add(this.buttonImport);
@@ -291,7 +291,7 @@
             this.Controls.Add(this.buttonBackup);
             this.Controls.Add(this.backupsList);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(445, 300);
+            this.MinimumSize = new System.Drawing.Size(445, 320);
             this.Name = "Main";
             this.Text = "Backer Upper";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
