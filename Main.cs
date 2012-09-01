@@ -61,6 +61,7 @@ namespace BackerUpper
                 return;
             }
             this.backups = Directory.GetFiles(this.backupsPath).Where(file => Path.GetExtension(file) == Constants.BACKUP_EXTENSION).Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
+            Array.Sort(this.backups);
             this.backupsList.DataSource = this.backups;
         }
 
