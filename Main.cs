@@ -56,8 +56,10 @@ namespace BackerUpper
         }
 
         private void populateBackupsList() {
-            if (!Directory.Exists(this.backupsPath))
+            if (!Directory.Exists(this.backupsPath)) {
+                this.backups = new string[0];
                 return;
+            }
             this.backups = Directory.GetFiles(this.backupsPath).Where(file => Path.GetExtension(file) == Constants.BACKUP_EXTENSION).Select(file => Path.GetFileNameWithoutExtension(file)).ToArray();
             this.backupsList.DataSource = this.backups;
         }
