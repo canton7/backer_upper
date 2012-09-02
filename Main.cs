@@ -70,7 +70,6 @@ namespace BackerUpper
 
         private void setButtonStates() {
             this.buttonBackup.Enabled = !this.backupInProgress && this.backups.Length > 0;
-            this.buttonTest.Enabled = !this.backupInProgress && this.backups.Length > 0;
             this.buttonCancel.Enabled = this.backupInProgress;
             // careful: backupInProgress is true before backupFilescanner is set
             this.buttonProperties.Enabled = this.backups.Length > 0 && (!this.backupInProgress || (this.currentBackupFilescanner != null && this.currentBackupFilescanner.Name != this.backupsList.SelectedItem.ToString()));
@@ -177,7 +176,7 @@ namespace BackerUpper
             this.populateBackupsList();
         }
 
-        private void performBackup(bool fromScheduler=false, bool performTest=false) {
+        private void performBackup(bool fromScheduler=false) {
             string backup = this.loadSelectedBackup();
             if (backup == null)
                 return;
@@ -213,11 +212,11 @@ namespace BackerUpper
                 backendBases.Add(backend);
             }
             if (settings.S3Enabled) {
-                S3Backend backend = new S3Backend(settings.S3Dest, settings.S3PublicKey, settings.S3PrivateKey, settings.S3UseRRS);
+                S3Backend backend = new S3Backend(settings.S3Dest, settings.S3Test, settings.S3PublicKey, settings.S3PrivateKey, settings.S3UseRRS);
                 backendBases.Add(backend);
             }
 
-            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(database, settings, logger, backendBases.ToArray(), fromScheduler, performTest));
+            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(database, settings, logger, backendBases.ToArray(), fromScheduler));
         }
 
         private void backgroundWorkerBackup_DoWork(object sender, DoWorkEventArgs e) {
@@ -254,15 +253,7 @@ namespace BackerUpper
             this.currentBackupFilescanner = new FileScanner(settings.Source, database, logger, settings.Name, backends);
             this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
-            this.backupStatus = "Pruning database...";
-            this.currentBackupFilescanner.PruneDatabase();
-            // Test has to come after prune, but before backup
-            if (!this.currentBackupFilescanner.Cancelled && backupArgs.PerformTest) {
-                this.backupStatus = "Testing...";
-                this.currentBackupFilescanner.TestDest();
-            }
-            if (!this.currentBackupFilescanner.Cancelled)
-                this.currentBackupFilescanner.Backup();
+            this.currentBackupFilescanner.Backup();
             if (!this.currentBackupFilescanner.Cancelled) {
                 this.backupStatus = "Purging...";
                 this.currentBackupFilescanner.PurgeDest();
@@ -315,8 +306,6 @@ namespace BackerUpper
                 text = "Purge: " + text;
             else if (item.Operation == FileScanner.BackupActionOperation.Prune)
                 text = "Prune: " + text;
-            else if (item.Operation == FileScanner.BackupActionOperation.Test)
-                text = "Test: " + text;
             if (item.Backend == "S3")
                 text = "S3://" + text;
             if (this.currentBackupFilescanner.Cancelled)
@@ -430,24 +419,18 @@ namespace BackerUpper
             public Logger Logger;
             public BackendBase[] BackendBases;
             public bool FromScheduler;
-            public bool PerformTest;
 
-            public BackupItem(Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler, bool performTest) {
+            public BackupItem(Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler) {
                 this.Database = database;
                 this.Settings = settings;
                 this.Logger = logger;
                 this.BackendBases = backendBases;
                 this.FromScheduler = fromScheduler;
-                this.PerformTest = performTest;
             }
         }
 
         private void buttonImport_Click(object sender, EventArgs e) {
             this.importBackup();
-        }
-
-        private void buttonTest_Click(object sender, EventArgs e) {
-            this.performBackup(false, true);
         }
 
         private void buttonViewLogs_Click(object sender, EventArgs e) {

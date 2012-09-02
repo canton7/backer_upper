@@ -16,6 +16,7 @@ namespace BackerUpper
         private List<string> files;
         private List<string> folders;
         private S3StorageClass storageClass;
+        private bool performTests;
 
         public override string Name {
             get { return "S3"; }
@@ -25,7 +26,7 @@ namespace BackerUpper
             get { return true; }
         }
 
-        public S3Backend(string dest, string publicKey, string privateKey, bool useRRS)
+        public S3Backend(string dest, bool performTests, string publicKey, string privateKey, bool useRRS)
             : base(dest) {
             string[] parts = dest.Split(new char[] {'/'}, 2);
             this.bucket = parts[0];
@@ -33,6 +34,7 @@ namespace BackerUpper
 
             this.client = new AmazonS3Client(publicKey, privateKey);
             this.storageClass = useRRS ? S3StorageClass.ReducedRedundancy : S3StorageClass.Standard;
+            this.performTests = performTests;
         }
 
         public override void SetupInitial() {
@@ -68,6 +70,7 @@ namespace BackerUpper
                     message += "\n\nThis can be caused by an invalid S3 secret key credential.";
                 throw new IOException(message);
             }
+            //catch (System.Net.WebException e) { throw new BackupOperationException(errorFile, e.Message); }
         }
 
         public override void CreateFolder(string folder) {
@@ -113,6 +116,7 @@ namespace BackerUpper
                         return;
                 }
                 catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
+                catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
             }
 
             PutObjectRequest putRequest = new PutObjectRequest() {
@@ -136,7 +140,11 @@ namespace BackerUpper
             string key = this.prefix + file;
 
             if (!this.files.Contains(file))
-                throw new BackupOperationException(file, "Could not find file, in order to test");
+                return false;
+
+            // If we're not performing tests, don't
+            if (!this.performTests)
+                return true;
 
             try {
                 GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
@@ -149,6 +157,7 @@ namespace BackerUpper
                 return destMD5 == fileMD5;
             }
             catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
+            catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
         }
 
         public override void BackupDatabase(string file, string source) {
@@ -227,6 +236,7 @@ namespace BackerUpper
                 action();
             }
             catch (AmazonS3Exception e) { throw new BackupOperationException(errorFile, e.Message); }
+            catch (System.Net.WebException e) { throw new BackupOperationException(errorFile, e.Message); }
         }
     }
 }

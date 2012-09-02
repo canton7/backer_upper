@@ -82,6 +82,8 @@ namespace BackerUpper
 
         public override bool TestFile(string file, DateTime lastModified, string fileMd5) {
             // Don't bother testing the MD% (too slow); just look at the last modified
+            if (!this.FileExists(file))
+                return false;
             try {
                 // Remove milliseconds
                 DateTime fileLastMod = File.GetLastWriteTimeUtc(Path.Combine(this.Dest, file));
@@ -148,6 +150,8 @@ namespace BackerUpper
             }
             catch (IOException e) { throw new BackupOperationException(errorFile, e.Message); }
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(errorFile, e.Message); }
+            // Can get these from XCopy
+            catch (System.ComponentModel.Win32Exception e) { throw new BackupOperationException(errorFile, e.Message); }
         }
     }
 }

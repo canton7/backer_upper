@@ -43,35 +43,6 @@ namespace BackerUpper
                 backend.Cancel();
         }
 
-        public void PruneDatabase() {
-            // Remove all database entries where the file doesn't exist on the disk
-            // This is an inconsistency we can't recover from otherwise, as we never check whether we need to re-copy the file
-
-            // Start with the files
-            FileDatabase.FileRecord[] files = this.fileDatabase.RecordedFiles();
-            foreach (FileDatabase.FileRecord file in files) {
-                if (this.Cancelled)
-                    break;
-                this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Prune));
-                if (this.backends.Any(b => !b.FileExists(file.Path))) {
-                    this.Logger.Info("Pruning database entry: file {0}", file.Path);
-                    this.fileDatabase.DeleteFile(file.Id);
-                }
-            }
-
-            // Then the folders
-            FileDatabase.FolderRecord[] folders = this.fileDatabase.RecordedFolders();
-            foreach (FileDatabase.FolderRecord folder in folders) {
-                if (this.Cancelled)
-                    break;
-                this.reportBackupAction(new BackupActionItem(null, folder.Path, BackupActionEntity.File, BackupActionOperation.Prune));
-                if (this.backends.Any(b => !b.FolderExists(folder.Path))) {
-                    this.Logger.Info("Pruning database entry: folder {0}", folder.Path);
-                    this.fileDatabase.DeleteFolder(folder.Id);
-                }
-            }
-        }
-
         public void PurgeDest() {
             // Remove all entries in the destination filesystem which aren't in the database or the source filesystem
             // WARNING: Could potentially destroy information
@@ -85,27 +56,6 @@ namespace BackerUpper
                         BackupActionOperation.Purge));
                     return !this.Cancelled;
                 });
-            }
-        }
-
-        public void TestDest() {
-            // WE ASSUME THE FILES EXIST. (handled) errors happen if not
-            // Check the dest against the database.
-            // If the mtime or md5 (whichever is available) doesn't match, then we have a problem
-            // What do we do? Remove it from the DB! Slightly drastic, but safe
-
-            FileDatabase.FileRecordExtended[] files = this.fileDatabase.RecordedFilesExtended();
-            foreach (FileDatabase.FileRecordExtended file in files) {
-                if (this.Cancelled)
-                    break;
-                this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Test));
-                try {
-                    if (this.backends.Any(b => !b.TestFile(file.Path, file.LastModified, file.FileMd5))) {
-                        this.Logger.Info("File {0} modified on a backend. Removing from database", file.Path);
-                        this.fileDatabase.DeleteFile(file.Id);
-                    }
-                }
-                catch (BackupOperationException e) { this.handleOperationException(e); }
             }
         }
 
@@ -152,10 +102,10 @@ namespace BackerUpper
                                 nextFolder = true;
                                 curFolderId = this.addFolder(folder.Name);
                                 break;
-                            case FileDatabase.FolderModStatus.StillThere:
-                                //this.Logger.Info("Skipping folder: {0}", folder.Name);
+                            case FileDatabase.FolderModStatus.Unmodified:
                                 nextFolder = true;
                                 curFolderId = folderStatus.Id;
+                                this.checkFolder(folder.Name);
                                 break;
                         }
                     }
@@ -179,9 +129,9 @@ namespace BackerUpper
                             case FileDatabase.FileModStatus.Modified:
                                 this.updatefile(curFolderId, file, fileStatus.MD5, fileLastModified);
                                 break;
-                            default:
-                                //this.Logger.Info("Skipping file: {0}", file);
-                                this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
+                            case FileDatabase.FileModStatus.Unmodified:
+                                // We don't think anything's changed... but make sure the file exists on the backends
+                                this.checkFile(curFolderId, file, fileStatus.MD5, fileLastModified);
                                 break;
                         }
                     }
@@ -246,6 +196,16 @@ namespace BackerUpper
             this.fileDatabase.DeleteFolder(folderId);
         }
 
+        private void checkFolder(string folder) {
+            foreach (BackendBase backend in this.backends) {
+                if (!backend.FolderExists(folder)) {
+                    this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add, backend.Name));
+                    backend.CreateFolder(folder);
+                    this.Logger.Info("{0}: Folder missing from backend, so re-creating: {1}", backend.Name, folder);
+                }
+            }
+        }
+
         private void addFile(int folderId, string file, DateTime lastModified) {
             string fileMD5 = this.treeTraverser.FileMd5(file, (percent) => {
                 this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
@@ -259,7 +219,7 @@ namespace BackerUpper
             FileDatabase.FileRecord alternate = this.fileDatabase.SearchForAlternates(fileMD5);
             if (alternate.Id > 0) {
                 // Aha!
-                this.alternateFile(folderId, file, fileMD5, lastModified, alternate.Path, alternate.Id);
+                this.alternateFile(folderId, file, fileMD5, lastModified, alternate.Path, alternate.Id, "Added");
                 return;
             }
 
@@ -271,17 +231,17 @@ namespace BackerUpper
             this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
         }
 
-        private void alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, string alternatePath, int alternateId) {
+        private void alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, string alternatePath, int alternateId, string logAction) {
             // First: Is is a copy or a move?
             if (this.treeTraverser.FileExists(alternatePath)) {
                 // It's a copy
                 foreach (BackendBase backend in this.backends) {
                     this.reportBackupAction(new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Copy, backend.Name));
                     if (backend.CreateFromAlternateCopy(file, alternatePath))
-                        this.Logger.Info("{0}: Added file: {1} from alternate {2} (copy)", backend.Name, file, alternatePath);
+                        this.Logger.Info("{0}: {1} file: {2} from alternate {3} (copy)", backend.Name, logAction, file, alternatePath);
                     else {
                         backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
-                        this.Logger.Info("{0}: Added file: {1} (backend refused alternate {2})", backend.Name, file, alternatePath);
+                        this.Logger.Info("{0}: {1} file: {2} (backend refused alternate {3})", backend.Name, logAction, file, alternatePath);
                     }
                 }
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
@@ -291,7 +251,7 @@ namespace BackerUpper
                 foreach (BackendBase backend in this.backends) {
                     this.reportBackupAction(new BackupActionItem(alternatePath, file, BackupActionEntity.File, BackupActionOperation.Move, backend.Name));
                     backend.CreateFromAlternateMove(file, alternatePath);
-                    this.Logger.Info("{0}: Added file: {1} from alternate {2} (move)", backend.Name, file, alternatePath); 
+                    this.Logger.Info("{0}: {1} file: {2} from alternate {3} (move)", backend.Name, logAction, file, alternatePath); 
                 }
                 this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                 this.fileDatabase.DeleteFile(alternateId);
@@ -320,6 +280,19 @@ namespace BackerUpper
             }
             // But update the last modified time either way
             this.fileDatabase.UpdateFile(folderId, file, lastModified, fileMD5);
+        }
+
+        private void checkFile(int folderId, string file, string fileMD5, DateTime lastModified) {
+            foreach (BackendBase backend in this.backends) {
+                if (!backend.TestFile(file, lastModified, fileMD5)) {
+                    // Aha! File's gone missing from the backend
+                    this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
+                    this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file);
+                    backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+                }
+                else
+                    this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
+            }
         }
 
         private void deleteFile(int fileId, string file) {
