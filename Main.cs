@@ -109,7 +109,10 @@ namespace BackerUpper
             string destFile = Path.Combine(this.backupsPath, settings.Name + Constants.BACKUP_EXTENSION);
             database.Close();
 
-            File.Move(tempFile, destFile);
+            try {
+                File.Move(tempFile, destFile);
+            }
+            catch (IOException e) { this.showError(e.Message); }
             this.populateBackupsList();
         }
 
@@ -159,12 +162,18 @@ namespace BackerUpper
             database.Close();
 
             if (!propertiesForm.Saved) {
-                File.Delete(path);
+                try {
+                    File.Delete(path);
+                }
+                catch (IOException e) { this.showError(e.Message); }
                 return;
             }
 
             // Move it to the right dir
-            File.Move(path, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER, name + Constants.BACKUP_EXTENSION));
+            try {
+                File.Move(path, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER, name + Constants.BACKUP_EXTENSION));
+            }
+            catch (IOException e) { this.showError(e.Message); }
             this.populateBackupsList();
         }
 
@@ -181,7 +190,15 @@ namespace BackerUpper
             this.backupTimer.Start();
             this.backupStatusTimer.Start();
 
-            Database database = new Database(backup);
+            Database database;
+            try {
+                database = new Database(backup);
+            }
+            catch (IOException e) {
+                this.showError(e.Message);
+                this.finishBackup(null, "Error");
+                return;
+            }
             database.AutoSyncToDisk = true;
             Settings settings = new Settings(database);
             settings.LastRun = DateTime.Now;
@@ -217,7 +234,7 @@ namespace BackerUpper
             catch (Database.DatabaseInUseException ex) {
                 database.Close();
                 this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?\n\nIf you're certain this is the only instance of the program running, delete "+ex.LockFile);
-                this.finishBackup(database, logger, "Error");
+                this.finishBackup(logger, "Error");
                 return;
             }
 
@@ -230,7 +247,7 @@ namespace BackerUpper
             catch (IOException ex) {
                 this.showError("Error setting up backends: "+ex.Message);
                 database.Close();
-                this.finishBackup(database, logger, "Error");
+                this.finishBackup(logger, "Error");
                 return;
             }
 
@@ -269,16 +286,17 @@ namespace BackerUpper
                 }
             }
 
-            this.finishBackup(database, logger, this.currentBackupFilescanner.Cancelled ? "Cancelled" : "Completed");
+            this.finishBackup(logger, this.currentBackupFilescanner.Cancelled ? "Cancelled" : "Completed");
         }
 
-        private void finishBackup(Database database, Logger logger, string status) {
+        private void finishBackup(Logger logger, string status) {
             this.backupTimer.Stop();
             this.backupStatusTimer.Stop();
 
             this.currentBackupFilescanner = null;
             this.backupInProgress = false;
-            logger.Close();
+            if (logger != null)
+                logger.Close();
 
             this.InvokeEx(f => f.statusLabelBackupAction.Text = status);
             // Files/folders could will have changed
@@ -336,7 +354,10 @@ namespace BackerUpper
             database.Close();
 
             if (afterName != fileName) {
-                File.Move(fileName, afterName);
+                try {
+                    File.Move(fileName, afterName);
+                }
+                catch (IOException ex) { this.showError(ex.Message); }
                 this.populateBackupsList();
             }
             this.updateInfoDisplay();
@@ -346,7 +367,11 @@ namespace BackerUpper
             string fileName = this.loadSelectedBackup();
             if (fileName == null)
                 return;
-            Database database = new Database(fileName);
+            Database database;
+            try {
+                database = new Database(fileName);
+            }
+            catch (IOException e) { this.showError(e.Message); return; }
             Settings settings = new Settings(database);
             DateTime lastRun = settings.LastRun;
             this.labelLastRun.Text = lastRun == new DateTime(1970, 1, 1) ? "Never" : (lastRun.ToString() + 
