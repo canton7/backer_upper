@@ -37,8 +37,7 @@ namespace BackerUpper
             return Directory.Exists(Path.Combine(this.Dest, folder));
         }
 
-        public override void CreateFile(string file, string source, string fileMD5) {
-            // If fileMD5 passed, check whether file already exists with this hash. If so, don't copy
+        public override bool CreateFile(string file, string source, string fileMD5) {
             string dest = Path.Combine(this.Dest, file);
 
             try {
@@ -46,7 +45,7 @@ namespace BackerUpper
                     string destMD5 = FileUtils.FileMD5(dest);
                     if (destMD5 == fileMD5) {
                         File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source));
-                        return;
+                        return false;
                     }
                 }
             }
@@ -57,23 +56,15 @@ namespace BackerUpper
                 return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
             }), file);
             if (this.Cancelled)
-                return;
+                return true;
             FileInfo fileInfo = new FileInfo(dest);
             fileInfo.IsReadOnly = false;
-            this.withHandling(() => File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source)), file); ;
-        }
-
-        public override void UpdateFile(string file, string source, string fileMD5) {
-            string dest = Path.Combine(this.Dest, file);
-            this.withHandling(() => XCopy.Copy(source, dest, true, true, (percent) => {
-                this.ReportProcess(percent);
-                return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
-            }), file);
             this.withHandling(() => File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source)), file);
+            return true;
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.UpdateFile(Path.Combine(this.Dest, file), source, null);
+            this.CreateFile(Path.Combine(this.Dest, file), source, null);
         }
 
         public override void DeleteFile(string file) {

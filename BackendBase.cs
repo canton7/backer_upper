@@ -24,12 +24,11 @@ namespace BackerUpper
         public abstract void SetupInitial();
         public abstract void CreateFolder(string folder);
         public abstract void DeleteFolder(string folder);
-        public abstract void CreateFile(string file, string source, string fileMD5);
+        public abstract bool CreateFile(string file, string source, string fileMD5);
         public abstract bool CreateFromAlternateCopy(string file, string source);
         public abstract void CreateFromAlternateMove(string file, string source);
         public abstract bool FileExists(string file);
         public abstract bool TestFile(string file, DateTime lastModified, string fileMd5);
-        public abstract void UpdateFile(string file, string source, string fileMD5);
         public abstract void DeleteFile(string file);
         public abstract bool FolderExists(string folder);
         public abstract void BackupDatabase(string file, string source);

@@ -100,7 +100,7 @@ namespace BackerUpper
             return this.folders.Contains(folder);
         }
 
-        public override void CreateFile(string file, string source, string fileMD5) {
+        public override bool CreateFile(string file, string source, string fileMD5) {
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
@@ -113,7 +113,7 @@ namespace BackerUpper
                     GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
                     string destMD5 = metaResponse.Headers["x-amz-meta-md5"];
                     if (destMD5 == fileMD5)
-                        return;
+                        return false;
                 }
                 catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
                 catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
@@ -131,6 +131,7 @@ namespace BackerUpper
             putRequest.AddHeader("x-amz-meta-md5", fileMD5);
             this.withHandling(() => this.client.PutObject(putRequest), file);
             this.files.Add(file);
+            return true;
         }
 
         public override bool TestFile(string file, DateTime lastModified, string fileMD5) {
@@ -166,10 +167,6 @@ namespace BackerUpper
 
         private void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {
             this.ReportProcess(e.PercentDone);
-        }
-
-        public override void UpdateFile(string file, string source, string fileMD5) {
-            this.CreateFile(file, source, fileMD5);
         }
 
         public override void DeleteFile(string file) {
