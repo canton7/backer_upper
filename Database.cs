@@ -19,10 +19,7 @@ namespace BackerUpper
         private bool nonScalarExecuted = false;
         private string lockName;
         private FileStream dbLock;
-        private string filePath;
-        public string FilePath {
-            get { return this.filePath; }
-        }
+        public string FilePath { get; private set; }
 
         public bool AutoSyncToDisk {
             get { return this.syncTimer.Enabled; }
@@ -36,14 +33,14 @@ namespace BackerUpper
         }
 
         public Database(string path) {
-            this.filePath = path;
+            this.FilePath = path;
 
-            if (!File.Exists(this.filePath))
-                throw new FileNotFoundException("Could not find database "+this.filePath);
+            if (!File.Exists(this.FilePath))
+                throw new FileNotFoundException("Could not find database "+this.FilePath);
 
-            this.lockName = Path.Combine(Path.GetDirectoryName(this.filePath), Path.GetFileNameWithoutExtension(this.filePath) + ".lock");
+            this.lockName = Path.Combine(Path.GetDirectoryName(this.FilePath), Path.GetFileNameWithoutExtension(this.FilePath) + ".lock");
 
-            this.conn = new SQLiteConnection("Data Source="+this.filePath);
+            this.conn = new SQLiteConnection("Data Source="+this.FilePath);
             this.conn.Open();
 
             this.diskConn = null;

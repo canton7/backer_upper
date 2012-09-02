@@ -12,20 +12,14 @@ namespace BackerUpper
         private TreeTraverser treeTraverser;
         private FileDatabase fileDatabase;
         private BackendBase[] backends;
-        public Database Database;
+        public Database Database { get; private set; }
         private BackupActionItem lastBackupActionItem;
-        public Logger Logger;
+        public Logger Logger { get; private set; }
         public string Name { get; private set; }
 
-        private bool cancel = false;
-        public bool Cancelled {
-            get { return this.cancel; }
-        }
+        public bool Cancelled { get; private set; }
 
-        private bool warningOccurred = false;
-        public bool WarningOccurred {
-            get { return this.warningOccurred; }
-        }
+        public bool WarningOccurred { get; private set; }
 
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
@@ -44,7 +38,7 @@ namespace BackerUpper
         }
 
         public void Cancel() {
-            this.cancel = true;
+            this.Cancelled = true;
             foreach (BackendBase backend in this.backends)
                 backend.Cancel();
         }
@@ -56,7 +50,7 @@ namespace BackerUpper
             // Start with the files
             FileDatabase.FileRecord[] files = this.fileDatabase.RecordedFiles();
             foreach (FileDatabase.FileRecord file in files) {
-                if (this.cancel)
+                if (this.Cancelled)
                     break;
                 this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Prune));
                 if (this.backends.Any(b => !b.FileExists(file.Path))) {
@@ -68,7 +62,7 @@ namespace BackerUpper
             // Then the folders
             FileDatabase.FolderRecord[] folders = this.fileDatabase.RecordedFolders();
             foreach (FileDatabase.FolderRecord folder in folders) {
-                if (this.cancel)
+                if (this.Cancelled)
                     break;
                 this.reportBackupAction(new BackupActionItem(null, folder.Path, BackupActionEntity.File, BackupActionOperation.Prune));
                 if (this.backends.Any(b => !b.FolderExists(folder.Path))) {
@@ -89,7 +83,7 @@ namespace BackerUpper
                 backend.PurgeFiles(files, folders, (entity, file) => {
                     this.reportBackupAction(new BackupActionItem(null, file, entity == BackendBase.PurgeEntity.File ? BackupActionEntity.File : BackupActionEntity.Folder,
                         BackupActionOperation.Purge));
-                    return !this.cancel;
+                    return !this.Cancelled;
                 });
             }
         }
@@ -102,7 +96,7 @@ namespace BackerUpper
 
             FileDatabase.FileRecordExtended[] files = this.fileDatabase.RecordedFilesExtended();
             foreach (FileDatabase.FileRecordExtended file in files) {
-                if (this.cancel)
+                if (this.Cancelled)
                     break;
                 this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Test));
                 try {
@@ -123,8 +117,8 @@ namespace BackerUpper
         }
 
         public void Backup() {
-            this.cancel = false;
-            this.warningOccurred = false;
+            this.Cancelled = false;
+            this.WarningOccurred = false;
 
             TreeTraverser.FolderEntry folder = this.treeTraverser.FirstFolder();
             FileDatabase.FolderStatus folderStatus;
@@ -139,7 +133,7 @@ namespace BackerUpper
             // Do all the additions, then go through and do the deletions separately
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
 
-            while (folder.Level >= 0 && !this.cancel) {
+            while (folder.Level >= 0 && !this.Cancelled) {
                 // May not get assigned, due to try/catch, so assign empty as a default
                 files = new string[0];
 
@@ -172,7 +166,7 @@ namespace BackerUpper
                 catch (BackupOperationException e) { this.handleOperationException(e); }
 
                 foreach (string file in files) {
-                    if (this.cancel)
+                    if (this.Cancelled)
                         break;
                     try {
                         fileLastModified = this.treeTraverser.GetFileLastModified(file);
@@ -202,11 +196,11 @@ namespace BackerUpper
                 catch (BackupOperationException e) { this.handleOperationException(e); }
             }
 
-            if (!this.cancel) {
+            if (!this.Cancelled) {
                 // Now we look for file deletions
                 FileDatabase.FileRecord[] recordedFiles = this.fileDatabase.RecordedFiles();
                 foreach (FileDatabase.FileRecord fileToCheck in recordedFiles) {
-                    if (this.cancel)
+                    if (this.Cancelled)
                         break;
                     if (!this.treeTraverser.FileExists(fileToCheck.Path)) {
                         this.deleteFile(fileToCheck.Id, fileToCheck.Path);
@@ -214,11 +208,11 @@ namespace BackerUpper
                 }
             }
 
-            if (!this.cancel) {
+            if (!this.Cancelled) {
                 // And finally folder deletions
                 FileDatabase.FolderRecord[] recordedFolders = this.fileDatabase.RecordedFolders();
                 foreach (FileDatabase.FolderRecord folderToCheck in recordedFolders) {
-                    if (this.cancel)
+                    if (this.Cancelled)
                         break;
                     try {
                         if (!this.treeTraverser.FolderExists(folderToCheck.Path)) {
@@ -255,9 +249,9 @@ namespace BackerUpper
         private void addFile(int folderId, string file, DateTime lastModified) {
             string fileMD5 = this.treeTraverser.FileMd5(file, (percent) => {
                 this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
-                return !this.cancel;
+                return !this.Cancelled;
             });
-            if (this.cancel)
+            if (this.Cancelled)
                 return;
 
             // Just do a search for alternates (files in a different place on the remote location with the same hash)
@@ -309,9 +303,9 @@ namespace BackerUpper
             // Only copy if the file has actually changed
             string fileMD5 = this.treeTraverser.FileMd5(file, (percent) => {
                 this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
-                return !this.cancel;
+                return !this.Cancelled;
             });
-            if (this.cancel)
+            if (this.Cancelled)
                 return;
 
             if (remoteMD5 != fileMD5) {
@@ -343,7 +337,7 @@ namespace BackerUpper
         }
 
         private void handleOperationException(BackupOperationException e) {
-            this.warningOccurred = true;
+            this.WarningOccurred = true;
             this.Logger.Warn(e.Message);
         }
 

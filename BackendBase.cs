@@ -10,17 +10,14 @@ namespace BackerUpper
         public string Dest;
         public abstract string Name { get; }
         public abstract bool StripFilesFoldersOnDBBackup { get; }
-        private bool cancelled;
-        public bool Cancelled {
-            get { return this.cancelled; }
-        }
+        public bool Cancelled { get; private set; }
 
         public delegate void CopyProgressEventHandler(object sender, int percent);
         public event CopyProgressEventHandler CopyProgress;
 
         public BackendBase(string dest) {
             this.Dest = dest;
-            this.cancelled = false;
+            this.Cancelled = false;
         }
 
         // This is the place to make sure the dest actually exists, etc
@@ -44,7 +41,7 @@ namespace BackerUpper
         }
 
         public void Cancel() {
-            this.cancelled = true;
+            this.Cancelled = true;
         }
 
         public enum PurgeEntity { File, Folder };
