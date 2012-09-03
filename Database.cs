@@ -45,7 +45,7 @@ namespace BackerUpper
 
             this.diskConn = null;
 
-            this.Execute("PRAGMA foreign_keys = ON;");
+            this.executeWithoutLock("PRAGMA foreign_keys = ON;");
 
             // 5 minutes
             this.syncTimer = new Timer(300000) {
@@ -69,8 +69,8 @@ namespace BackerUpper
                 this.conn.Open();
         }
 
-        public void LoadToMemory() {
-            if (this.diskConn != null)
+        public void Lock() {
+            if (this.dbLock != null)
                 return;
 
             try {
@@ -79,6 +79,21 @@ namespace BackerUpper
             catch (IOException) {
                 throw new DatabaseInUseException(this.lockName);
             }
+        }
+        
+        public void Unlock() {
+            if (this.dbLock == null)
+                return;
+
+            this.dbLock.Close();
+            this.dbLock = null;
+        }
+
+        public void LoadToMemory() {
+            if (this.diskConn != null)
+                return;
+
+            this.Lock();
 
             SQLiteConnection memoryConn = new SQLiteConnection("Data Source=:memory:");
             memoryConn.Open();
@@ -102,12 +117,14 @@ namespace BackerUpper
             this.conn = this.diskConn;
             this.diskConn = null;
 
-            this.dbLock.Close();
+            this.Unlock();
             File.Delete(this.lockName);
         }
 
         public void Close() {
             this.UnloadFromMemory();
+            // UnloadFromMemory may not unlock
+            this.Unlock();
             this.conn.Close();
         }
 
@@ -189,6 +206,16 @@ namespace BackerUpper
          */
 
         public int Execute(string sql, params object[] parameters) {
+            return this.execute(true, sql, parameters);
+        }
+
+        private int executeWithoutLock(string sql, params object[] parameters) {
+            return this.execute(false, sql, parameters);
+        }
+
+        private int execute(bool requireLock, string sql, params object[] parameters) {
+            if (requireLock)
+                this.Lock();
             this.nonScalarExecuted = true;
 
             SQLiteCommand com = new SQLiteCommand(sql, this.conn);
@@ -239,7 +266,7 @@ namespace BackerUpper
 
         public class DatabaseInUseException : IOException
         {
-            public string LockFile;
+            public string LockFile { get; private set; }
             public DatabaseInUseException(string lockFile)
                     : base() {
                 this.LockFile = lockFile;

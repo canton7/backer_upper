@@ -100,8 +100,10 @@ namespace BackerUpper
             PropertiesForm propertiesForm = new PropertiesForm(settings, this.backups);
             propertiesForm.ShowDialog();
 
-            if (propertiesForm.Saved == false)
+            if (propertiesForm.Saved == false) {
+                database.Close();
                 return;
+            }
 
             propertiesForm.Close();
 
@@ -334,6 +336,14 @@ namespace BackerUpper
             if (fileName == null)
                 return;
             Database database = new Database(fileName);
+            try {
+                database.Lock();
+            }
+            catch (Database.DatabaseInUseException ex) {
+                this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?\n\nIf you're certain this is the only instance of the program running, delete "+ex.LockFile);
+                database.Close();
+                return;
+            }
             Settings settings = new Settings(database);
 
             PropertiesForm propertiesForm = new PropertiesForm(settings, this.backups);
