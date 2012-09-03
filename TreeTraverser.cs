@@ -27,9 +27,12 @@ namespace BackerUpper
         public FolderEntry NextFolder(bool further) {
             FolderEntry folderEntry = this.stack.Pop();
             if (further) {
-                // Directories can disappear from under our feet. Just carr y on
+                // Directories can disappear from under our feet. Just carry on
                 try {
-                    foreach (string child in Directory.GetDirectories(folderEntry.Name)) {
+                    string[] directories = Directory.GetDirectories(folderEntry.Name);
+                    Array.Sort(directories);
+                    // Reverse, so we put the highest in the alphabet on last, so it gets popped first
+                    foreach (string child in directories.Reverse()) {
                         this.stack.Push(new FolderEntry(folderEntry.Level + 1, child));
                     }
                 }
