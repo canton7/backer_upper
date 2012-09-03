@@ -307,7 +307,7 @@ namespace BackerUpper
             else if (item.Operation == FileScanner.BackupActionOperation.Prune)
                 text = "Prune: " + text;
             if (item.Backend == "S3")
-                text = "S3://" + text;
+                text = "S3:\\" + text;
             if (this.currentBackupFilescanner.Cancelled)
                 text = "Cancelling: " + text;
             if (item.Percent < 100)
