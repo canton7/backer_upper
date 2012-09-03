@@ -40,16 +40,10 @@ namespace BackerUpper
         public override bool CreateFile(string file, string source, string fileMD5) {
             string dest = Path.Combine(this.Dest, file);
 
-            try {
-                if (File.Exists(dest)) {
-                    string destMD5 = FileUtils.FileMD5(dest);
-                    if (destMD5 == fileMD5) {
-                        File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source));
-                        return false;
-                    }
-                }
-            }
-            catch (IOException e) { throw new BackupOperationException(dest, e.Message); }
+            // It's almost always quicker just to re-copy the file, rather than checking
+            // md5 of remote file. With USB, read/write times are the same. With internal
+            // HDD, times don't differ by enough to justify md5 computational overhead. Plus other overheads
+            // for small files... 
 
             this.withHandling(() => XCopy.Copy(source, dest, true, true, (percent) => {
                 this.ReportProcess(percent);
