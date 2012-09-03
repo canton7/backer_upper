@@ -254,6 +254,7 @@ namespace BackerUpper
                 FOREIGN KEY(folder_id) REFERENCES folders(id) );");
             database.Execute(@"CREATE INDEX files_folder_id_idx ON files(folder_id);");
             database.Execute(@"CREATE INDEX files_name_idx ON files(name);");
+            database.Execute(@"CREATE UNIQUE INDEX files_folder_id_name ON files(folder_id, name)");
             // We have a foreign key constraint which enforces parent folders. However, root folders have a parentId of 0 (to make the code easier), which violates this.
             // Therefore, add a root entry with an ID of 0 and a parent of null
             database.Execute("INSERT INTO folders (id, parent_id, name, path) VALUES (0, null, 'root', '');");

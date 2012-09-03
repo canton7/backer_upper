@@ -251,20 +251,12 @@ namespace BackerUpper
                         backend.CreateFile(file, this.treeTraverser.GetFileSource(file), lastModified, fileMD5);
                         this.Logger.Info("{0}: {1} file: {2} (backend refused alternate {3})", backend.Name, logAction, file, alternate.Path);
                     }
-                    if (update)
-                        this.fileDatabase.UpdateFile(folderId, file, lastModified, fileMD5);
-                    else
-                        this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                 }
                 else {
                     // It's a move
                     this.reportBackupAction(new BackupActionItem(alternate.Path, file, BackupActionEntity.File, BackupActionOperation.Move, backend.Name));
                     backend.CreateFromAlternateMove(file, alternate.Path);
                     this.Logger.Info("{0}: {1} file: {2} from alternate {3} (move)", backend.Name, logAction, file, alternate.Path);
-                    if (update)
-                        this.fileDatabase.UpdateFile(folderId, file, lastModified, fileMD5);
-                    else
-                        this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
                     this.fileDatabase.DeleteFile(alternate.Id);
                 }
 

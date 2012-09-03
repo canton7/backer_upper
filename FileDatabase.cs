@@ -102,7 +102,7 @@ namespace BackerUpper
         public void AddFile(int folderId, string name, DateTime lastModified, string md5) {
             int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
 
-            this.db.Execute("INSERT INTO files( folder_id, name, date_modified, md5 ) VALUES (@folder_id, @name, @date_modified, @md5);", "@folder_id", folderId, "@name", Path.GetFileName(name), "@date_modified", lastModifiedEpoch, "@md5", md5);
+            this.db.Execute("INSERT OR REPLACE INTO files( folder_id, name, date_modified, md5 ) VALUES (@folder_id, @name, @date_modified, @md5);", "@folder_id", folderId, "@name", Path.GetFileName(name), "@date_modified", lastModifiedEpoch, "@md5", md5);
         }
 
         public void UpdateFile(int folderId, string name, DateTime lastModified, string md5) {
