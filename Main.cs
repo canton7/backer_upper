@@ -72,7 +72,9 @@ namespace BackerUpper
             this.buttonBackup.Enabled = !this.backupInProgress && this.backups.Length > 0;
             this.buttonCancel.Enabled = this.backupInProgress;
             // careful: backupInProgress is true before backupFilescanner is set
-            this.buttonProperties.Enabled = this.backups.Length > 0 && (!this.backupInProgress || (this.currentBackupFilescanner != null && this.currentBackupFilescanner.Name != this.backupsList.SelectedItem.ToString()));
+            bool backupsAndInProgress = this.backups.Length > 0 && (!this.backupInProgress || (this.currentBackupFilescanner != null && this.currentBackupFilescanner.Name != this.backupsList.SelectedItem.ToString()));
+            this.buttonProperties.Enabled = backupsAndInProgress;
+            this.buttonDelete.Enabled = backupsAndInProgress;
         }
 
         private string loadSelectedBackup() {
