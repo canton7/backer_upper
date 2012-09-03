@@ -280,7 +280,7 @@ namespace BackerUpper
                 foreach (BackendBase backend in this.backends) {
                     backend.TouchFile(file, lastModified);
                 }
-                this.Logger.Info("File mtime changed, but file unchanged. Touching: {0}", file);
+                //this.Logger.Info("File mtime changed, but file unchanged. Touching: {0}", file);
                 return;
             }
 
