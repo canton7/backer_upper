@@ -85,14 +85,18 @@ namespace BackerUpper
             }
         }
 
-        public FileRecord SearchForAlternates(string fileMD5) {
-            string[] result = this.db.ExecuteRow("SELECT files.id, folders.path, files.name FROM files LEFT JOIN folders ON files.folder_id = folders.id WHERE files.md5 = @md5 LIMIT 1", "@md5", fileMD5);
+        public FileRecord[] SearchForAlternates(string fileMD5) {
+            DataTable result = this.db.ExecuteReader("SELECT files.id, folders.path, files.name FROM files LEFT JOIN folders ON files.folder_id = folders.id WHERE files.md5 = @md5", "@md5", fileMD5);
 
-            if (result.Length == 0) {
-                return new FileRecord(0, null);
+            FileRecord[] alternates = new FileRecord[result.Rows.Count];
+            DataRow row;
+
+            for (int i = 0; i < result.Rows.Count; i++) {
+                row = result.Rows[i];
+                alternates[i] = new FileRecord(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()));
             }
 
-            return new FileRecord(Convert.ToInt32(result[0]), Path.Combine((string)result[1], (string)result[2]));
+            return alternates;
         }
 
         public void AddFile(int folderId, string name, DateTime lastModified, string md5) {
