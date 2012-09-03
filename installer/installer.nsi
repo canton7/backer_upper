@@ -19,8 +19,11 @@
   ;Get installation folder from registry if available
   InstallDirRegKey HKCU "Software\BackerUpper" ""
 
-  ;Request application privileges for Windows Vista
   RequestExecutionLevel admin
+  ;Request application privileges for Windows Vista
+
+  ;Stuff for the uninstaller
+  !include "FileFunc.nsh"
 
 ;--------------------------------
 ;Interface Settings
@@ -64,6 +67,27 @@ Section
   ;Create uninstaller
   WriteUninstaller  "$INSTDIR\uninstall.exe"
 
+  ;Register to add/remove programs
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                   "DisplayName" "Backer Upper"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                   "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                   "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                   "DisplayIcon" "$\"$INSTDIR\icon.ico$\""
+  WriteRegDWord HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                     "NoModify" 1
+  WriteRegDWord HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                     "NoModifyRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                   "InstallLocation" "$\"$INSTDIR$\""
+
+ ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+ IntFmt $0 "0x%08X" $0
+ WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                    "EstimatedSize" "$0"
+
 SectionEnd
 
 Section "Start Menu Shortcut" secStartMenu
@@ -90,7 +114,7 @@ SectionEnd
 
 Section "Uninstall"
 
-  ${If} ${Cmd} 'MessageBox MB_YESNO "Do you want to delete your backup databases?" IDYES'
+  ${If} ${Cmd} 'MessageBox MB_YESNO "Do you want to delete your backup databases?" /SD IDNO IDYES'
     RMDir /r "$APPDATA\BackerUpper\Backups"
   ${EndIf}
 
@@ -116,5 +140,6 @@ Section "Uninstall"
   RMDir "$INSTDIR"
 
   DeleteRegKey /ifempty HKCU "Software\BackerUpper"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper"
 
 SectionEnd
