@@ -70,7 +70,7 @@ namespace BackerUpper
                     message += "\n\nThis can be caused by an invalid S3 secret key credential.";
                 throw new IOException(message);
             }
-            //catch (System.Net.WebException e) { throw new BackupOperationException(errorFile, e.Message); }
+            catch (System.Net.WebException e) { throw new IOException(e.Message); }
         }
 
         public override void CreateFolder(string folder) {

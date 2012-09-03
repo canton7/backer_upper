@@ -244,7 +244,7 @@ namespace BackerUpper
                 }
             }
             catch (IOException ex) {
-                this.showError("Error setting up backends: "+ex.Message);
+                this.showError("Error setting up backends\n\n"+ex.Message);
                 database.Close();
                 this.finishBackup(logger, "Error");
                 return;
