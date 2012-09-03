@@ -221,7 +221,7 @@ namespace BackerUpper
 
             foreach (BackendBase backend in this.backends) {
                 this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
-                backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+                backend.CreateFile(file, this.treeTraverser.GetFileSource(file), lastModified, fileMD5);
                 this.Logger.Info("{0}: Added file: {1}", backend.Name, file);
             }
             this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
@@ -243,7 +243,7 @@ namespace BackerUpper
                     if (backend.CreateFromAlternateCopy(file, alternate.Path))
                         this.Logger.Info("{0}: {1} file: {2} from alternate {3} (copy)", backend.Name, logAction, file, alternate.Path);
                     else {
-                        backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5);
+                        backend.CreateFile(file, this.treeTraverser.GetFileSource(file), lastModified, fileMD5);
                         this.Logger.Info("{0}: {1} file: {2} (backend refused alternate {3})", backend.Name, logAction, file, alternate.Path);
                     }
                 }
@@ -292,7 +292,7 @@ namespace BackerUpper
 
             foreach (BackendBase backend in this.backends) {
                 this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
-                if (backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5))
+                if (backend.CreateFile(file, this.treeTraverser.GetFileSource(file), lastModified, fileMD5))
                     this.Logger.Info("{0}: Updated file: {1}", backend.Name, file);
                 else
                     this.Logger.Info("{0}: Skipped file {1} (mtime changed but file up-to-date)", backend.Name, file);
@@ -306,7 +306,7 @@ namespace BackerUpper
                 if (!backend.TestFile(file, lastModified, fileMD5)) {
                     // Aha! File's gone missing from the backend
                     this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
-                    if (backend.CreateFile(file, this.treeTraverser.GetFileSource(file), fileMD5))
+                    if (backend.CreateFile(file, this.treeTraverser.GetFileSource(file), lastModified, fileMD5))
                         this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file);
                 }
                 else

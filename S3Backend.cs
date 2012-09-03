@@ -100,7 +100,7 @@ namespace BackerUpper
             return this.folders.Contains(folder);
         }
 
-        public override bool CreateFile(string file, string source, string fileMD5) {
+        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5) {
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
@@ -166,7 +166,7 @@ namespace BackerUpper
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.CreateFile(file, source, null);
+            this.CreateFile(file, source, DateTime.UtcNow, null);
         }
 
         private void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {

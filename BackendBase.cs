@@ -24,7 +24,7 @@ namespace BackerUpper
         public abstract void SetupInitial();
         public abstract void CreateFolder(string folder);
         public abstract void DeleteFolder(string folder);
-        public abstract bool CreateFile(string file, string source, string fileMD5);
+        public abstract bool CreateFile(string file, string source, DateTime lastModified, string fileMD5);
         public abstract bool CreateFromAlternateCopy(string file, string source);
         public abstract void CreateFromAlternateMove(string file, string source);
         public abstract bool FileExists(string file);

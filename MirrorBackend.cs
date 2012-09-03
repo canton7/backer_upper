@@ -37,7 +37,7 @@ namespace BackerUpper
             return Directory.Exists(Path.Combine(this.Dest, folder));
         }
 
-        public override bool CreateFile(string file, string source, string fileMD5) {
+        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5) {
             string dest = Path.Combine(this.Dest, file);
 
             // It's almost always quicker just to re-copy the file, rather than checking
@@ -53,12 +53,12 @@ namespace BackerUpper
                 return true;
             FileInfo fileInfo = new FileInfo(dest);
             fileInfo.IsReadOnly = false;
-            this.withHandling(() => File.SetLastWriteTimeUtc(dest, File.GetLastWriteTimeUtc(source)), file);
+            this.withHandling(() => File.SetLastWriteTimeUtc(dest, lastModified), file);
             return true;
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.CreateFile(Path.Combine(this.Dest, file), source, null);
+            this.CreateFile(Path.Combine(this.Dest, file), source, DateTime.UtcNow, null);
         }
 
         public override void DeleteFile(string file) {
