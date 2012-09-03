@@ -161,6 +161,10 @@ namespace BackerUpper
             catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
         }
 
+        public override void TouchFile(string file, DateTime lastModified) {
+            // Don't do anything. We don't care about mtimes for our TestFile function
+        }
+
         public override void BackupDatabase(string file, string source) {
             this.CreateFile(file, source, null);
         }

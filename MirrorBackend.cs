@@ -85,6 +85,10 @@ namespace BackerUpper
             }
         }
 
+        public override void TouchFile(string file, DateTime lastModified) {
+            this.withHandling(() => File.SetLastWriteTimeUtc(Path.Combine(this.Dest, file), lastModified), file);
+        }
+
         public override bool FileExists(string file) {
             return File.Exists(Path.Combine(this.Dest, file));
         }

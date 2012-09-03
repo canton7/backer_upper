@@ -279,6 +279,14 @@ namespace BackerUpper
             if (this.Cancelled)
                 return;
 
+            if (remoteMD5 == fileMD5) {
+                foreach (BackendBase backend in this.backends) {
+                    backend.TouchFile(file, lastModified);
+                }
+                this.Logger.Info("File mtime changed, but file unchanged. Touching: {0}", file);
+                return;
+            }
+
             if (this.alternateFile(folderId, file, fileMD5, lastModified, true))
                 return;
 

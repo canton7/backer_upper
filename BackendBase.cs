@@ -29,6 +29,7 @@ namespace BackerUpper
         public abstract void CreateFromAlternateMove(string file, string source);
         public abstract bool FileExists(string file);
         public abstract bool TestFile(string file, DateTime lastModified, string fileMd5);
+        public abstract void TouchFile(string file, DateTime lastModified);
         public abstract void DeleteFile(string file);
         public abstract bool FolderExists(string folder);
         public abstract void BackupDatabase(string file, string source);
