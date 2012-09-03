@@ -172,9 +172,6 @@ namespace BackerUpper
                     catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
             }
-
-            // Sync the database back to disk
-            this.fileDatabase.SyncToDisk();
         }
 
         private int addFolder(string folder) {
