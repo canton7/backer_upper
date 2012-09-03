@@ -128,7 +128,7 @@ namespace BackerUpper
                 StorageClass = this.storageClass,
             };
             putRequest.PutObjectProgressEvent += new EventHandler<PutObjectProgressArgs>(putRequest_PutObjectProgressEvent);
-            putRequest.AddHeader("x-amz-meta-md5", fileMD5);
+            this.withHandling(() => putRequest.AddHeader("x-amz-meta-md5", fileMD5), file);
             this.withHandling(() => this.client.PutObject(putRequest), file);
             this.files.Add(file);
             return true;
