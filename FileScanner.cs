@@ -224,10 +224,13 @@ namespace BackerUpper
             this.fileDatabase.AddFile(folderId, file, lastModified, fileMD5);
         }
 
-        private bool alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, bool update) {
+        private bool alternateFile(int folderId, string file, string fileMD5, DateTime lastModified, bool update, BackendBase[] backends=null) {
             // if update is true, we're updating the dest file. otherwise we're adding it
             // Return true if we made use of an alternate, or false if we did nothing
             string logAction = update ? "Updated" : "Added";
+            // The caller can pass in specific backends...
+            if (backends == null)
+                backends = this.backends;
             FileDatabase.FileRecord alternate = this.fileDatabase.SearchForAlternates(fileMD5);
             if (alternate.Id == 0)
                 return false;
@@ -303,8 +306,10 @@ namespace BackerUpper
                 if (!backend.TestFile(file, lastModified, fileMD5)) {
                     // Aha! File's gone missing from the backend
                     this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
-                    if (backend.CreateFile(file, this.treeTraverser.GetFileSource(file), lastModified, fileMD5))
-                        this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file);
+                    if (!this.alternateFile(folderId, file, fileMD5, lastModified, true, new BackendBase[] { backend })) {
+                        if (backend.CreateFile(file, this.treeTraverser.GetFileSource(file), lastModified, fileMD5))
+                            this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file);
+                    }
                 }
                 else
                     this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Nothing));
