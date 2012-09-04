@@ -17,7 +17,7 @@ namespace BackerUpper
         private Timer backupTimer;
         private Timer backupStatusTimer;
         private string backupStatus;
-        public int backupTimerElapsed = 0;
+        public DateTime backupTimerStarted;
         private string[] backups;
         private bool closeAfterFinish;
 
@@ -50,8 +50,8 @@ namespace BackerUpper
         }
 
         void backupTimer_Tick(object sender, EventArgs e) {
-            this.backupTimerElapsed += 1;
-            this.statusLabelTime.Text = String.Format("{0:d2}:{1:d2}", this.backupTimerElapsed / 60, this.backupTimerElapsed % 60);
+            TimeSpan elapsed = DateTime.Now - this.backupTimerStarted;
+            this.statusLabelTime.Text = ((int)elapsed.TotalHours > 0 ? ((int)elapsed.TotalHours).ToString() + ":" : "") + String.Format("{0:mm\\:ss}", elapsed);
         }
 
         private void populateBackupsList() {
@@ -185,7 +185,7 @@ namespace BackerUpper
             this.setButtonStates();
 
             this.backupStatus = "Starting...";
-            this.backupTimerElapsed = 0;
+            this.backupTimerStarted = DateTime.Now;
             this.backupTimer.Start();
             this.backupStatusTimer.Start();
         }
@@ -291,7 +291,7 @@ namespace BackerUpper
             }
 
             if (this.currentBackupFilescanner.WarningOccurred && !(backupArgs.FromScheduler && settings.IgnoreWarnings)) {
-                DialogResult result = MessageBox.Show("One or more warnings occurred. Do you want to view the log file?", "Some warnings happened", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                DialogResult result = MessageBox.Show("One or more warnings occurred. Do you want to view the log file?\n\nIt's probably worth running the operation again", "Some warnings happened", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes) {
                     Process.Start(logger.LogFilePath);
                 }
