@@ -83,6 +83,20 @@ namespace BackerUpper
             this.withHandling(() => File.SetLastWriteTimeUtc(Path.Combine(this.Dest, file), lastModified), file);
         }
 
+        public override void RestoreFile(string file, string dest, DateTime lastModified) {
+            string fullPath = Path.Combine(this.Dest, file);
+            
+            if (!File.Exists(fullPath))
+                throw new BackupOperationException(file, "File could not be found on backend, so can't restore");
+
+            this.withHandling(() => XCopy.Copy(fullPath, dest, true, true, (percent) => {
+                this.ReportProcess(percent);
+                return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
+            }), file);
+            if (!this.Cancelled)
+                File.SetLastWriteTimeUtc(dest, lastModified);
+        }
+
         public override bool FileExists(string file) {
             return File.Exists(Path.Combine(this.Dest, file));
         }

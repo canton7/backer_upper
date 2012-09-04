@@ -161,6 +161,28 @@ namespace BackerUpper
             catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
         }
 
+        public override void RestoreFile(string file, string dest, DateTime lastModified) {
+            file = file.Replace('\\', '/');
+            string key = this.prefix + file;
+
+            if (!this.files.Contains(file))
+                throw new BackupOperationException(file, "File could not be found on backend, so can't restore");
+
+            GetObjectRequest getRequest = new GetObjectRequest() {
+                BucketName = this.bucket,
+                Key = key,
+                Timeout = -1,
+            };
+            try {
+                GetObjectResponse getResponse = this.client.GetObject(getRequest);
+                getResponse.WriteObjectProgressEvent += new EventHandler<WriteObjectProgressArgs>(getResponse_WriteObjectProgressEvent);
+                getResponse.WriteResponseStreamToFile(dest);
+            }
+            catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
+            catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
+            File.SetLastWriteTimeUtc(dest, lastModified);
+        }
+
         public override void TouchFile(string file, DateTime lastModified) {
             // Don't do anything. We don't care about mtimes for our TestFile function
         }
@@ -172,6 +194,11 @@ namespace BackerUpper
         private void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {
             this.ReportProcess(e.PercentDone);
         }
+
+        void getResponse_WriteObjectProgressEvent(object sender, WriteObjectProgressArgs e) {
+            this.ReportProcess(e.PercentDone);
+        }
+
 
         public override void DeleteFile(string file) {
             file = file.Replace('\\', '/');

@@ -148,7 +148,7 @@ namespace BackerUpper
 
             if (!this.Cancelled) {
                 // Now we look for file deletions
-                FileDatabase.FileRecord[] recordedFiles = this.fileDatabase.RecordedFiles();
+                IEnumerable<FileDatabase.FileRecord> recordedFiles = this.fileDatabase.RecordedFiles();
                 foreach (FileDatabase.FileRecord fileToCheck in recordedFiles) {
                     if (this.Cancelled)
                         break;
@@ -322,6 +322,116 @@ namespace BackerUpper
                 this.Logger.Info("{0}: Deleted file: {1}", backend.Name, file);
             }
             this.fileDatabase.DeleteFile(fileId);
+        }
+
+        public void Restore(bool overwrite, bool overwriteOnlyIfOlder) {
+            // We can only restore from one backend...
+            if (this.backends.Length != 1)
+                throw new ArgumentException("Cannot perform a restore when more than one backend given");
+            BackendBase backend = this.backends[0];
+            IEnumerable<string> folders = this.fileDatabase.RecordedFolders().Select(x => x.Path);
+            IEnumerable<FileDatabase.FileRecordExtended> files = this.fileDatabase.RecordedFilesExtended();
+
+            // Create folder structure first
+            // Slightly unintuitive, but easiest for now
+            foreach (string folder in folders) {
+                this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add));
+                string folderPath = this.treeTraverser.GetFolderSource(folder);
+                if (!Directory.Exists(folderPath)) {
+                    this.Logger.Info("Creating folder: {0}", folder);
+                    try {
+                        Directory.CreateDirectory(folderPath);
+                    }
+                    catch (IOException e) { this.handleOperationException(new BackupOperationException(folder, e.Message)); }
+                }
+                if (this.Cancelled)
+                    break;
+            }
+
+            // Then go and copy files
+            // TODO remove the remaining bit of duplication
+            string fullPath;
+            bool write;
+            bool touch;
+            foreach (FileDatabase.FileRecordExtended file in files) {
+                fullPath = this.treeTraverser.GetFileSource(file.Path);
+                this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Add));
+                if (File.Exists(fullPath)) {
+                    DateTime lastModified = File.GetLastWriteTimeUtc(fullPath);
+                    touch = false;
+                    if (overwrite) {
+                        if (overwriteOnlyIfOlder) {
+                            if (lastModified < file.LastModified) {
+                                string fileMD5 = this.treeTraverser.FileMd5(file.Path, (percent) => {
+                                    this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                                    return !this.Cancelled;
+                                });
+                                if (this.Cancelled)
+                                    return;
+                                if (fileMD5 == file.MD5) {
+                                    this.Logger.Info("File exists, but is identical. Skipping: {0}", file.Path);
+                                    write = false;
+                                    touch = true;
+                                }
+                                else {
+                                    this.Logger.Info("File exists, but is old, so being overwritten: {0}", file.Path);
+                                    write = true;
+                                }
+                            }
+                            else {
+                                this.Logger.Info("File exists, but is newer (or the same age), so skipping: {0}", file.Path);
+                                write = false;
+                            }
+                        }
+                        else { //Overwrite whatever
+                            string fileMD5 = this.treeTraverser.FileMd5(file.Path, (percent) => {
+                                this.reportBackupAction(new BackupActionItem(null, file.Path, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                                return !this.Cancelled;
+                            });
+                            if (this.Cancelled)
+                                return;
+                            if (fileMD5 == file.MD5) {
+                                this.Logger.Info("File exists, but is identical. Skipping: {0}", file.Path);
+                                write = false;
+                                touch = true;
+                            }
+                            else {
+                                this.Logger.Info("Overwriting file: {0}", file.Path);
+                                write = true;
+                            }
+                        }
+                    }
+                    else {
+                        this.Logger.Info("Skipping file, as it exists already: {0}", file.Path);
+                        write = false;
+                    }
+                    if (touch) {
+                        // Need to kepe mtimes on backend and database in sync
+                        try {
+                            backend.TouchFile(file.Path, lastModified);
+                            this.fileDatabase.UpdateFile(file.Id, lastModified);
+                        }
+                        catch (BackupOperationException e) { this.handleOperationException(e); }
+                    }
+                }
+                else {
+                    this.Logger.Info("Restoring file {0}", file.Path);
+                    write = true;
+                }
+
+                if (this.Cancelled)
+                    break;
+
+                if (write) {
+                    try {
+                        backend.RestoreFile(file.Path, fullPath, file.LastModified);
+                    }
+                    catch (BackupOperationException e) { this.handleOperationException(e); }
+                }
+
+                if (this.Cancelled)
+                    break;
+            }
         }
 
         private void reportBackupAction(BackupActionItem item) {

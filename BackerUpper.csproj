@@ -65,6 +65,12 @@
     <Compile Include="BackupOperationException.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="RestoreForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RestoreForm.Designer.cs">
+      <DependentUpon>RestoreForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="S3Backend.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="FileDatabase.cs" />
@@ -105,6 +111,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="RestoreForm.resx">
+      <DependentUpon>RestoreForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

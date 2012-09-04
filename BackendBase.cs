@@ -31,6 +31,7 @@ namespace BackerUpper
         public abstract bool TestFile(string file, DateTime lastModified, string fileMd5);
         public abstract void TouchFile(string file, DateTime lastModified);
         public abstract void DeleteFile(string file);
+        public abstract void RestoreFile(string file, string dest, DateTime lastModified);
         public abstract bool FolderExists(string folder);
         public abstract void BackupDatabase(string file, string source);
 

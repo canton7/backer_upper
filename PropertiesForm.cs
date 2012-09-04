@@ -14,7 +14,7 @@ namespace BackerUpper
 {
     partial class PropertiesForm : Form
     {
-        public bool Saved = false;
+        public bool Saved { get; private set; }
         private Settings settings;
         private string[] takenBackupNames;
         private string initialBackupName;
@@ -22,6 +22,7 @@ namespace BackerUpper
         public PropertiesForm(Settings settings, string[] takenBackupNames, bool backupIsNew=false) {
             InitializeComponent();
 
+            this.Saved = false;
             this.settings = settings;
             this.takenBackupNames = takenBackupNames;
             // Only use this info if the backup isn't new. New backups don't yet exist, in the scheduler or in the filesystem

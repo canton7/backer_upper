@@ -48,6 +48,7 @@
             this.buttonImport = new System.Windows.Forms.Button();
             this.openFileDialogImport = new System.Windows.Forms.OpenFileDialog();
             this.buttonViewLogs = new System.Windows.Forms.Button();
+            this.buttonRestore = new System.Windows.Forms.Button();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -58,7 +59,7 @@
             this.backupsList.FormattingEnabled = true;
             this.backupsList.Location = new System.Drawing.Point(12, 12);
             this.backupsList.Name = "backupsList";
-            this.backupsList.Size = new System.Drawing.Size(239, 82);
+            this.backupsList.Size = new System.Drawing.Size(317, 82);
             this.backupsList.TabIndex = 0;
             this.backupsList.SelectedIndexChanged += new System.EventHandler(this.backupsList_SelectedIndexChanged);
             // 
@@ -74,7 +75,7 @@
             // 
             // buttonProperties
             // 
-            this.buttonProperties.Location = new System.Drawing.Point(174, 100);
+            this.buttonProperties.Location = new System.Drawing.Point(255, 100);
             this.buttonProperties.Name = "buttonProperties";
             this.buttonProperties.Size = new System.Drawing.Size(75, 23);
             this.buttonProperties.TabIndex = 2;
@@ -85,7 +86,7 @@
             // buttonCreate
             // 
             this.buttonCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCreate.Location = new System.Drawing.Point(257, 13);
+            this.buttonCreate.Location = new System.Drawing.Point(335, 13);
             this.buttonCreate.Name = "buttonCreate";
             this.buttonCreate.Size = new System.Drawing.Size(75, 23);
             this.buttonCreate.TabIndex = 3;
@@ -101,14 +102,14 @@
             this.statusLabelTime});
             this.statusStrip1.Location = new System.Drawing.Point(0, 258);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(344, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(422, 24);
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // statusLabelBackupAction
             // 
             this.statusLabelBackupAction.Name = "statusLabelBackupAction";
-            this.statusLabelBackupAction.Size = new System.Drawing.Size(291, 19);
+            this.statusLabelBackupAction.Size = new System.Drawing.Size(369, 19);
             this.statusLabelBackupAction.Spring = true;
             this.statusLabelBackupAction.Text = "Idle";
             this.statusLabelBackupAction.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -127,7 +128,7 @@
             // buttonCancel
             // 
             this.buttonCancel.Enabled = false;
-            this.buttonCancel.Location = new System.Drawing.Point(93, 100);
+            this.buttonCancel.Location = new System.Drawing.Point(174, 100);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 2;
@@ -149,7 +150,7 @@
             // buttonDelete
             // 
             this.buttonDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDelete.Location = new System.Drawing.Point(257, 42);
+            this.buttonDelete.Location = new System.Drawing.Point(335, 42);
             this.buttonDelete.Name = "buttonDelete";
             this.buttonDelete.Size = new System.Drawing.Size(75, 23);
             this.buttonDelete.TabIndex = 6;
@@ -232,7 +233,7 @@
             // buttonImport
             // 
             this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonImport.Location = new System.Drawing.Point(257, 71);
+            this.buttonImport.Location = new System.Drawing.Point(335, 71);
             this.buttonImport.Name = "buttonImport";
             this.buttonImport.Size = new System.Drawing.Size(75, 23);
             this.buttonImport.TabIndex = 15;
@@ -243,7 +244,7 @@
             // buttonViewLogs
             // 
             this.buttonViewLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonViewLogs.Location = new System.Drawing.Point(257, 100);
+            this.buttonViewLogs.Location = new System.Drawing.Point(335, 100);
             this.buttonViewLogs.Name = "buttonViewLogs";
             this.buttonViewLogs.Size = new System.Drawing.Size(75, 23);
             this.buttonViewLogs.TabIndex = 17;
@@ -251,11 +252,22 @@
             this.buttonViewLogs.UseVisualStyleBackColor = true;
             this.buttonViewLogs.Click += new System.EventHandler(this.buttonViewLogs_Click);
             // 
+            // buttonRestore
+            // 
+            this.buttonRestore.Location = new System.Drawing.Point(93, 100);
+            this.buttonRestore.Name = "buttonRestore";
+            this.buttonRestore.Size = new System.Drawing.Size(75, 23);
+            this.buttonRestore.TabIndex = 18;
+            this.buttonRestore.Text = "Restore";
+            this.buttonRestore.UseVisualStyleBackColor = true;
+            this.buttonRestore.Click += new System.EventHandler(this.buttonRestore_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(344, 282);
+            this.ClientSize = new System.Drawing.Size(422, 282);
+            this.Controls.Add(this.buttonRestore);
             this.Controls.Add(this.buttonViewLogs);
             this.Controls.Add(this.buttonImport);
             this.Controls.Add(this.labelStats);
@@ -310,6 +322,7 @@
         private System.Windows.Forms.Button buttonImport;
         private System.Windows.Forms.OpenFileDialog openFileDialogImport;
         private System.Windows.Forms.Button buttonViewLogs;
+        private System.Windows.Forms.Button buttonRestore;
 
     }
 }

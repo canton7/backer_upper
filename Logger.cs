@@ -91,6 +91,10 @@ namespace BackerUpper
             this.writer.WriteLine("[{0:G}] {1}{2}", DateTime.Now, levelStrings[level] == null ? "" : "["+levelStrings[level]+"] ", message);
         }
 
+        public void WriteRaw(string message, params string[] args) {
+            this.writer.WriteLine(String.Format(message, args));
+        }
+
         public void Close() {
             this.writer.Close();
         }

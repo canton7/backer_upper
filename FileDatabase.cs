@@ -63,7 +63,6 @@ namespace BackerUpper
             return folderRecords;
         }
 
-
         public FileStatus InspectFile(int folderId, string name, DateTime lastModified) {
             int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
 
@@ -77,7 +76,7 @@ namespace BackerUpper
             int fileEpoch = int.Parse(result[0]);
             string md5 = result[1];
 
-            if (lastModifiedEpoch > fileEpoch) {
+            if (lastModifiedEpoch != fileEpoch) {
                 return new FileStatus(FileModStatus.Modified, md5);
             }
             else {
@@ -111,6 +110,15 @@ namespace BackerUpper
             this.db.Execute("UPDATE files SET date_modified = @date_modified, md5 = @md5 WHERE folder_id = @folder_id AND name = @name;", "@date_modified", lastModifiedEpoch, "@md5", md5, "@folder_id", folderId, "@name", Path.GetFileName(name));
         }
 
+        public void UpdateFile(int id, DateTime lastModified, string md5=null) {
+            int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
+
+            if (md5 == null)
+                this.db.Execute("UPDATE files SET date_modified = @date_modified WHERE id = @id", "@date_modified", lastModifiedEpoch, "@id", id);
+            else
+                this.db.Execute("UPDATE files SET date_modified = @date_modified, md5 = @md5 WHERE id = @id", "@date_modified", lastModifiedEpoch, "@md5", md5, "@id", id);
+        }
+
         public void DeleteFile(int fileId) {
             this.db.Execute("DELETE FROM files WHERE id = @id", "@id", fileId);
         }
@@ -119,16 +127,25 @@ namespace BackerUpper
             this.db.Execute("DELETE FROM files WHERE folder_id = @folder_id AND name = @name", "@folder_id", folderId, "@name", Path.GetFileName(name));
         }
 
-        public FileRecord[] RecordedFiles() {
+        public IEnumerable<FileRecord> RecordedFiles() {
             DataTable result = this.db.ExecuteReader(@"SELECT files.id, folders.path, files.name FROM files LEFT JOIN folders ON files.folder_id = folders.id");
-            FileRecord[] fileRecords = new FileRecord[result.Rows.Count];
 
             DataRow row;
             for (int i = 0; i < result.Rows.Count; i++) {
                 row = result.Rows[i];
-                fileRecords[i] = new FileRecord(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()));
+                yield return new FileRecord(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()));
             }
-            return fileRecords;
+        }
+
+        public IEnumerable<FileRecordExtended> RecordedFilesExtended() {
+            DataTable result = this.db.ExecuteReader(@"SELECT files.id, folders.path, files.name, files.date_modified, files.md5 FROM files LEFT JOIN folders ON files.folder_id = folders.id");
+
+            DataRow row;
+            for (int i = 0; i < result.Rows.Count; i++) {
+                row = result.Rows[i];
+                DateTime lastModified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Convert.ToInt32(row["date_modified"]));
+                yield return new FileRecordExtended(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()), lastModified, row["md5"].ToString());
+            }
         }
 
         /*
@@ -222,6 +239,21 @@ namespace BackerUpper
             public FileRecord(int id, string path) {
                 this.Id = id;
                 this.Path = path;
+            }
+        }
+
+        public struct FileRecordExtended
+        {
+            public int Id;
+            public string Path;
+            public DateTime LastModified;
+            public string MD5;
+
+            public FileRecordExtended(int id, string path, DateTime lastModified, string md5) {
+                this.Id = id;
+                this.Path = path;
+                this.LastModified = lastModified;
+                this.MD5 = md5;
             }
         }
 

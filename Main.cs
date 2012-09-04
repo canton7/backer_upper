@@ -70,6 +70,7 @@ namespace BackerUpper
 
         private void setButtonStates() {
             this.buttonBackup.Enabled = !this.backupInProgress && this.backups.Length > 0;
+            this.buttonRestore.Enabled = !this.backupInProgress && this.backups.Length > 0;
             this.buttonCancel.Enabled = this.backupInProgress;
             // careful: backupInProgress is true before backupFilescanner is set
             bool backupsAndInProgress = this.backups.Length > 0 && (!this.backupInProgress || (this.currentBackupFilescanner != null && this.currentBackupFilescanner.Name != this.backupsList.SelectedItem.ToString()));
@@ -121,8 +122,6 @@ namespace BackerUpper
 
         private void deleteBackup() {
             string backupName = this.loadSelectedBackup();
-            if (backupName == null)
-                return;
             DialogResult result = MessageBox.Show("Are you sure you want to delete the backup "+backupName+"?", "Are you sure?", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.No)
                 return;
@@ -137,7 +136,7 @@ namespace BackerUpper
                 File.Delete(filepath);
             }
             catch (IOException e) {
-                this.showError("Could not delete "+backupName+": "+e.Message);
+                this.showError("Could not delete "+filepath+": "+e.Message);
             }
             Scheduler.Delete(name);
             this.populateBackupsList();
@@ -180,11 +179,8 @@ namespace BackerUpper
             this.populateBackupsList();
         }
 
-        private void performBackup(bool fromScheduler=false) {
-            string backup = this.loadSelectedBackup();
-            if (backup == null)
-                return;
-
+        private void performBackupInitial() {
+            // Just does a lot of the common work when setting up a backup
             this.backupInProgress = true;
             this.setButtonStates();
 
@@ -192,6 +188,14 @@ namespace BackerUpper
             this.backupTimerElapsed = 0;
             this.backupTimer.Start();
             this.backupStatusTimer.Start();
+        }
+
+        private void performBackup(bool fromScheduler=false) {
+            this.performBackupInitial();
+
+            string backup = this.loadSelectedBackup();
+            if (backup == null)
+                return;
 
             Database database;
             try {
@@ -220,15 +224,22 @@ namespace BackerUpper
                 backendBases.Add(backend);
             }
 
-            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(database, settings, logger, backendBases.ToArray(), fromScheduler));
+            logger.WriteRaw("\r\nStarting new backup operation\r\n\r\nSource: {0}\r\n", settings.Source);
+            foreach (BackendBase backend in backendBases) {
+                logger.WriteRaw("Backend: {0}\r\nDest: {1}\r\n", backend.Name, backend.Dest);
+            }
+
+            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(settings.Source, settings.Database, settings, logger, backendBases.ToArray(), fromScheduler, false));
         }
 
         private void backgroundWorkerBackup_DoWork(object sender, DoWorkEventArgs e) {
             BackupItem backupArgs = (BackupItem)e.Argument;
+            string source = backupArgs.Source;
             Settings settings = backupArgs.Settings;
             Database database = backupArgs.Database;
             Logger logger = backupArgs.Logger;
             BackendBase[] backends = backupArgs.BackendBases;
+            bool restore = backupArgs.Restore;
 
             database.Open();
             try {
@@ -254,13 +265,18 @@ namespace BackerUpper
                 return;
             }
 
-            this.currentBackupFilescanner = new FileScanner(settings.Source, database, logger, settings.Name, backends);
+            this.currentBackupFilescanner = new FileScanner(source, database, logger, settings.Name, backends);
             this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
-            this.currentBackupFilescanner.Backup();
-            if (!this.currentBackupFilescanner.Cancelled) {
-                this.backupStatus = "Purging...";
-                this.currentBackupFilescanner.PurgeDest();
+            if (!restore) {
+                this.currentBackupFilescanner.Backup();
+                if (!this.currentBackupFilescanner.Cancelled) {
+                    this.backupStatus = "Purging...";
+                    this.currentBackupFilescanner.PurgeDest();
+                }
+            }
+            else {
+                this.currentBackupFilescanner.Restore(backupArgs.RestoreOverwrite, backupArgs.RestoreOverwriteOnlyIfOlder);
             }
 
             settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;
@@ -269,7 +285,7 @@ namespace BackerUpper
             // Need to close to actually back up the database
             this.backupStatus = "Closing database...";
             database.Close();
-            if (!this.currentBackupFilescanner.Cancelled) {
+            if (!restore && !this.currentBackupFilescanner.Cancelled) {
                 this.backupStatus = "Backing up database...";
                 FileScanner.BackupDatabase(database.FilePath, backends);
             }
@@ -302,6 +318,46 @@ namespace BackerUpper
                 this.InvokeEx(f => f.Close());
         }
 
+        private void performRestore() {
+            string backupName = this.loadSelectedBackup();
+            string filepath = this.loadSelectedBackup();
+            if (filepath == null)
+                return;
+            Database database;
+            try {
+                database = new Database(filepath);
+            }
+            catch (IOException e) {
+                this.showError(e.Message);
+                this.finishBackup(null, "Error");
+                return;
+            }
+            Settings settings = new Settings(database);
+            RestoreForm restoreForm = new RestoreForm(settings);
+            restoreForm.ShowDialog();
+
+            if (!restoreForm.Saved) {
+                database.Close();
+                return;
+            }
+
+            this.performBackupInitial();
+            this.closeAfterFinish = false;
+            database.AutoSyncToDisk = true;
+            Logger logger = new Logger(settings.Name+"-Restore");
+
+            BackendBase backend;
+            if (restoreForm.Backend == "Mirror")
+                backend = new MirrorBackend(settings.MirrorDest);
+            else
+                backend = new S3Backend(settings.S3Dest, false, settings.S3PublicKey, settings.S3PrivateKey, false);
+
+            logger.WriteRaw("\r\nStarting new restore operation\r\n\r\nSource:\t\t{0}\r\nDestination:\t{1}\r\nOverwrite files: {2}\r\n", backend.Dest, restoreForm.RestoreTo, restoreForm.Overwrite ? "yes" + (restoreForm.OverwriteOnlyIfOlder ? ", but only if older" : "") : "no");
+
+            this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(restoreForm.RestoreTo, database, settings, logger, new BackendBase[]{ backend }, false, true,
+                    restoreForm.Overwrite, restoreForm.OverwriteOnlyIfOlder));
+        }
+
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
             string text = item.To;
             if (item.Operation == FileScanner.BackupActionOperation.Hash)
@@ -312,7 +368,7 @@ namespace BackerUpper
                 text = "Prune: " + text;
             if (item.Backend == "S3")
                 text = "S3:\\" + text;
-            if (this.currentBackupFilescanner.Cancelled)
+            if (this.currentBackupFilescanner != null && this.currentBackupFilescanner.Cancelled)
                 text = "Cancelling: " + text;
             if (item.Percent < 100)
                 text += " ("+item.Percent+"%)";
@@ -426,18 +482,27 @@ namespace BackerUpper
 
         private struct BackupItem
         {
+            public string Source;
             public Database Database;
             public Settings Settings;
             public Logger Logger;
             public BackendBase[] BackendBases;
             public bool FromScheduler;
+            public bool Restore;
+            public bool RestoreOverwrite;
+            public bool RestoreOverwriteOnlyIfOlder;
 
-            public BackupItem(Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler) {
+            public BackupItem(string source, Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler, bool restore,
+                    bool restoreOverwrite=false, bool restoreOverwriteOnlyIfOlder=false) {
+                this.Source = source;
                 this.Database = database;
                 this.Settings = settings;
                 this.Logger = logger;
                 this.BackendBases = backendBases;
                 this.FromScheduler = fromScheduler;
+                this.Restore = restore;
+                this.RestoreOverwrite = restoreOverwrite;
+                this.RestoreOverwriteOnlyIfOlder = restoreOverwriteOnlyIfOlder;
             }
         }
 
@@ -447,6 +512,10 @@ namespace BackerUpper
 
         private void buttonViewLogs_Click(object sender, EventArgs e) {
             Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER));
+        }
+
+        private void buttonRestore_Click(object sender, EventArgs e) {
+            this.performRestore();
         }
     }
 
