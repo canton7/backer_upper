@@ -37,36 +37,12 @@ namespace BackerUpper
             }
         }
 
-        public IEnumerable<string> ListFiles(string folder) {
-            try {
-                return Directory.GetFiles(Path.Combine(this.startDir, folder)).Select(x => x.Substring(this.substringStart));
-            }
-            catch (IOException e) { throw new BackupOperationException(folder, e.Message); }
-            catch (UnauthorizedAccessException e) { throw new BackupOperationException(folder, e.Message); }
+        public FolderEntry CreateFolderEntry(string path) {
+            return new FolderEntry(this.startDir, 0, path);
         }
 
-        public string GetFileSource(string file) {
-            return Path.Combine(this.startDir, file);
-        }
-
-        public string GetFolderSource(string folder) {
-            return Path.Combine(this.startDir, folder);
-        }
-
-        public DateTime GetFileLastModified(string file) {
-            try {
-                return File.GetLastWriteTimeUtc(Path.Combine(this.startDir, file));
-            }
-            catch (IOException e) { throw new BackupOperationException(file, e.Message); }
-            catch (UnauthorizedAccessException e) { throw new BackupOperationException(file, e.Message); }
-        }
-
-        public string FileMd5(string fileName, FileUtils.HashProgress handler = null) {
-            try {
-                return FileUtils.FileMD5(Path.Combine(this.startDir, fileName), handler);
-            }
-            catch (IOException e) { throw new BackupOperationException(fileName, e.Message); }
-            catch (UnauthorizedAccessException e) { throw new BackupOperationException(fileName, e.Message); }
+        public FileEntry CreateFileEntry(string file) {
+            return new FileEntry(this.startDir, file);
         }
 
         public bool FileExists(string file) {
@@ -125,6 +101,10 @@ namespace BackerUpper
             private Lazy<DateTime> lastModified;
             public DateTime LastModified {
                 get { return this.lastModified.Value; }
+                set {
+                    // WARNING doesn't update lazy
+                    File.SetLastWriteTimeUtc(this.FullPath, value);
+                }
             }
 
             public FileEntry(string startDir, string name) {

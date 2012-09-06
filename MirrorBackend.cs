@@ -149,20 +149,20 @@ namespace BackerUpper
                     if (folders.Contains(folder.Name)) {
                         if (handler != null && !handler(Entity.Folder, folder.Name, false))
                             return;
-                        foreach (string file in treeTraverser.ListFiles(folder.Name)) {
-                            if (!files.Contains(file)) {
-                                File.Delete(treeTraverser.GetFileSource(file));
-                                if (handler != null && !handler(Entity.File, file, true))
+                        foreach (TreeTraverser.FileEntry file in folder.GetFiles()) {
+                            if (!files.Contains(file.Name)) {
+                                File.Delete(file.FullPath);
+                                if (handler != null && !handler(Entity.File, file.Name, true))
                                     return;
                             }
                             else {
-                                if (handler != null && !handler(Entity.File, file, false))
+                                if (handler != null && !handler(Entity.File, file.Name, false))
                                     return;
                             }
                         }
                     }
                     else {
-                        Directory.Delete(treeTraverser.GetFolderSource(folder.Name), true);
+                        Directory.Delete(folder.FullPath);
                         if (handler != null && !handler(Entity.Folder, folder.Name, true))
                             return;
                     }
