@@ -276,7 +276,7 @@ namespace BackerUpper
                 }
             }
             else {
-                this.currentBackupFilescanner.Restore(backupArgs.RestoreOverwrite, backupArgs.RestoreOverwriteOnlyIfOlder, true);
+                this.currentBackupFilescanner.Restore(backupArgs.RestoreOverwrite, backupArgs.RestoreOverwriteOnlyIfOlder, backupArgs.RestorePurge);
             }
 
             settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;
@@ -352,10 +352,12 @@ namespace BackerUpper
             else
                 backend = new S3Backend(settings.S3Dest, false, settings.S3PublicKey, settings.S3PrivateKey, false);
 
-            logger.WriteRaw("\r\nStarting new restore operation\r\n\r\nSource:\t\t{0}\r\nDestination:\t{1}\r\nOverwrite files: {2}\r\n", backend.Dest, restoreForm.RestoreTo, restoreForm.Overwrite ? "yes" + (restoreForm.OverwriteOnlyIfOlder ? ", but only if older" : "") : "no");
+            logger.WriteRaw("\r\nStarting new restore operation\r\n\r\nSource:\t\t{0}\r\nDestination:\t{1}\r\nOverwrite files: {2}\r\nDelete files not present in backup: {3}\r\n",
+                    backend.Dest, restoreForm.RestoreTo, restoreForm.Overwrite ? "yes" + (restoreForm.OverwriteOnlyIfOlder ? ", but only if older" : "") : "no",
+                    restoreForm.Purge ? "yes" : "no");
 
             this.backgroundWorkerBackup.RunWorkerAsync(new BackupItem(restoreForm.RestoreTo, database, settings, logger, new BackendBase[]{ backend }, false, true,
-                    restoreForm.Overwrite, restoreForm.OverwriteOnlyIfOlder));
+                    restoreForm.Overwrite, restoreForm.OverwriteOnlyIfOlder, restoreForm.Purge));
         }
 
         private void fileScanner_BackupAction(object sender, FileScanner.BackupActionItem item) {
@@ -489,9 +491,10 @@ namespace BackerUpper
             public bool Restore;
             public bool RestoreOverwrite;
             public bool RestoreOverwriteOnlyIfOlder;
+            public bool RestorePurge;
 
             public BackupItem(string source, Database database, Settings settings, Logger logger, BackendBase[] backendBases, bool fromScheduler, bool restore,
-                    bool restoreOverwrite=false, bool restoreOverwriteOnlyIfOlder=false) {
+                    bool restoreOverwrite=false, bool restoreOverwriteOnlyIfOlder=false, bool restorePurge=false) {
                 this.Source = source;
                 this.Database = database;
                 this.Settings = settings;
@@ -501,6 +504,7 @@ namespace BackerUpper
                 this.Restore = restore;
                 this.RestoreOverwrite = restoreOverwrite;
                 this.RestoreOverwriteOnlyIfOlder = restoreOverwriteOnlyIfOlder;
+                this.RestorePurge = restorePurge;
             }
         }
 

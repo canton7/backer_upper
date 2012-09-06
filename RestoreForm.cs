@@ -18,6 +18,7 @@ namespace BackerUpper
         public string RestoreTo { get; private set; }
         public bool Overwrite { get; private set; }
         public bool OverwriteOnlyIfOlder { get; private set; }
+        public bool Purge { get; private set; }
         public string Backend { get; private set; }
 
         public RestoreForm(Settings settings) {
@@ -85,6 +86,12 @@ namespace BackerUpper
             this.RestoreTo = this.textBoxRestoreTo.Text;
             this.Overwrite = this.checkBoxOverwrite.Checked;
             this.OverwriteOnlyIfOlder = this.Overwrite && this.checkBoxOverwriteOnlyIfOlder.Checked;
+            this.Purge = this.checkBoxPurge.Checked;
+            if (this.Overwrite || this.Purge) {
+                DialogResult result = MessageBox.Show("You've selected options which could PERMANENTLY LOSE data!\n\nAre you sure you want to continue?", "Warning! Dangerous operation alert!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result != System.Windows.Forms.DialogResult.Yes)
+                    return;
+            }
             this.Saved = true;
             this.Backend = this.comboBoxBackends.Text;
             this.Close();

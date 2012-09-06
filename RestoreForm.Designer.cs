@@ -40,6 +40,7 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.checkBoxOverwrite = new System.Windows.Forms.CheckBox();
             this.checkBoxOverwriteOnlyIfOlder = new System.Windows.Forms.CheckBox();
+            this.checkBoxPurge = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label1
@@ -129,7 +130,7 @@
             // buttonRestore
             // 
             this.buttonRestore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonRestore.Location = new System.Drawing.Point(12, 170);
+            this.buttonRestore.Location = new System.Drawing.Point(12, 197);
             this.buttonRestore.Name = "buttonRestore";
             this.buttonRestore.Size = new System.Drawing.Size(75, 23);
             this.buttonRestore.TabIndex = 9;
@@ -140,7 +141,7 @@
             // buttonCancel
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.buttonCancel.Location = new System.Drawing.Point(93, 170);
+            this.buttonCancel.Location = new System.Drawing.Point(93, 197);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 10;
@@ -170,11 +171,22 @@
             this.checkBoxOverwriteOnlyIfOlder.Text = "But only if the file present is older than the one being restored";
             this.checkBoxOverwriteOnlyIfOlder.UseVisualStyleBackColor = true;
             // 
+            // checkBoxPurge
+            // 
+            this.checkBoxPurge.AutoSize = true;
+            this.checkBoxPurge.Location = new System.Drawing.Point(16, 168);
+            this.checkBoxPurge.Name = "checkBoxPurge";
+            this.checkBoxPurge.Size = new System.Drawing.Size(234, 17);
+            this.checkBoxPurge.TabIndex = 13;
+            this.checkBoxPurge.Text = "Delete files that aren\'t present in the backup";
+            this.checkBoxPurge.UseVisualStyleBackColor = true;
+            // 
             // RestoreForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(359, 205);
+            this.ClientSize = new System.Drawing.Size(359, 232);
+            this.Controls.Add(this.checkBoxPurge);
             this.Controls.Add(this.checkBoxOverwriteOnlyIfOlder);
             this.Controls.Add(this.checkBoxOverwrite);
             this.Controls.Add(this.buttonCancel);
@@ -212,5 +224,6 @@
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.CheckBox checkBoxOverwrite;
         private System.Windows.Forms.CheckBox checkBoxOverwriteOnlyIfOlder;
+        private System.Windows.Forms.CheckBox checkBoxPurge;
     }
 }

@@ -466,7 +466,29 @@ namespace BackerUpper
             }
 
             if (purge) {
-                // Run off the database for this one, as it'll be up-to-date by now
+                IEnumerable<string> recordedFolders = this.fileDatabase.RecordedFolders().Select(x => x.Path);
+                IEnumerable<string> recordedFiles = this.fileDatabase.RecordedFiles().Select(x => x.Path);
+                TreeTraverser.FolderEntry folder = treeTraverser.FirstFolder();
+
+                while (folder.Level >= 0) {
+                    foreach (string file in this.treeTraverser.ListFiles(folder.Name)) {
+                        if (!recordedFiles.Contains(file)) {
+                            this.Logger.Info("Deleting file {0}:", file);
+                            try {
+                                 this.treeTraverser.DeleteFile(file);
+                            }
+                            catch (BackupOperationException e) { this.handleOperationException(e); }
+                        }
+                    }
+                    this.Logger.Info("Deleting folder {0}:", folder.Name);
+                    if (!recordedFolders.Contains(folder.Name)) {
+                        this.treeTraverser.DeleteFolder(folder.Name);
+                    }
+                    try {
+                        folder = treeTraverser.NextFolder(true);
+                    }
+                     catch (BackupOperationException e) { this.handleOperationException(e); }
+                }
             }
         }
 

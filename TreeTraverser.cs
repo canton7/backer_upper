@@ -19,6 +19,7 @@ namespace BackerUpper
         }
 
         public FolderEntry FirstFolder() {
+            this.stack.Clear();
             this.stack.Push(new FolderEntry(0, this.startDir));
 
             return new FolderEntry(0, "");
@@ -89,6 +90,22 @@ namespace BackerUpper
 
         public bool FolderExists(string path) {
             return Directory.Exists(Path.Combine(this.startDir, path));
+        }
+
+        public void DeleteFile(string file) {
+            try {
+                File.Delete(Path.Combine(this.startDir, file));
+            }
+            catch (IOException e) { throw new BackupOperationException(file, e.Message); }
+            catch (UnauthorizedAccessException e) { throw new BackupOperationException(file, e.Message); }
+        }
+
+        public void DeleteFolder(string path) {
+            try {
+                Directory.Delete(Path.Combine(this.startDir, path), true);
+            }
+            catch (IOException e) { throw new BackupOperationException(path, e.Message); }
+            catch (UnauthorizedAccessException e) { throw new BackupOperationException(path, e.Message); }
         }
 
         public struct FolderEntry
