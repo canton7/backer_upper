@@ -108,8 +108,37 @@ namespace BackerUpper
                 this.Name = name;
             }
 
-            public IEnumerable<string> GetFiles() {
-                return Directory.EnumerateFiles(Path.Combine(this.startDir, this.Name)).Select(x => x.Substring(this.startDir.Length + 1));
+            public IEnumerable<FileEntry> GetFiles() {
+                foreach (string file in Directory.EnumerateFiles(Path.Combine(this.startDir, this.Name)).Select(x => x.Substring(this.startDir.Length + 1))) {
+                    yield return new FileEntry(this.startDir, file);
+                }
+            }
+        }
+
+        public class FileEntry
+        {
+            private string startDir;
+            public string Name { get; private set; }
+            public string FullPath {
+                get { return Path.Combine(this.startDir, this.Name); }
+            }
+            private Lazy<DateTime> lastModified;
+            public DateTime LastModified {
+                get { return this.lastModified.Value; }
+            }
+
+            public FileEntry(string startDir, string name) {
+                this.startDir = startDir;
+                this.Name = name;
+                this.lastModified = new Lazy<DateTime>(() => File.GetLastWriteTimeUtc(this.FullPath));
+            }
+
+            public string GetMD5(FileUtils.HashProgress handler = null) {
+                try {
+                    return FileUtils.FileMD5(this.FullPath, handler);
+                }
+                catch (IOException e) { throw new BackupOperationException(this.Name, e.Message); }
+                catch (UnauthorizedAccessException e) { throw new BackupOperationException(this.Name, e.Message); }
             }
         }
     }

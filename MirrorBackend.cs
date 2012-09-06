@@ -132,8 +132,8 @@ namespace BackerUpper
 
             foreach(TreeTraverser.FolderEntry folder in treeTraverser.ListFolders()) {
                 yield return new EntityRecord(folder.Name, Entity.Folder);
-                foreach (string file in folder.GetFiles()) {
-                    yield return new EntityRecord(file, Entity.File);
+                foreach (TreeTraverser.FileEntry file in folder.GetFiles()) {
+                    yield return new EntityRecord(file.Name, Entity.File);
                 }
             }
         }
