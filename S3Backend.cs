@@ -241,20 +241,27 @@ namespace BackerUpper
             // We can't modify the list we're iterating over, and DeleteFile does modify it
             string[] iterateFiles = this.files.ToArray();
             foreach (string file in iterateFiles) {
-                if (handler != null && !handler(PurgeEntity.Folder, file))
-                    return;
                 if (!limitFiles.Contains(file)) {
                     this.DeleteFile(file);
+                    if (handler != null && !handler(PurgeEntity.File, file, true))
+                        return;
+                }
+                else {
+                    if (handler != null && !handler(PurgeEntity.File, file, false))
+                        return;
                 }
             }
 
             string[] iterateFolders = this.folders.ToArray();
             foreach (string folder in iterateFolders) {
-                if (handler != null && !handler(PurgeEntity.Folder, folder))
-                    return;
-
                 if (!limitFolders.Contains(folder)) {
                     this.DeleteFolder(folder);
+                    if (handler != null && !handler(PurgeEntity.Folder, folder, true))
+                        return;
+                }
+                else {
+                    if (handler != null && !handler(PurgeEntity.Folder, folder, false))
+                        return;
                 }
             }
         }

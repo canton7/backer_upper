@@ -123,21 +123,27 @@ namespace BackerUpper
             string[] filesInDir;
 
             while (folder.Level >= 0) {
-                if (handler != null && !handler(PurgeEntity.Folder, folder.Name))
-                    return;
                 try {
                     if (folders.Contains(folder.Name)) {
+                        if (handler != null && !handler(PurgeEntity.Folder, folder.Name, false))
+                            return;
                         filesInDir = treeTraverser.ListFiles(folder.Name);
                         foreach (string file in filesInDir) {
-                            if (handler != null && !handler(PurgeEntity.File, file))
-                                return;
                             if (!files.Contains(file)) {
                                 File.Delete(treeTraverser.GetFileSource(file));
+                                if (handler != null && !handler(PurgeEntity.File, file, true))
+                                    return;
+                            }
+                            else {
+                                if (handler != null && !handler(PurgeEntity.File, file, false))
+                                    return;
                             }
                         }
                     }
                     else {
                         Directory.Delete(treeTraverser.GetFolderSource(folder.Name), true);
+                        if (handler != null && !handler(PurgeEntity.Folder, folder.Name, true))
+                            return;
                     }
 
                     folder = treeTraverser.NextFolder(true);

@@ -50,10 +50,12 @@ namespace BackerUpper
             IEnumerable<string> folders = this.fileDatabase.RecordedFolders().Select(x => x.Path);
 
             foreach (BackendBase backend in this.backends) {
-                this.Logger.Info("{0}: Removing files from the destination which aren't in the database or source filesystem", backend.Name);
-                backend.PurgeFiles(files, folders, (entity, file) => {
+                backend.PurgeFiles(files, folders, (entity, file, deleted) => {
                     this.reportBackupAction(new BackupActionItem(null, file, entity == BackendBase.PurgeEntity.File ? BackupActionEntity.File : BackupActionEntity.Folder,
                         BackupActionOperation.Purge));
+                    // Slightly hacky: database files are purged, but the user doesn't need to know this
+                    if (deleted && !(entity == BackendBase.PurgeEntity.File && file == Path.GetFileName(this.Database.FilePath)))
+                        this.Logger.Info("{0}: Purged {1} from backend as it's old: {2}", backend.Name, entity == BackendBase.PurgeEntity.File ? "file" : "folder", file);
                     return !this.Cancelled;
                 });
             }

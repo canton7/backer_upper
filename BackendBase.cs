@@ -46,6 +46,6 @@ namespace BackerUpper
         }
 
         public enum PurgeEntity { File, Folder };
-        public delegate bool PurgeProgressHandler(PurgeEntity entity, string file);
+        public delegate bool PurgeProgressHandler(PurgeEntity entity, string file, bool deleted);
     }
 }
