@@ -106,6 +106,9 @@ namespace BackerUpper
                     File.SetLastWriteTimeUtc(this.FullPath, value);
                 }
             }
+            public string Filename {
+                get { return Path.GetFileName(this.Name); }
+            }
 
             public FileEntry(string startDir, string name) {
                 this.startDir = startDir;

@@ -79,12 +79,18 @@ namespace BackerUpper
             IEnumerable<TreeTraverser.FileEntry> files;
             FileDatabase.FileStatus fileStatus;
 
+            // Build up a list of files and folders as we go: need to purge the database
+            List<string> seenFiles = new List<string>();
+            List<String> seenFolders = new List<string>();
+
             // Do all the additions, then go through and do the deletions separately
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
 
             foreach (TreeTraverser.FolderEntry folder in this.treeTraverser.ListFolders()) {
                 if (this.Cancelled)
                     break;
+
+                seenFolders.Add(folder.Name);
 
                 // files might not get assigned, so assign it now
                 files = new TreeTraverser.FileEntry[0];
@@ -118,6 +124,9 @@ namespace BackerUpper
                 foreach (TreeTraverser.FileEntry file in files) {
                     if (this.Cancelled)
                         break;
+
+                    seenFiles.Add(file.Name);
+
                     try {
                         fileStatus = this.fileDatabase.InspectFile(curFolderId, file.Name, file.LastModified);
 
@@ -166,6 +175,9 @@ namespace BackerUpper
                     catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
             }
+
+            // This has to be done as part of this method, as the files/folders aren't available otherwise
+            this.fileDatabase.PurgeDatabase(seenFiles, seenFolders);
         }
 
         private int addFolder(string folder) {

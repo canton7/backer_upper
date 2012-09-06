@@ -173,6 +173,24 @@ namespace BackerUpper
             }
         }
 
+        public void PurgeDatabase(IEnumerable<string> files, IEnumerable<string> folders) {
+            // Delete entries from the DB which aren't in files or folders
+            List<int> idsToDelete = new List<int>();
+            DataTable dbFiles = this.db.ExecuteReader("SELECT files.id, files.name, folders.path FROM files LEFT JOIN folders ON files.folder_id = folders.id");
+            foreach (DataRow file in dbFiles.Rows) {
+                if (!files.Contains(Path.Combine(file["path"].ToString(), file["name"].ToString())))
+                    idsToDelete.Add(Convert.ToInt32(file["id"]));
+            }
+            this.db.Execute("DELETE FROM files WHERE id IN ("+String.Join(",", idsToDelete)+")");
+            idsToDelete.Clear();
+            DataTable dbFolders = this.db.ExecuteReader("SELECT id, path FROM folders");
+            foreach (DataRow folder in dbFolders.Rows) {
+                if (!folders.Contains(folder["path"]))
+                    idsToDelete.Add(Convert.ToInt32(folder["id"]));
+            }
+            this.db.Execute("DELETE FROM folders WHERE id IN ("+String.Join(",", idsToDelete)+")");
+        }
+
         /*
         public void FinishAndSync() {
             //this.executeCachedInserts(true);
