@@ -9,32 +9,24 @@ namespace BackerUpper
     class TreeTraverser
     {
         private string startDir;
-        private Stack<FolderEntry> stack;
         private int substringStart;
 
         public TreeTraverser(string startDir) {
             this.startDir = startDir;
-            this.stack = new Stack<FolderEntry>();
             this.substringStart = this.startDir.Length + 1;
         }
 
-        public FolderEntry FirstFolder() {
-            this.stack.Clear();
-            this.stack.Push(new FolderEntry(0, this.startDir));
+        public IEnumerable<FolderEntry> ListFolders() {
+            Stack<FolderEntry> stack = new Stack<FolderEntry>();
+            stack.Push(new FolderEntry(this.startDir, 0, ""));
+            FolderEntry item;
 
-            return new FolderEntry(0, "");
-        }
-
-        public FolderEntry NextFolder(bool further) {
-            FolderEntry folderEntry = this.stack.Pop();
-            if (further) {
-                // Directories can disappear from under our feet. Just carry on
+            while (stack.Count > 0) {
+                item = stack.Pop();
+                yield return item;
                 try {
-                    string[] directories = Directory.GetDirectories(folderEntry.Name);
-                    Array.Sort(directories);
-                    // Reverse, so we put the highest in the alphabet on last, so it gets popped first
-                    foreach (string child in directories.Reverse()) {
-                        this.stack.Push(new FolderEntry(folderEntry.Level + 1, child));
+                    foreach (string dir in Directory.EnumerateDirectories(item.FullPath).Select(x => x.Substring(this.startDir.Length + 1))) {
+                        stack.Push(new FolderEntry(this.startDir, item.Level + 1, dir));
                     }
                 }
                 // We CAN NOT exit now, as we won't return a new folder, and stuff breaks badly.
@@ -43,13 +35,6 @@ namespace BackerUpper
                 catch (IOException) { }
                 catch (UnauthorizedAccessException) { }
             }
-
-            if (this.stack.Count == 0) {
-                return new FolderEntry(-1, null);
-            }
-
-            FolderEntry folderToReturn = this.stack.Peek();
-            return new FolderEntry(folderToReturn.Level, folderToReturn.Name.Substring(this.substringStart));
         }
 
         public IEnumerable<string> ListFiles(string folder) {
@@ -108,13 +93,23 @@ namespace BackerUpper
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(path, e.Message); }
         }
 
-        public struct FolderEntry
+        public class FolderEntry
         {
-            public int Level;
-            public string Name;
-            public FolderEntry(int level, string name) {
+            private string startDir;
+            public int Level {get; private set; }
+            public string Name {get; private set; }
+            public string FullPath {
+                get { return Path.Combine(this.startDir, this.Name); }
+            }
+            
+            public FolderEntry(string startDir, int level, string name) {
+                this.startDir = startDir;
                 this.Level = level;
                 this.Name = name;
+            }
+
+            public IEnumerable<string> GetFiles() {
+                return Directory.EnumerateFiles(Path.Combine(this.startDir, this.Name)).Select(x => x.Substring(this.startDir.Length + 1));
             }
         }
     }

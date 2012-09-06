@@ -129,14 +129,12 @@ namespace BackerUpper
         public override IEnumerable<EntityRecord> ListFilesFolders() {
             // Just use a TreeTraverser here
             TreeTraverser treeTraverser = new TreeTraverser(this.Dest);
-            TreeTraverser.FolderEntry folder = treeTraverser.FirstFolder();
 
-            while (folder.Level >= 0) {
+            foreach(TreeTraverser.FolderEntry folder in treeTraverser.ListFolders()) {
                 yield return new EntityRecord(folder.Name, Entity.Folder);
-                foreach (string file in treeTraverser.ListFiles(folder.Name)) {
+                foreach (string file in folder.GetFiles()) {
                     yield return new EntityRecord(file, Entity.File);
                 }
-                folder = treeTraverser.NextFolder(true);
             }
         }
 
@@ -145,9 +143,8 @@ namespace BackerUpper
             HashSet<string> folders = new HashSet<string>(foldersIn);
             // Just use a TreeTraverser here
             TreeTraverser treeTraverser = new TreeTraverser(this.Dest);
-            TreeTraverser.FolderEntry folder = treeTraverser.FirstFolder();
 
-            while (folder.Level >= 0) {
+            foreach (TreeTraverser.FolderEntry folder in treeTraverser.ListFolders()) {
                 try {
                     if (folders.Contains(folder.Name)) {
                         if (handler != null && !handler(Entity.Folder, folder.Name, false))
@@ -169,8 +166,6 @@ namespace BackerUpper
                         if (handler != null && !handler(Entity.Folder, folder.Name, true))
                             return;
                     }
-
-                    folder = treeTraverser.NextFolder(true);
                 }
                 // Don't yet have a way of logging from in here
                 catch (BackupOperationException) { }

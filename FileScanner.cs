@@ -72,11 +72,9 @@ namespace BackerUpper
             this.Cancelled = false;
             this.WarningOccurred = false;
 
-            TreeTraverser.FolderEntry folder = this.treeTraverser.FirstFolder();
             FileDatabase.FolderStatus folderStatus;
             int newFolderLevel = -1;
             int prevLevel = -1;
-            bool nextFolder = true;
             int curFolderId = -1;
             IEnumerable<string> files;
             FileDatabase.FileStatus fileStatus;
@@ -85,8 +83,11 @@ namespace BackerUpper
             // Do all the additions, then go through and do the deletions separately
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
 
-            while (folder.Level >= 0 && !this.Cancelled) {
-                // May not get assigned, due to try/catch, so assign empty as a default
+            foreach (TreeTraverser.FolderEntry folder in this.treeTraverser.ListFolders()) {
+                if (this.Cancelled)
+                    break;
+
+                // files might not get assigned, so assign it now
                 files = new string[0];
 
                 try {
@@ -101,11 +102,9 @@ namespace BackerUpper
                         switch (folderStatus.FolderModStatus) {
                             case FileDatabase.FolderModStatus.New:
                                 newFolderLevel = folder.Level;
-                                nextFolder = true;
                                 curFolderId = this.addFolder(folder.Name);
                                 break;
                             case FileDatabase.FolderModStatus.Unmodified:
-                                nextFolder = true;
                                 curFolderId = folderStatus.Id;
                                 this.checkFolder(folder.Name);
                                 break;
@@ -113,7 +112,7 @@ namespace BackerUpper
                     }
 
                     // Check for files in this folder
-                    files = this.treeTraverser.ListFiles(folder.Name);
+                    files = folder.GetFiles();
                 }
                 catch (BackupOperationException e) { this.handleOperationException(e); }
 
@@ -141,12 +140,7 @@ namespace BackerUpper
                     catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
 
-                try {
-                    // Move onto the next folder
-                    prevLevel = folder.Level;
-                    folder = this.treeTraverser.NextFolder(nextFolder);
-                }
-                catch (BackupOperationException e) { this.handleOperationException(e); }
+                prevLevel = folder.Level;
             }
 
             if (!this.Cancelled) {
@@ -468,9 +462,8 @@ namespace BackerUpper
             if (purge) {
                 IEnumerable<string> recordedFolders = this.fileDatabase.RecordedFolders().Select(x => x.Path);
                 IEnumerable<string> recordedFiles = this.fileDatabase.RecordedFiles().Select(x => x.Path);
-                TreeTraverser.FolderEntry folder = treeTraverser.FirstFolder();
 
-                while (folder.Level >= 0) {
+                foreach (TreeTraverser.FolderEntry folder in this.treeTraverser.ListFolders()) {
                     foreach (string file in this.treeTraverser.ListFiles(folder.Name)) {
                         if (!recordedFiles.Contains(file)) {
                             this.Logger.Info("Deleting file {0}:", file);
@@ -484,10 +477,6 @@ namespace BackerUpper
                     if (!recordedFolders.Contains(folder.Name)) {
                         this.treeTraverser.DeleteFolder(folder.Name);
                     }
-                    try {
-                        folder = treeTraverser.NextFolder(true);
-                    }
-                     catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
             }
         }
