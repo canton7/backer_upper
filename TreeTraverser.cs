@@ -51,9 +51,9 @@ namespace BackerUpper
             return new FolderEntry(folderToReturn.Level, folderToReturn.Name.Substring(this.substringStart));
         }
 
-        public string[] ListFiles(string folder) {
+        public IEnumerable<string> ListFiles(string folder) {
             try {
-                return Directory.GetFiles(Path.Combine(this.startDir, folder)).Select(x => x.Substring(this.substringStart)).ToArray();
+                return Directory.GetFiles(Path.Combine(this.startDir, folder)).Select(x => x.Substring(this.substringStart));
             }
             catch (IOException e) { throw new BackupOperationException(folder, e.Message); }
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(folder, e.Message); }

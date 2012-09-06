@@ -31,7 +31,7 @@ namespace BackerUpper
             string result = this.db.ExecuteScalar("SELECT id FROM folders WHERE path = @path LIMIT 1", "@path", path);
 
             if (result == null) {
-                return new FolderStatus(0, FolderModStatus.New);
+                return new FolderStatus(-1, FolderModStatus.New);
             }
 
             return new FolderStatus(int.Parse(result), FolderModStatus.Unmodified);
@@ -50,17 +50,15 @@ namespace BackerUpper
             this.db.Execute("DELETE FROM folders WHERE id = @id", "@id", folderId);
         }
 
-        public FolderRecord[] RecordedFolders() {
+        public IEnumerable<FolderRecord> RecordedFolders() {
             // Make sure we list children before parents. Slightly hacky way of doing it, but should work
             DataTable result = this.db.ExecuteReader("SELECT id, path FROM folders ORDER BY path DESC");
-            FolderRecord[] folderRecords = new FolderRecord[result.Rows.Count];
 
             DataRow row;
             for (int i = 0; i < result.Rows.Count; i++) {
                 row = result.Rows[i];
-                folderRecords[i] = new FolderRecord(Convert.ToInt32(row["id"]), (string)row["path"]);
+                yield return new FolderRecord(Convert.ToInt32(row["id"]), (string)row["path"]);
             }
-            return folderRecords;
         }
 
         public FileStatus InspectFile(int folderId, string name, DateTime lastModified) {
@@ -72,15 +70,42 @@ namespace BackerUpper
                 return new FileStatus(FileModStatus.New, null);
             }
 
-            // Is an exact match
-            int fileEpoch = int.Parse(result[0]);
+            int fileEpoch = Convert.ToInt32(result[0]);
             string md5 = result[1];
 
-            if (lastModifiedEpoch != fileEpoch) {
-                return new FileStatus(FileModStatus.Modified, md5);
+            if (lastModifiedEpoch > fileEpoch) {
+                return new FileStatus(FileModStatus.Newer, md5);
+            }
+            else if (lastModifiedEpoch < fileEpoch) {
+                return new FileStatus(FileModStatus.Older, md5);
             }
             else {
                 return new FileStatus(FileModStatus.Unmodified, md5);
+            }
+        }
+
+        // BAD DUPLICATION. But, InspectFile is very heavily on the critical path during a backup, and this is only used during a restore
+        public FileStatusWithLastModified InspectFileWithLastModified(int folderId, string name, DateTime lastModified) {
+            int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
+
+            string[] result = this.db.ExecuteRow("SELECT files.date_modified, files.md5 FROM files WHERE name = @name and folder_id = @folder_id LIMIT 1", "@folder_id", folderId, "@name", Path.GetFileName(name));
+
+            if (result.Length == 0) {
+                return new FileStatusWithLastModified(FileModStatus.New, null, DateTime.UtcNow);
+            }
+
+            int fileEpoch = Convert.ToInt32(result[0]);
+            string md5 = result[1];
+            DateTime fileLastModified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(fileEpoch);
+
+            if (lastModifiedEpoch > fileEpoch) {
+                return new FileStatusWithLastModified(FileModStatus.Newer, md5, fileLastModified);
+            }
+            else if (lastModifiedEpoch < fileEpoch) {
+                return new FileStatusWithLastModified(FileModStatus.Older, md5, fileLastModified);
+            }
+            else {
+                return new FileStatusWithLastModified(FileModStatus.Unmodified, md5, fileLastModified);
             }
         }
 
@@ -218,7 +243,7 @@ namespace BackerUpper
             }
         }
 
-        public enum FileModStatus { New, Modified, Unmodified };
+        public enum FileModStatus { New, Newer, Older, Unmodified };
 
         public struct FileStatus
         {
@@ -228,6 +253,19 @@ namespace BackerUpper
             public FileStatus(FileModStatus fileModStatus, string md5) {
                 this.FileModStatus = fileModStatus;
                 this.MD5 = md5;
+            }
+        }
+        
+        public struct FileStatusWithLastModified
+        {
+            public FileModStatus FileModStatus;
+            public string MD5;
+            public DateTime LastModified;
+
+            public FileStatusWithLastModified(FileModStatus fileModStatus, string md5, DateTime lastModified) {
+                this.FileModStatus = fileModStatus;
+                this.MD5 = md5;
+                this.LastModified = lastModified;
             }
         }
 

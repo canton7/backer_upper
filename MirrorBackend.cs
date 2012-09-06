@@ -101,6 +101,19 @@ namespace BackerUpper
             return File.Exists(Path.Combine(this.Dest, file));
         }
 
+        public override string FileMD5(string file) {
+            // We don't hold this sort of information in the backend, so return null
+            return null;
+        }
+
+        public override DateTime FileLastModified(string file) {
+            // Default to now
+            string path = Path.Combine(this.Dest, file);
+            if (!File.Exists(path))
+                return DateTime.UtcNow;
+            return File.GetLastWriteTimeUtc(path);
+        }
+
         public override bool CreateFromAlternateCopy(string file, string source) {
             // Copy time unaffected by whether are on the same drive; More by how many drives are USB, etc
             return false;
@@ -113,6 +126,20 @@ namespace BackerUpper
             this.withHandling(() => File.Move(Path.Combine(this.Dest, source), dest), file);
         }
 
+        public override IEnumerable<EntityRecord> ListFilesFolders() {
+            // Just use a TreeTraverser here
+            TreeTraverser treeTraverser = new TreeTraverser(this.Dest);
+            TreeTraverser.FolderEntry folder = treeTraverser.FirstFolder();
+
+            while (folder.Level >= 0) {
+                yield return new EntityRecord(folder.Name, Entity.Folder);
+                foreach (string file in treeTraverser.ListFiles(folder.Name)) {
+                    yield return new EntityRecord(file, Entity.File);
+                }
+                folder = treeTraverser.NextFolder(true);
+            }
+        }
+
         public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn, PurgeProgressHandler handler=null) {
             HashSet<string> files = new HashSet<string>(filesIn);
             HashSet<string> folders = new HashSet<string>(foldersIn);
@@ -120,29 +147,26 @@ namespace BackerUpper
             TreeTraverser treeTraverser = new TreeTraverser(this.Dest);
             TreeTraverser.FolderEntry folder = treeTraverser.FirstFolder();
 
-            string[] filesInDir;
-
             while (folder.Level >= 0) {
                 try {
                     if (folders.Contains(folder.Name)) {
-                        if (handler != null && !handler(PurgeEntity.Folder, folder.Name, false))
+                        if (handler != null && !handler(Entity.Folder, folder.Name, false))
                             return;
-                        filesInDir = treeTraverser.ListFiles(folder.Name);
-                        foreach (string file in filesInDir) {
+                        foreach (string file in treeTraverser.ListFiles(folder.Name)) {
                             if (!files.Contains(file)) {
                                 File.Delete(treeTraverser.GetFileSource(file));
-                                if (handler != null && !handler(PurgeEntity.File, file, true))
+                                if (handler != null && !handler(Entity.File, file, true))
                                     return;
                             }
                             else {
-                                if (handler != null && !handler(PurgeEntity.File, file, false))
+                                if (handler != null && !handler(Entity.File, file, false))
                                     return;
                             }
                         }
                     }
                     else {
                         Directory.Delete(treeTraverser.GetFolderSource(folder.Name), true);
-                        if (handler != null && !handler(PurgeEntity.Folder, folder.Name, true))
+                        if (handler != null && !handler(Entity.Folder, folder.Name, true))
                             return;
                     }
 

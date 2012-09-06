@@ -276,7 +276,7 @@ namespace BackerUpper
                 }
             }
             else {
-                this.currentBackupFilescanner.Restore(backupArgs.RestoreOverwrite, backupArgs.RestoreOverwriteOnlyIfOlder);
+                this.currentBackupFilescanner.Restore(backupArgs.RestoreOverwrite, backupArgs.RestoreOverwriteOnlyIfOlder, true);
             }
 
             settings.LastRunCancelled = this.currentBackupFilescanner.Cancelled;

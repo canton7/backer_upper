@@ -104,19 +104,8 @@ namespace BackerUpper
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
-            if (this.files.Contains(file)) {
-                try {
-                    GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
-                        BucketName = this.bucket,
-                        Key = key
-                    };
-                    GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
-                    string destMD5 = metaResponse.Headers["x-amz-meta-md5"];
-                    if (destMD5 == fileMD5)
-                        return false;
-                }
-                catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
-                catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
+            if (this.files.Contains(file) && this.FileMD5(file) == fileMD5) {
+                return false;
             }
 
             PutObjectRequest putRequest = new PutObjectRequest() {
@@ -147,18 +136,7 @@ namespace BackerUpper
             if (!this.performTests)
                 return true;
 
-            try {
-                GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
-                    BucketName = this.bucket,
-                    Key = key
-                };
-                GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
-                string destMD5 = metaResponse.Headers["x-amz-meta-md5"];
-
-                return destMD5 == fileMD5;
-            }
-            catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
-            catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
+            return fileMD5 == this.FileMD5(file);
         }
 
         public override void RestoreFile(string file, string dest, DateTime lastModified) {
@@ -215,6 +193,30 @@ namespace BackerUpper
             return this.files.Contains(file);
         }
 
+        public override string FileMD5(string file) {
+            file = file.Replace('\\', '/');
+            string key = this.prefix + file;
+
+            if (!this.files.Contains(file))
+                return null;
+
+            try {
+                GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
+                    BucketName = this.bucket,
+                    Key = key
+                };
+                GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
+                return metaResponse.Headers["x-amz-meta-md5"];
+            }
+            catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
+            catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
+        }
+
+        public override DateTime FileLastModified(string file) {
+            // We can't provide this information, so just return now
+            return DateTime.UtcNow;
+        }
+
         public override bool CreateFromAlternateCopy(string file, string source) {
             file = file.Replace('\\', '/');
             source = source.Replace('\\', '/');
@@ -234,6 +236,20 @@ namespace BackerUpper
             this.withHandling(() => this.DeleteFile(source), file);
         }
 
+        public override IEnumerable<EntityRecord> ListFilesFolders() {
+            // Iterate folders, and for each folder, iterate files which begin with that folder
+            // probably isn't the most efficient way due to searching, but hey
+            // Sort folders first, just to be sure (I think S3 sorts anyway, but hey). Nothing else minds it being sorted
+            this.folders.Sort();
+            foreach (string folder in this.folders) {
+                yield return new EntityRecord(folder, Entity.Folder);
+                string folderReversedSlashes = folder.Replace('/', '\\');
+                foreach (string file in this.files.Where(x => Path.GetDirectoryName(x) == folderReversedSlashes)) {
+                    yield return new EntityRecord(file, Entity.File);
+                }
+            }
+        }
+
         public override void PurgeFiles(IEnumerable<string> filesIn, IEnumerable<string> foldersIn, PurgeProgressHandler handler=null) {
             HashSet<string> limitFiles = new HashSet<string>(filesIn.Select(x => x.Replace('\\', '/')));
             HashSet<string> limitFolders = new HashSet<string>(foldersIn.Select(x => x.Replace('\\', '/')));
@@ -243,11 +259,11 @@ namespace BackerUpper
             foreach (string file in iterateFiles) {
                 if (!limitFiles.Contains(file)) {
                     this.DeleteFile(file);
-                    if (handler != null && !handler(PurgeEntity.File, file, true))
+                    if (handler != null && !handler(Entity.File, file, true))
                         return;
                 }
                 else {
-                    if (handler != null && !handler(PurgeEntity.File, file, false))
+                    if (handler != null && !handler(Entity.File, file, false))
                         return;
                 }
             }
@@ -256,11 +272,11 @@ namespace BackerUpper
             foreach (string folder in iterateFolders) {
                 if (!limitFolders.Contains(folder)) {
                     this.DeleteFolder(folder);
-                    if (handler != null && !handler(PurgeEntity.Folder, folder, true))
+                    if (handler != null && !handler(Entity.Folder, folder, true))
                         return;
                 }
                 else {
-                    if (handler != null && !handler(PurgeEntity.Folder, folder, false))
+                    if (handler != null && !handler(Entity.Folder, folder, false))
                         return;
                 }
             }
