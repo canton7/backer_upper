@@ -82,18 +82,12 @@ namespace BackerUpper
             IEnumerable<TreeTraverser.FileEntry> files;
             FileDatabase.FileStatus fileStatus;
 
-            // Build up a list of files and folders as we go: need to purge the database
-            List<string> seenFiles = new List<string>();
-            List<String> seenFolders = new List<string>();
-
             // Do all the additions, then go through and do the deletions separately
             // This gives us a change to do renames, and makes sure that we empty folders before deleting them
 
             foreach (TreeTraverser.FolderEntry folder in this.treeTraverser.ListFolders()) {
                 if (this.Cancelled)
                     break;
-
-                seenFolders.Add(folder.Name);
 
                 // files might not get assigned, so assign it now
                 files = new TreeTraverser.FileEntry[0];
@@ -118,7 +112,6 @@ namespace BackerUpper
                                 break;
                         }
                     }
-
                     // Check for files in this folder
                     files = folder.GetFiles();
                 }
@@ -127,8 +120,6 @@ namespace BackerUpper
                 foreach (TreeTraverser.FileEntry file in files) {
                     if (this.Cancelled)
                         break;
-
-                    seenFiles.Add(file.Name);
 
                     try {
                         fileStatus = this.fileDatabase.InspectFile(curFolderId, file.Name, file.LastModified);
@@ -139,11 +130,11 @@ namespace BackerUpper
                                 break;
                             case FileDatabase.FileModStatus.Newer:
                             case FileDatabase.FileModStatus.Older:
-                                this.updatefile(curFolderId, file, fileStatus.MD5);
+                                this.updatefile(fileStatus.Id, file, fileStatus.MD5);
                                 break;
                             case FileDatabase.FileModStatus.Unmodified:
                                 // We don't think anything's changed... but make sure the file exists on the backends
-                                this.checkFile(curFolderId, file, fileStatus.MD5);
+                                this.checkFile(file, fileStatus.MD5);
                                 break;
                         }
                     }
@@ -178,9 +169,6 @@ namespace BackerUpper
                     catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
             }
-
-            // This has to be done as part of this method, as the files/folders aren't available otherwise
-            this.fileDatabase.PurgeDatabase(seenFiles, seenFolders);
         }
 
         private int addFolder(string folder) {
@@ -222,7 +210,7 @@ namespace BackerUpper
 
             foreach (BackendBase backend in this.backends) {
                 // Search for alternates
-                if (this.alternateFile(folderId, file, fileMD5, false, backend))
+                if (this.alternateFile(file, fileMD5, false, backend))
                     continue;
                 this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
                 backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5);
@@ -231,12 +219,12 @@ namespace BackerUpper
             this.fileDatabase.AddFile(folderId, file.Name, file.LastModified, fileMD5);
         }
 
-        private bool alternateFile(int folderId, TreeTraverser.FileEntry file, string fileMD5, bool update, BackendBase backend) {
+        private bool alternateFile(TreeTraverser.FileEntry file, string fileMD5, bool update, BackendBase backend) {
             // if update is true, we're updating the dest file. otherwise we're adding it
             // Return true if we made use of an alternate, or false if we did nothing
             string logAction = update ? "Updated" : "Added";
 
-            FileDatabase.FileRecord[] alternates = this.fileDatabase.SearchForAlternates(fileMD5);
+            FileDatabase.FileRecord[] alternates = this.fileDatabase.SearchForAlternates(fileMD5).ToArray();
             if (alternates.Length == 0)
                 return false;
 
@@ -277,7 +265,7 @@ namespace BackerUpper
             return foundGoodAlternate;
         }
 
-        private void updatefile(int folderId, TreeTraverser.FileEntry file, string remoteMD5) {
+        private void updatefile(int fileId, TreeTraverser.FileEntry file, string remoteMD5) {
             this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Hash));
             // Only copy if the file has actually changed
             string fileMD5 = file.GetMD5((percent) => {
@@ -296,7 +284,7 @@ namespace BackerUpper
             }
 
             foreach (BackendBase backend in this.backends) {
-                if (this.alternateFile(folderId, file, fileMD5, true, backend))
+                if (this.alternateFile(file, fileMD5, true, backend))
                     continue;
 
                 this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
@@ -306,15 +294,15 @@ namespace BackerUpper
                     this.Logger.Info("{0}: Skipped file {1} (mtime changed but file up-to-date)", backend.Name, file.Name);
             }
             // But update the last modified time either way
-            this.fileDatabase.UpdateFile(folderId, file.Name, file.LastModified, fileMD5);
+            this.fileDatabase.UpdateFile(fileId, file.LastModified, fileMD5);
         }
 
-        private void checkFile(int folderId, TreeTraverser.FileEntry file, string fileMD5) {
+        private void checkFile(TreeTraverser.FileEntry file, string fileMD5) {
             foreach (BackendBase backend in this.backends) {
                 if (!backend.TestFile(file.Name, file.LastModified, fileMD5)) {
                     // Aha! File's gone missing from the backend
                     this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
-                    if (!this.alternateFile(folderId, file, fileMD5, true, backend)) {
+                    if (!this.alternateFile(file, fileMD5, true, backend)) {
                         if (backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5))
                             this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file.Name);
                     }

@@ -54,9 +54,7 @@ namespace BackerUpper
             // Make sure we list children before parents. Slightly hacky way of doing it, but should work
             DataTable result = this.db.ExecuteReader("SELECT id, path FROM folders ORDER BY path DESC");
 
-            DataRow row;
-            for (int i = 0; i < result.Rows.Count; i++) {
-                row = result.Rows[i];
+            foreach (DataRow row in result.Rows) {
                 yield return new FolderRecord(Convert.ToInt32(row["id"]), (string)row["path"]);
             }
         }
@@ -64,23 +62,24 @@ namespace BackerUpper
         public FileStatus InspectFile(int folderId, string name, DateTime lastModified) {
             int lastModifiedEpoch = (int)(lastModified - new DateTime(1970, 1, 1)).TotalSeconds;
 
-            string[] result = this.db.ExecuteRow("SELECT files.date_modified, files.md5 FROM files WHERE name = @name and folder_id = @folder_id LIMIT 1", "@folder_id", folderId, "@name", Path.GetFileName(name));
+            string[] result = this.db.ExecuteRow("SELECT files.id, files.date_modified, files.md5 FROM files WHERE name = @name and folder_id = @folder_id LIMIT 1", "@folder_id", folderId, "@name", Path.GetFileName(name));
 
+            int id = Convert.ToInt32(result[0]);
             if (result.Length == 0) {
-                return new FileStatus(FileModStatus.New, null);
+                return new FileStatus(id, FileModStatus.New, null);
             }
 
-            int fileEpoch = Convert.ToInt32(result[0]);
-            string md5 = result[1];
+            int fileEpoch = Convert.ToInt32(result[1]);
+            string md5 = result[2];
 
             if (lastModifiedEpoch > fileEpoch) {
-                return new FileStatus(FileModStatus.Newer, md5);
+                return new FileStatus(id, FileModStatus.Newer, md5);
             }
             else if (lastModifiedEpoch < fileEpoch) {
-                return new FileStatus(FileModStatus.Older, md5);
+                return new FileStatus(id, FileModStatus.Older, md5);
             }
             else {
-                return new FileStatus(FileModStatus.Unmodified, md5);
+                return new FileStatus(id, FileModStatus.Unmodified, md5);
             }
         }
 
@@ -109,18 +108,12 @@ namespace BackerUpper
             }
         }
 
-        public FileRecord[] SearchForAlternates(string fileMD5) {
+        public IEnumerable<FileRecord> SearchForAlternates(string fileMD5) {
             DataTable result = this.db.ExecuteReader("SELECT files.id, folders.path, files.name FROM files LEFT JOIN folders ON files.folder_id = folders.id WHERE files.md5 = @md5", "@md5", fileMD5);
 
-            FileRecord[] alternates = new FileRecord[result.Rows.Count];
-            DataRow row;
-
-            for (int i = 0; i < result.Rows.Count; i++) {
-                row = result.Rows[i];
-                alternates[i] = new FileRecord(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()));
+            foreach (DataRow row in result.Rows) {
+                yield return new FileRecord(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()));
             }
-
-            return alternates;
         }
 
         public void AddFile(int folderId, string name, DateTime lastModified, string md5) {
@@ -155,9 +148,7 @@ namespace BackerUpper
         public IEnumerable<FileRecord> RecordedFiles() {
             DataTable result = this.db.ExecuteReader(@"SELECT files.id, folders.path, files.name FROM files LEFT JOIN folders ON files.folder_id = folders.id");
 
-            DataRow row;
-            for (int i = 0; i < result.Rows.Count; i++) {
-                row = result.Rows[i];
+            foreach (DataRow row in result.Rows) {
                 yield return new FileRecord(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()));
             }
         }
@@ -165,32 +156,11 @@ namespace BackerUpper
         public IEnumerable<FileRecordExtended> RecordedFilesExtended() {
             DataTable result = this.db.ExecuteReader(@"SELECT files.id, folders.path, files.name, files.date_modified, files.md5 FROM files LEFT JOIN folders ON files.folder_id = folders.id");
 
-            DataRow row;
-            for (int i = 0; i < result.Rows.Count; i++) {
-                row = result.Rows[i];
+            foreach (DataRow row in result.Rows) {
                 DateTime lastModified = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(Convert.ToInt32(row["date_modified"]));
                 yield return new FileRecordExtended(Convert.ToInt32(row["id"]), Path.Combine(row["path"].ToString(), row["name"].ToString()), lastModified, row["md5"].ToString());
             }
         }
-
-        public void PurgeDatabase(IEnumerable<string> files, IEnumerable<string> folders) {
-            // Delete entries from the DB which aren't in files or folders
-            List<int> idsToDelete = new List<int>();
-            DataTable dbFiles = this.db.ExecuteReader("SELECT files.id, files.name, folders.path FROM files LEFT JOIN folders ON files.folder_id = folders.id");
-            foreach (DataRow file in dbFiles.Rows) {
-                if (!files.Contains(Path.Combine(file["path"].ToString(), file["name"].ToString())))
-                    idsToDelete.Add(Convert.ToInt32(file["id"]));
-            }
-            this.db.Execute("DELETE FROM files WHERE id IN ("+String.Join(",", idsToDelete)+")");
-            idsToDelete.Clear();
-            DataTable dbFolders = this.db.ExecuteReader("SELECT id, path FROM folders");
-            foreach (DataRow folder in dbFolders.Rows) {
-                if (!folders.Contains(folder["path"]))
-                    idsToDelete.Add(Convert.ToInt32(folder["id"]));
-            }
-            this.db.Execute("DELETE FROM folders WHERE id IN ("+String.Join(",", idsToDelete)+")");
-        }
-
         /*
         public void FinishAndSync() {
             //this.executeCachedInserts(true);
@@ -265,10 +235,12 @@ namespace BackerUpper
 
         public struct FileStatus
         {
+            public int Id;
             public FileModStatus FileModStatus;
             public string MD5;
 
-            public FileStatus(FileModStatus fileModStatus, string md5) {
+            public FileStatus(int id, FileModStatus fileModStatus, string md5) {
+                this.Id = id;
                 this.FileModStatus = fileModStatus;
                 this.MD5 = md5;
             }
