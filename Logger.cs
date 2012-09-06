@@ -6,7 +6,7 @@ using System.IO;
 
 namespace BackerUpper
 {
-    class Logger
+    class Logger : IDisposable
     {
         public enum Level { DEBUG, INFO, WARN, ERROR };
 
@@ -97,6 +97,10 @@ namespace BackerUpper
 
         public void Close() {
             this.writer.Close();
+        }
+
+        public void Dispose() {
+            this.Close();
         }
     }
 }

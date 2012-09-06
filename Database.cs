@@ -9,7 +9,7 @@ using System.Timers;
 
 namespace BackerUpper
 {
-    class Database
+    class Database : IDisposable
     {
         // If we're working from on-disk, diskConn is null and conn contains the disk database
         // If we're working from memoroy, conn contains the memory db and diskConn the disk db
@@ -241,6 +241,10 @@ namespace BackerUpper
         public int InsertId() {
             SQLiteCommand com = new SQLiteCommand("SELECT last_insert_rowid();", this.conn);
             return Convert.ToInt32(com.ExecuteScalar());
+        }
+
+        public void Dispose() {
+            this.Close();
         }
 
         public static Database CreateDatabase(string path) {
