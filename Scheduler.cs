@@ -54,7 +54,7 @@ namespace BackerUpper
                 this.ScheduleTime = new DateTime(1970, 1, 1, 20, 0, 0);
                 this.DaysOfTheWeek = DaysOfTheWeek.Monday | DaysOfTheWeek.Tuesday | DaysOfTheWeek.Wednesday | DaysOfTheWeek.Thursday |
                     DaysOfTheWeek.Friday | DaysOfTheWeek.Saturday | DaysOfTheWeek.Sunday;
-                this.Enabled = true;
+                this.Enabled = false;
                 return;
             }
 
