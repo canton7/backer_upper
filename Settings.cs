@@ -7,6 +7,8 @@ namespace BackerUpper
 {
     class Settings
     {
+        const string INITIAL_IGNORE = "*.tmp | *.temp";
+
         Database db;
         public Database Database {
             get { return this.db; }
@@ -112,7 +114,7 @@ namespace BackerUpper
                 ('mirrorEnabled', '0'), ('mirrorDest', ''),
                 ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', ''), ('s3UseRRS', '0'), ('s3Test', '0'),
                 ('lastRun', '0'), ('lastRunCancelled', '0'), ('lastRunErrors', '0'),
-                ('fileIgnorePattern', ''), ('autoclose', '1'), ('ignoreWarnings', '0'); ", "@name", name);
+                ('fileIgnorePattern', @ignore), ('autoclose', '1'), ('ignoreWarnings', '0'); ", "@name", name, "@ignore", INITIAL_IGNORE);
         }
     }
 }
