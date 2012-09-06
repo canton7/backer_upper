@@ -19,6 +19,8 @@ namespace BackerUpper
         private string[] takenBackupNames;
         private string initialBackupName;
 
+        const string FORBIDDEN_CHARS = "\\/:*?\"<>|";
+
         public PropertiesForm(Settings settings, string[] takenBackupNames, bool backupIsNew=false) {
             InitializeComponent();
 
@@ -124,6 +126,8 @@ namespace BackerUpper
                 errors.Add("Name cannot be empty");
             else if (this.textBoxName.Text != this.initialBackupName && this.takenBackupNames.Contains(this.textBoxName.Text))
                 errors.Add("A backup with that name exists already");
+            else if (this.textBoxName.Text.IndexOfAny(FORBIDDEN_CHARS.ToCharArray()) != -1)
+                errors.Add("Your backup name contains forbidden characters ("+FORBIDDEN_CHARS+")");
             if (this.textBoxSource.Text == "")
                 errors.Add("Source cannot be empty");
             else if (!Directory.Exists(this.textBoxSource.Text))
