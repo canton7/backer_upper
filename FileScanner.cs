@@ -366,6 +366,9 @@ namespace BackerUpper
                     }
                 }
                 else {
+                    // Ignore this: we don't want to restore our own backup DB
+                    if (entity.Path == Path.GetFileName(Database.FilePath))
+                        continue;
                     destMd5 = null;
 
                     fullPath = this.treeTraverser.GetFileSource(entity.Path);
