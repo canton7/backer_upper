@@ -486,7 +486,7 @@ namespace BackerUpper
         }
 
         public enum BackupActionEntity { File, Folder };
-        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Prune, Purge, Test, Nothing };
+        public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Purge, Test, Nothing };
         public struct BackupActionItem
         {
             public string From;

@@ -364,8 +364,6 @@ namespace BackerUpper
                 text = "Hash: " + text;
             else if (item.Operation == FileScanner.BackupActionOperation.Purge)
                 text = "Purge: " + text;
-            else if (item.Operation == FileScanner.BackupActionOperation.Prune)
-                text = "Prune: " + text;
             if (item.Backend == "S3")
                 text = "S3:\\" + text;
             if (this.currentBackupFilescanner != null && this.currentBackupFilescanner.Cancelled)
