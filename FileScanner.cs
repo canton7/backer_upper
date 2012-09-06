@@ -24,10 +24,10 @@ namespace BackerUpper
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
-        public FileScanner(string startDir, Database database, Logger logger, string name, BackendBase[] backends) {
+        public FileScanner(string startDir, Database database, Logger logger, string name, BackendBase[] backends, string fileIgnorePattern) {
             this.startDir = startDir;
             this.Database = database;
-            this.treeTraverser = new TreeTraverser(startDir);
+            this.treeTraverser = new TreeTraverser(startDir, fileIgnorePattern);
             this.fileDatabase = new FileDatabase(database);
             this.backends = backends;
             foreach (BackendBase backend in this.backends) {

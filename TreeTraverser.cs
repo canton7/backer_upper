@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace BackerUpper
 {
@@ -10,15 +11,20 @@ namespace BackerUpper
     {
         private string startDir;
         private int substringStart;
+        public Regex FileIgnoreRules { get; private set; }
 
-        public TreeTraverser(string startDir) {
+        public TreeTraverser(string startDir, string ignoreRules=null) {
             this.startDir = startDir;
             this.substringStart = this.startDir.Length + 1;
+            if (ignoreRules == null)
+                this.FileIgnoreRules = null;
+            else
+                this.FileIgnoreRules = new Regex("^"+String.Join("|", ignoreRules.Split(new char[] { '|' }).Select(x => "("+Regex.Escape(x.Trim()).Replace(@"\*", ".*").Replace(@"\?", ".")+")"))+"$");
         }
 
         public IEnumerable<FolderEntry> ListFolders() {
             Stack<FolderEntry> stack = new Stack<FolderEntry>();
-            stack.Push(new FolderEntry(this.startDir, 0, ""));
+            stack.Push(new FolderEntry(this.startDir, 0, "", this.FileIgnoreRules));
             FolderEntry item;
 
             while (stack.Count > 0) {
@@ -26,7 +32,7 @@ namespace BackerUpper
                 yield return item;
                 try {
                     foreach (string dir in Directory.EnumerateDirectories(item.FullPath).Select(x => x.Substring(this.startDir.Length + 1))) {
-                        stack.Push(new FolderEntry(this.startDir, item.Level + 1, dir));
+                        stack.Push(new FolderEntry(this.startDir, item.Level + 1, dir, this.FileIgnoreRules));
                     }
                 }
                 // We CAN NOT exit now, as we won't return a new folder, and stuff breaks badly.
@@ -77,15 +83,22 @@ namespace BackerUpper
             public string FullPath {
                 get { return Path.Combine(this.startDir, this.Name); }
             }
+            public Regex FileIgnoreRules { get; private set; }
             
-            public FolderEntry(string startDir, int level, string name) {
+            public FolderEntry(string startDir, int level, string name, Regex fileIgnoreRules=null) {
                 this.startDir = startDir;
                 this.Level = level;
                 this.Name = name;
+                if (fileIgnoreRules == null)
+                    this.FileIgnoreRules = null;
+                else
+                    this.FileIgnoreRules = fileIgnoreRules;
             }
 
             public IEnumerable<FileEntry> GetFiles() {
                 foreach (string file in Directory.EnumerateFiles(Path.Combine(this.startDir, this.Name)).Select(x => x.Substring(this.startDir.Length + 1))) {
+                    if (this.FileIgnoreRules != null && this.FileIgnoreRules.IsMatch(file))
+                        continue;
                     yield return new FileEntry(this.startDir, file);
                 }
             }

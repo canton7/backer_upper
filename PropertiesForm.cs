@@ -33,6 +33,7 @@ namespace BackerUpper
         private void loadValues() {
             this.textBoxName.Text = this.settings.Name;
             this.textBoxSource.Text = this.settings.Source;
+            this.textBoxIgnorePattern.Text = this.settings.FileIgnorePattern;
             this.checkBoxMirror.Checked = this.settings.MirrorEnabled;
             this.textBoxMirrorDest.Text = this.settings.MirrorDest;
             this.checkBoxS3.Checked = this.settings.S3Enabled;
@@ -52,6 +53,7 @@ namespace BackerUpper
         private void saveValues() {
             this.settings.Name = this.textBoxName.Text;
             this.settings.Source = this.textBoxSource.Text;
+            this.settings.FileIgnorePattern = this.textBoxIgnorePattern.Text;
             this.settings.MirrorEnabled = this.checkBoxMirror.Checked;
             this.settings.MirrorDest = this.textBoxMirrorDest.Text;
             this.settings.S3Enabled = this.checkBoxS3.Checked;

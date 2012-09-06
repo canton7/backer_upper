@@ -62,6 +62,11 @@ namespace BackerUpper
             set { this.setKey("name", value); }
         }
 
+        public string FileIgnorePattern {
+            get { return this.getKey("fileIgnorePattern"); }
+            set { this.setKey("fileIgnorePattern", value); }
+        }
+
         public DateTime LastRun {
             get { return new DateTime(1970, 1, 1).AddSeconds(Convert.ToInt32(this.getKey("lastRun"))); }
             set { this.setKey("lastRun", ((int)(value - new DateTime(1970, 1, 1)).TotalSeconds).ToString()); }
@@ -107,7 +112,7 @@ namespace BackerUpper
                 ('mirrorEnabled', '0'), ('mirrorDest', ''),
                 ('s3Enabled', '0'), ('s3Dest', ''), ('s3PublicKey', ''), ('s3PrivateKey', ''), ('s3UseRRS', '0'), ('s3Test', '0'),
                 ('lastRun', '0'), ('lastRunCancelled', '0'), ('lastRunErrors', '0'),
-                ('autoclose', '1'), ('ignoreWarnings', '0'); ", "@name", name);
+                ('fileIgnorePattern', ''), ('autoclose', '1'), ('ignoreWarnings', '0'); ", "@name", name);
         }
     }
 }
