@@ -482,17 +482,6 @@ namespace BackerUpper
             BackupAction(this, this.lastBackupActionItem);
         }
 
-        private struct FoundFolderItem
-        {
-            public string Path;
-            public List<string> Folders;
-
-            public FoundFolderItem(string path) {
-                this.Path = path;
-                this.Folders = new List<string>();
-            }
-        }
-
         public enum BackupActionEntity { File, Folder };
         public enum BackupActionOperation { Add, Delete, Copy, Move, Update, Hash, Prune, Purge, Test, Nothing };
         public struct BackupActionItem
