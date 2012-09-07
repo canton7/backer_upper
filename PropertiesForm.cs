@@ -84,6 +84,8 @@ namespace BackerUpper
             this.checkBoxScheduleSun.Checked = dow.HasFlag(DaysOfTheWeek.Sunday);
 
             this.checkBoxUseScheduler.Checked = scheduler.Enabled;
+            this.checkBoxSchedulerWhenAvailable.Checked = scheduler.StartWhenAvailable;
+            this.checkBoxSchedulerOnBatteries.Checked = scheduler.StartOnBatteries;
         }
 
         private void setupTask() {
@@ -103,7 +105,7 @@ namespace BackerUpper
 
             if (this.initialBackupName != null && this.initialBackupName != this.settings.Name)
                 Scheduler.Delete(this.initialBackupName);
-            Scheduler scheduler = new Scheduler(this.checkBoxUseScheduler.Checked, start, dow);
+            Scheduler scheduler = new Scheduler(this.checkBoxUseScheduler.Checked, start, dow, this.checkBoxSchedulerWhenAvailable.Checked, this.checkBoxSchedulerOnBatteries.Checked);
             scheduler.Save(this.settings.Name);
         }
 

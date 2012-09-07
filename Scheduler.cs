@@ -12,11 +12,15 @@ namespace BackerUpper
         public bool Enabled { get; private set; }
         public DateTime ScheduleTime { get; private set; }
         public DaysOfTheWeek DaysOfTheWeek { get; private set; }
+        public bool StartWhenAvailable { get; private set; }
+        public bool StartOnBatteries { get; private set; }
 
-        public Scheduler(bool enabled, DateTime scheduleTime, DaysOfTheWeek daysOfTheWeek) {
+        public Scheduler(bool enabled, DateTime scheduleTime, DaysOfTheWeek daysOfTheWeek, bool startWhenAvailable, bool startOnBatteries) {
             this.Enabled = enabled;
             this.ScheduleTime = scheduleTime;
             this.DaysOfTheWeek = daysOfTheWeek;
+            this.StartWhenAvailable = startWhenAvailable;
+            this.StartOnBatteries = startOnBatteries;
         }
 
         private Scheduler(string name) {
@@ -55,6 +59,8 @@ namespace BackerUpper
                 this.DaysOfTheWeek = DaysOfTheWeek.Monday | DaysOfTheWeek.Tuesday | DaysOfTheWeek.Wednesday | DaysOfTheWeek.Thursday |
                     DaysOfTheWeek.Friday | DaysOfTheWeek.Saturday | DaysOfTheWeek.Sunday;
                 this.Enabled = false;
+                this.StartWhenAvailable = true;
+                this.StartOnBatteries = true;
                 return;
             }
 
@@ -72,6 +78,8 @@ namespace BackerUpper
 
             this.DaysOfTheWeek = dow;
             this.Enabled = task.Definition.Settings.Enabled;
+            this.StartWhenAvailable = task.Definition.Settings.StartWhenAvailable;
+            this.StartOnBatteries = !task.Definition.Settings.DisallowStartIfOnBatteries;
         }
 
         public static void Delete(string name) {
@@ -112,6 +120,8 @@ namespace BackerUpper
                 definition.Triggers.Add(trigger);
 
             definition.Settings.Enabled = this.Enabled;
+            definition.Settings.StartWhenAvailable = this.StartWhenAvailable;
+            definition.Settings.DisallowStartIfOnBatteries = !this.StartOnBatteries;
 
             folder.RegisterTaskDefinition(name, definition);
         }

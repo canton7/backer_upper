@@ -79,6 +79,11 @@ The scheduler is pretty self-explanatory.
 It just talks to the Windows Task Scheduler, so if you're curious, fire that up and open the `BackerUpper` folder.
 Don't add new conditions, trigger, or actions to existing items, but feel free to add your own.
 
+If "start when available" is checked, and your computer isn't on when the backup is scheduled to start, the backup will run when the computer is next turned on.
+If "start on batteries" is checked, the backup will run even when your computer is running on battery power.
+If "close when finished" is checked, Backer Upper will close when the backup is complete.
+If "ignore warnings" is *not* checked, Backer Upper will display a dialog box if warnings occurred during the backup, which will stop the program from automatically closing.
+
 
 ### Running Backups
 
