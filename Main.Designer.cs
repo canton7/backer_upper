@@ -60,7 +60,7 @@
             this.backupsList.FormattingEnabled = true;
             this.backupsList.Location = new System.Drawing.Point(12, 12);
             this.backupsList.Name = "backupsList";
-            this.backupsList.Size = new System.Drawing.Size(317, 82);
+            this.backupsList.Size = new System.Drawing.Size(319, 82);
             this.backupsList.TabIndex = 0;
             this.backupsList.SelectedIndexChanged += new System.EventHandler(this.backupsList_SelectedIndexChanged);
             // 
@@ -89,7 +89,7 @@
             // buttonCreate
             // 
             this.buttonCreate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonCreate.Location = new System.Drawing.Point(335, 13);
+            this.buttonCreate.Location = new System.Drawing.Point(337, 13);
             this.buttonCreate.Name = "buttonCreate";
             this.buttonCreate.Size = new System.Drawing.Size(75, 23);
             this.buttonCreate.TabIndex = 3;
@@ -105,14 +105,14 @@
             this.statusLabelTime});
             this.statusStrip1.Location = new System.Drawing.Point(0, 258);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(422, 24);
+            this.statusStrip1.Size = new System.Drawing.Size(424, 24);
             this.statusStrip1.TabIndex = 4;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // statusLabelBackupAction
             // 
             this.statusLabelBackupAction.Name = "statusLabelBackupAction";
-            this.statusLabelBackupAction.Size = new System.Drawing.Size(369, 19);
+            this.statusLabelBackupAction.Size = new System.Drawing.Size(371, 19);
             this.statusLabelBackupAction.Spring = true;
             this.statusLabelBackupAction.Text = "Idle";
             this.statusLabelBackupAction.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -154,7 +154,7 @@
             // buttonDelete
             // 
             this.buttonDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonDelete.Location = new System.Drawing.Point(335, 42);
+            this.buttonDelete.Location = new System.Drawing.Point(337, 42);
             this.buttonDelete.Name = "buttonDelete";
             this.buttonDelete.Size = new System.Drawing.Size(75, 23);
             this.buttonDelete.TabIndex = 6;
@@ -245,7 +245,7 @@
             // buttonImport
             // 
             this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonImport.Location = new System.Drawing.Point(335, 71);
+            this.buttonImport.Location = new System.Drawing.Point(337, 71);
             this.buttonImport.Name = "buttonImport";
             this.buttonImport.Size = new System.Drawing.Size(75, 23);
             this.buttonImport.TabIndex = 15;
@@ -256,7 +256,7 @@
             // buttonViewLogs
             // 
             this.buttonViewLogs.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonViewLogs.Location = new System.Drawing.Point(335, 100);
+            this.buttonViewLogs.Location = new System.Drawing.Point(337, 100);
             this.buttonViewLogs.Name = "buttonViewLogs";
             this.buttonViewLogs.Size = new System.Drawing.Size(75, 23);
             this.buttonViewLogs.TabIndex = 17;
@@ -279,7 +279,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(422, 282);
+            this.ClientSize = new System.Drawing.Size(424, 282);
             this.Controls.Add(this.buttonRestore);
             this.Controls.Add(this.buttonViewLogs);
             this.Controls.Add(this.buttonImport);
@@ -300,7 +300,7 @@
             this.Controls.Add(this.buttonBackup);
             this.Controls.Add(this.backupsList);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(360, 320);
+            this.MinimumSize = new System.Drawing.Size(440, 320);
             this.Name = "Main";
             this.Text = "Backer Upper";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
