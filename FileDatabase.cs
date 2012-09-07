@@ -64,10 +64,12 @@ namespace BackerUpper
 
             string[] result = this.db.ExecuteRow("SELECT files.id, files.date_modified, files.md5 FROM files WHERE name = @name and folder_id = @folder_id LIMIT 1", "@folder_id", folderId, "@name", Path.GetFileName(name));
 
-            int id = Convert.ToInt32(result[0]);
+            
             if (result.Length == 0) {
-                return new FileStatus(id, FileModStatus.New, null);
+                return new FileStatus(-1, FileModStatus.New, null);
             }
+
+            int id = Convert.ToInt32(result[0]);
 
             int fileEpoch = Convert.ToInt32(result[1]);
             string md5 = result[2];

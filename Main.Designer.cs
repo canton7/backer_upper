@@ -292,7 +292,7 @@
             // 
             this.labelVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelVersion.AutoSize = true;
-            this.labelVersion.Location = new System.Drawing.Point(9, 234);
+            this.labelVersion.Location = new System.Drawing.Point(12, 234);
             this.labelVersion.Name = "labelVersion";
             this.labelVersion.Size = new System.Drawing.Size(75, 13);
             this.labelVersion.TabIndex = 20;
