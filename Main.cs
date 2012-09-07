@@ -529,7 +529,10 @@ namespace BackerUpper
         }
 
         private void buttonViewLogs_Click(object sender, EventArgs e) {
-            Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER));
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            Process.Start(path);
         }
 
         private void buttonRestore_Click(object sender, EventArgs e) {
