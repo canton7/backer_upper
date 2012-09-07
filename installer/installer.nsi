@@ -27,6 +27,8 @@
   ;Stuff for the uninstaller
   !include "FileFunc.nsh"
 
+  !include "FileAssociation.nsh"
+
 ;--------------------------------
 ;Interface Settings
 
@@ -94,6 +96,9 @@ Section
  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
                     "EstimatedSize" "$0"
 
+!insertmacro APP_ASSOCIATE "baup" "BAUP File" "Backer Upper Profile" "$INSTDIR\icon.ico" "Open with Backer Upper" "$INSTDIR\BackerUpper.exe $\"%1$\""
+!insertmacro UPDATEFILEASSOC
+
 SectionEnd
 
 Section "Start Menu Shortcut" secStartMenu
@@ -145,6 +150,9 @@ Section "Uninstall"
   Delete "$INSTDIR\uninstall.exe"
 
   RMDir "$INSTDIR"
+
+  !insertmacro APP_UNASSOCIATE "baup" "BAUP File"
+  !insertmacro UPDATEFILEASSOC
 
   DeleteRegKey /ifempty HKCU "Software\BackerUpper"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper"

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.IO;
 
 namespace BackerUpper
 {
@@ -13,12 +14,13 @@ namespace BackerUpper
         [STAThread]
         static void Main(string[] args) {
             // Hacky option parser
-            string backup = args.FirstOrDefault(x => x.StartsWith("--backup="));
-            if (backup != null) backup = backup.Substring(9).Trim(new char[] { '\'', '"' });
+            string backupToOpen = args.FirstOrDefault(x => Path.GetExtension(x) == Constants.BACKUP_EXTENSION);
+            string backupToRun = args.FirstOrDefault(x => x.StartsWith("--backup="));
+            if (backupToRun != null) backupToRun = backupToRun.Substring(9).Trim(new char[] { '\'', '"' });
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Main(backup));
+            Application.Run(new Main(backupToOpen, backupToRun));
         }
     }
 }
