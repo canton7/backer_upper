@@ -25,7 +25,7 @@ namespace BackerUpper
         private FileScanner currentBackupFilescanner;
         private bool backupInProgress = false;
 
-        public Main(string backupToRun=null) {
+        public Main(string backupToOpen = null, string backupToRun=null) {
             InitializeComponent();
 
             this.backupsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER);
@@ -40,6 +40,22 @@ namespace BackerUpper
             this.labelVersion.Text = "Version v"+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
 
             Logger.Purge();
+
+            if (backupToOpen != null) {
+                // If it's in our appdata folder, select it. otherwise, import it
+                if (Path.GetFullPath(Path.GetDirectoryName(backupToOpen)) == Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER)) {
+                    string name = Path.GetFileNameWithoutExtension(backupToOpen);
+                    if (this.backupsList.Items.Contains(name))
+                        this.backupsList.SelectedItem = name;
+                    else
+                        // Hrm, that's odd
+                        this.showError("You opened a backup from the backups folder, but I don't think it exists. Try restarting me.");
+                }
+                else {
+                    // Import!
+                    this.importBackup(Path.GetFullPath(backupToOpen));
+                }
+            }
 
             if (backupToRun != null) {
                 if (!this.backupsList.Items.Contains(backupToRun))
@@ -144,12 +160,14 @@ namespace BackerUpper
             this.populateBackupsList();
         }
 
-        private void importBackup() {
-            this.openFileDialogImport.Filter = "Database files|*" + Constants.BACKUP_EXTENSION;
-            DialogResult result = this.openFileDialogImport.ShowDialog();
-            if (result == DialogResult.Cancel)
-                return;
-            string orgPath = this.openFileDialogImport.FileName;
+        private void importBackup(string orgPath=null) {
+            if (orgPath == null) {
+                this.openFileDialogImport.Filter = "Database files|*" + Constants.BACKUP_EXTENSION;
+                DialogResult result = this.openFileDialogImport.ShowDialog();
+                if (result == DialogResult.Cancel)
+                    return;
+                orgPath = this.openFileDialogImport.FileName;
+            }
             // Get a copy of it, so we can change stuff
             string path = Path.GetTempFileName();
             File.Copy(orgPath, path, true);
