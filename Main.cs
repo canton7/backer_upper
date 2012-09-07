@@ -393,8 +393,8 @@ namespace BackerUpper
             try {
                 database.Lock();
             }
-            catch (Database.DatabaseInUseException ex) {
-                this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?\n\nIf you're certain this is the only instance of the program running, delete "+ex.LockFile);
+            catch (Database.DatabaseInUseException) {
+                this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?");
                 database.Close();
                 return;
             }
