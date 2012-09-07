@@ -21,14 +21,17 @@ namespace BackerUpper
 
         const string FORBIDDEN_CHARS = "\\/:*?\"<>|";
 
-        public PropertiesForm(Settings settings, string[] takenBackupNames, bool backupIsNew=false) {
+        public PropertiesForm(Settings settings, string[] takenBackupNames, bool backupIsImport=false) {
             InitializeComponent();
 
             this.Saved = false;
             this.settings = settings;
             this.takenBackupNames = takenBackupNames;
             // Only use this info if the backup isn't new. New backups don't yet exist, in the scheduler or in the filesystem
-            this.initialBackupName = backupIsNew ? null : settings.Name;
+            this.initialBackupName = backupIsImport ? null : settings.Name;
+            if (backupIsImport) {
+                this.Text = "Importing Backup: "+settings.Name;
+            }
             this.loadValues();
         }
 
