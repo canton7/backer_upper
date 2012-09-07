@@ -31,7 +31,7 @@ namespace BackerUpper
                 item = stack.Pop();
                 yield return item;
                 try {
-                    foreach (string dir in Directory.EnumerateDirectories(item.FullPath).Select(x => x.Substring(this.startDir.Length + 1))) {
+                    foreach (string dir in Directory.EnumerateDirectories(item.FullPath).Reverse().Select(x => x.Substring(this.startDir.Length + 1))) {
                         stack.Push(new FolderEntry(this.startDir, item.Level + 1, dir, this.FileIgnoreRules));
                     }
                 }
