@@ -8,9 +8,11 @@
 ;--------------------------------
 ;General
 
+  !define VERSION "0.9.0"
+
   ;Name and file
   Name "Backer Upper"
-  OutFile "BackerUpper.exe"
+  OutFile "BackerUpper_v${VERSION}.exe"
   Icon "..\icon.ico"
 
   ;Default installation folder
@@ -33,6 +35,7 @@
 ;--------------------------------
 ;Pages
 
+  !insertmacro MUI_PAGE_LICENSE "..\LICENSE.txt"
   !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
@@ -59,6 +62,7 @@ Section
   File "..\bin\Release\System.Data.SQLite.dll"
   File "..\bin\Release\System.Data.SQLite.Linq.dll"
   File "..\icon.ico"
+  File "..\LICENSE.txt"
   File "remove_tasks.bat"
 
   ;Store installation folder
@@ -82,6 +86,8 @@ Section
                      "NoModifyRepair" 1
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
                    "InstallLocation" "$\"$INSTDIR$\""
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\BackerUpper" \
+                   "DisplayVersion" "${VERSION}"
 
  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
  IntFmt $0 "0x%08X" $0
@@ -125,6 +131,7 @@ Section "Uninstall"
   Delete "$INSTDIR\System.Data.SQLite.dll"
   Delete "$INSTDIR\System.Data.SQLite.Linq.dll"
   Delete "$INSTDIR\icon.ico"
+  Delete "$INSTDIR\LICENSE.txt"
 
   Delete "$SMPROGRAMS\Backer Upper.lnk"
   Delete "$DESKTOP\Backer Upper.lnk"

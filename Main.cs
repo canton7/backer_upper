@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace BackerUpper
 {
@@ -36,6 +37,7 @@ namespace BackerUpper
             this.backupStatusTimer = new Timer();
             this.backupStatusTimer.Interval = 250;
             this.backupStatusTimer.Tick += new EventHandler(backupStatusTimer_Tick);
+            this.labelVersion.Text = "Version v"+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
 
             Logger.Purge();
 
@@ -518,6 +520,10 @@ namespace BackerUpper
 
         private void buttonRestore_Click(object sender, EventArgs e) {
             this.performRestore();
+        }
+
+        private void buttonHelp_Click(object sender, EventArgs e) {
+            Process.Start(Constants.HELP_URL);
         }
     }
 
