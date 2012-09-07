@@ -2,4 +2,4 @@ bin
 obj
 *.suo
 packages
-installer/BackerUpper.exe
+installer/*.exe
