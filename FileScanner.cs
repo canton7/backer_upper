@@ -8,7 +8,6 @@ namespace BackerUpper
 {
     class FileScanner
     {
-        private string startDir;
         private TreeTraverser treeTraverser;
         private FileDatabase fileDatabase;
         private BackendBase[] backends;
@@ -18,14 +17,12 @@ namespace BackerUpper
         public string Name { get; private set; }
 
         public bool Cancelled { get; private set; }
-
         public bool WarningOccurred { get; private set; }
 
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
         public FileScanner(string startDir, Database database, Logger logger, string name, BackendBase[] backends, string fileIgnorePattern) {
-            this.startDir = startDir;
             this.Database = database;
             this.treeTraverser = new TreeTraverser(startDir, fileIgnorePattern);
             this.fileDatabase = new FileDatabase(database);
@@ -134,7 +131,7 @@ namespace BackerUpper
                                 break;
                             case FileDatabase.FileModStatus.Unmodified:
                                 // We don't think anything's changed... but make sure the file exists on the backends
-                                this.checkFile(file, fileStatus.MD5);
+                                this.testFile(file, fileStatus.MD5);
                                 break;
                         }
                     }
@@ -144,30 +141,32 @@ namespace BackerUpper
                 prevLevel = folder.Level;
             }
 
-            if (!this.Cancelled) {
-                // Now we look for file deletions
-                IEnumerable<FileDatabase.FileRecord> recordedFiles = this.fileDatabase.RecordedFiles();
-                foreach (FileDatabase.FileRecord fileToCheck in recordedFiles) {
-                    if (this.Cancelled)
-                        break;
-                    if (!this.treeTraverser.FileExists(fileToCheck.Path)) {
-                        this.deleteFile(fileToCheck.Id, fileToCheck.Path);
-                    }
+            if (this.Cancelled)
+                return;
+
+            // Now we look for file deletions
+            IEnumerable<FileDatabase.FileRecord> recordedFiles = this.fileDatabase.RecordedFiles();
+            foreach (FileDatabase.FileRecord fileToCheck in recordedFiles) {
+                if (this.Cancelled)
+                    break;
+                if (!this.treeTraverser.FileExists(fileToCheck.Path)) {
+                    this.deleteFile(fileToCheck.Id, fileToCheck.Path);
                 }
             }
 
-            if (!this.Cancelled) {
-                // And finally folder deletions
-                foreach (FileDatabase.FolderRecord folderToCheck in this.fileDatabase.RecordedFolders()) {
-                    if (this.Cancelled)
-                        break;
-                    try {
-                        if (!this.treeTraverser.FolderExists(folderToCheck.Path)) {
-                            this.deleteFolder(folderToCheck.Id, folderToCheck.Path);
-                        }
+            if (this.Cancelled)
+                return;
+
+            // And finally folder deletions
+            foreach (FileDatabase.FolderRecord folderToCheck in this.fileDatabase.RecordedFolders()) {
+                if (this.Cancelled)
+                    break;
+                try {
+                    if (!this.treeTraverser.FolderExists(folderToCheck.Path)) {
+                        this.deleteFolder(folderToCheck.Id, folderToCheck.Path);
                     }
-                    catch (BackupOperationException e) { this.handleOperationException(e); }
                 }
+                catch (BackupOperationException e) { this.handleOperationException(e); }
             }
         }
 
@@ -210,7 +209,7 @@ namespace BackerUpper
 
             foreach (BackendBase backend in this.backends) {
                 // Search for alternates
-                if (this.alternateFile(file, fileMD5, false, backend))
+                if (this.createFromAlternate(file, fileMD5, false, backend))
                     continue;
                 this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
                 backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5);
@@ -219,7 +218,7 @@ namespace BackerUpper
             this.fileDatabase.AddFile(folderId, file.Name, file.LastModified, fileMD5);
         }
 
-        private bool alternateFile(TreeTraverser.FileEntry file, string fileMD5, bool update, BackendBase backend) {
+        private bool createFromAlternate(TreeTraverser.FileEntry file, string fileMD5, bool update, BackendBase backend) {
             // if update is true, we're updating the dest file. otherwise we're adding it
             // Return true if we made use of an alternate, or false if we did nothing
             string logAction = update ? "Updated" : "Added";
@@ -284,7 +283,7 @@ namespace BackerUpper
             }
 
             foreach (BackendBase backend in this.backends) {
-                if (this.alternateFile(file, fileMD5, true, backend))
+                if (this.createFromAlternate(file, fileMD5, true, backend))
                     continue;
 
                 this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
@@ -297,12 +296,12 @@ namespace BackerUpper
             this.fileDatabase.UpdateFile(fileId, file.LastModified, fileMD5);
         }
 
-        private void checkFile(TreeTraverser.FileEntry file, string fileMD5) {
+        private void testFile(TreeTraverser.FileEntry file, string fileMD5) {
             foreach (BackendBase backend in this.backends) {
                 if (!backend.TestFile(file.Name, file.LastModified, fileMD5)) {
                     // Aha! File's gone missing from the backend
                     this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
-                    if (!this.alternateFile(file, fileMD5, true, backend)) {
+                    if (!this.createFromAlternate(file, fileMD5, true, backend)) {
                         if (backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5))
                             this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file.Name);
                     }

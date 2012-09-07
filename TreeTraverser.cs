@@ -9,13 +9,13 @@ namespace BackerUpper
 {
     class TreeTraverser
     {
-        private string startDir;
+        public string StartDir{ get; private set; }
         private int substringStart;
         public Regex FileIgnoreRules { get; private set; }
 
         public TreeTraverser(string startDir, string ignoreRules=null) {
-            this.startDir = startDir;
-            this.substringStart = this.startDir.Length + 1;
+            this.StartDir = startDir;
+            this.substringStart = this.StartDir.Length + 1;
             if (ignoreRules == null)
                 this.FileIgnoreRules = null;
             else
@@ -24,15 +24,15 @@ namespace BackerUpper
 
         public IEnumerable<FolderEntry> ListFolders() {
             Stack<FolderEntry> stack = new Stack<FolderEntry>();
-            stack.Push(new FolderEntry(this.startDir, 0, "", this.FileIgnoreRules));
+            stack.Push(new FolderEntry(this, 0, ""));
             FolderEntry item;
 
             while (stack.Count > 0) {
                 item = stack.Pop();
                 yield return item;
                 try {
-                    foreach (string dir in Directory.EnumerateDirectories(item.FullPath).Reverse().Select(x => x.Substring(this.startDir.Length + 1))) {
-                        stack.Push(new FolderEntry(this.startDir, item.Level + 1, dir, this.FileIgnoreRules));
+                    foreach (string dir in Directory.EnumerateDirectories(item.FullPath).Reverse().Select(x => x.Substring(this.StartDir.Length + 1))) {
+                        stack.Push(new FolderEntry(this, item.Level + 1, dir));
                     }
                 }
                 // We CAN NOT exit now, as we won't return a new folder, and stuff breaks badly.
@@ -44,24 +44,24 @@ namespace BackerUpper
         }
 
         public FolderEntry CreateFolderEntry(string path) {
-            return new FolderEntry(this.startDir, 0, path);
+            return new FolderEntry(this, 0, path);
         }
 
         public FileEntry CreateFileEntry(string file) {
-            return new FileEntry(this.startDir, file);
+            return new FileEntry(this, file);
         }
 
         public bool FileExists(string file) {
-            return File.Exists(Path.Combine(this.startDir, file));
+            return File.Exists(Path.Combine(this.StartDir, file));
         }
 
         public bool FolderExists(string path) {
-            return Directory.Exists(Path.Combine(this.startDir, path));
+            return Directory.Exists(Path.Combine(this.StartDir, path));
         }
 
         public void DeleteFile(string file) {
             try {
-                File.Delete(Path.Combine(this.startDir, file));
+                File.Delete(Path.Combine(this.StartDir, file));
             }
             catch (IOException e) { throw new BackupOperationException(file, e.Message); }
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(file, e.Message); }
@@ -69,7 +69,7 @@ namespace BackerUpper
 
         public void DeleteFolder(string path) {
             try {
-                Directory.Delete(Path.Combine(this.startDir, path), true);
+                Directory.Delete(Path.Combine(this.StartDir, path), true);
             }
             catch (IOException e) { throw new BackupOperationException(path, e.Message); }
             catch (UnauthorizedAccessException e) { throw new BackupOperationException(path, e.Message); }
@@ -77,39 +77,34 @@ namespace BackerUpper
 
         public class FolderEntry
         {
-            private string startDir;
+            private TreeTraverser parent;
             public int Level {get; private set; }
             public string Name {get; private set; }
             public string FullPath {
-                get { return Path.Combine(this.startDir, this.Name); }
+                get { return Path.Combine(this.parent.StartDir, this.Name); }
             }
-            public Regex FileIgnoreRules { get; private set; }
             
-            public FolderEntry(string startDir, int level, string name, Regex fileIgnoreRules=null) {
-                this.startDir = startDir;
+            public FolderEntry(TreeTraverser parent, int level, string name) {
+                this.parent = parent;
                 this.Level = level;
                 this.Name = name;
-                if (fileIgnoreRules == null)
-                    this.FileIgnoreRules = null;
-                else
-                    this.FileIgnoreRules = fileIgnoreRules;
             }
 
             public IEnumerable<FileEntry> GetFiles() {
-                foreach (string file in Directory.EnumerateFiles(Path.Combine(this.startDir, this.Name)).Select(x => x.Substring(this.startDir.Length + 1))) {
-                    if (this.FileIgnoreRules != null && this.FileIgnoreRules.IsMatch(file))
+                foreach (string file in Directory.EnumerateFiles(Path.Combine(this.parent.StartDir, this.Name)).Select(x => x.Substring(this.parent.StartDir.Length + 1))) {
+                    if (this.parent.FileIgnoreRules != null && this.parent.FileIgnoreRules.IsMatch(file))
                         continue;
-                    yield return new FileEntry(this.startDir, file);
+                    yield return new FileEntry(this.parent, file);
                 }
             }
         }
 
         public class FileEntry
         {
-            private string startDir;
+            private TreeTraverser parent;
             public string Name { get; private set; }
             public string FullPath {
-                get { return Path.Combine(this.startDir, this.Name); }
+                get { return Path.Combine(this.parent.StartDir, this.Name); }
             }
             private Lazy<DateTime> lastModified;
             public DateTime LastModified {
@@ -123,8 +118,8 @@ namespace BackerUpper
                 get { return Path.GetFileName(this.Name); }
             }
 
-            public FileEntry(string startDir, string name) {
-                this.startDir = startDir;
+            public FileEntry(TreeTraverser parent, string name) {
+                this.parent = parent;
                 this.Name = name;
                 this.lastModified = new Lazy<DateTime>(() => File.GetLastWriteTimeUtc(this.FullPath));
             }
