@@ -92,20 +92,20 @@ namespace BackerUpper
                 try {
                     if (newFolderLevel >= 0 && folder.Level > newFolderLevel) {
                         // Just automatically add it, as a parent somewhere is new
-                        curFolderId = this.addFolder(folder.Name);
+                        curFolderId = this.addFolder(folder.RelPath);
                     }
                     else {
                         newFolderLevel = -1;
-                        folderStatus = this.fileDatabase.InspectFolder(folder.Name);
+                        folderStatus = this.fileDatabase.InspectFolder(folder.RelPath);
 
                         switch (folderStatus.FolderModStatus) {
                             case FileDatabase.FolderModStatus.New:
                                 newFolderLevel = folder.Level;
-                                curFolderId = this.addFolder(folder.Name);
+                                curFolderId = this.addFolder(folder.RelPath);
                                 break;
                             case FileDatabase.FolderModStatus.Unmodified:
                                 curFolderId = folderStatus.Id;
-                                this.checkFolder(folder.Name);
+                                this.checkFolder(folder.RelPath);
                                 break;
                         }
                     }
@@ -119,7 +119,7 @@ namespace BackerUpper
                         break;
 
                     try {
-                        fileStatus = this.fileDatabase.InspectFile(curFolderId, file.Name, file.LastModified);
+                        fileStatus = this.fileDatabase.InspectFile(curFolderId, file.RelPath, file.LastModified);
 
                         switch (fileStatus.FileModStatus) {
                             case FileDatabase.FileModStatus.New:
@@ -201,7 +201,7 @@ namespace BackerUpper
 
         private void addFile(int folderId, TreeTraverser.FileEntry file) {
             string fileMD5 = file.GetMD5((percent) => {
-                this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
                 return !this.Cancelled;
             });
             if (this.Cancelled)
@@ -211,11 +211,11 @@ namespace BackerUpper
                 // Search for alternates
                 if (this.createFromAlternate(file, fileMD5, false, backend))
                     continue;
-                this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
-                backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5);
-                this.Logger.Info("{0}: Added file: {1}", backend.Name, file.Name);
+                this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
+                backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5);
+                this.Logger.Info("{0}: Added file: {1}", backend.Name, file.RelPath);
             }
-            this.fileDatabase.AddFile(folderId, file.Name, file.LastModified, fileMD5);
+            this.fileDatabase.AddFile(folderId, file.RelPath, file.LastModified, fileMD5);
         }
 
         private bool createFromAlternate(TreeTraverser.FileEntry file, string fileMD5, bool update, BackendBase backend) {
@@ -240,19 +240,19 @@ namespace BackerUpper
                 // Next: Is is a copy or a move?
                 if (this.treeTraverser.FileExists(alternate.Path)) {
                     // It's a copy
-                    this.reportBackupAction(new BackupActionItem(alternate.Path, file.Name, BackupActionEntity.File, BackupActionOperation.Copy, backend.Name));
-                    if (backend.CreateFromAlternateCopy(file.Name, alternate.Path))
-                        this.Logger.Info("{0}: {1} file: {2} from alternate {3} (copy)", backend.Name, logAction, file.Name, alternate.Path);
+                    this.reportBackupAction(new BackupActionItem(alternate.Path, file.RelPath, BackupActionEntity.File, BackupActionOperation.Copy, backend.Name));
+                    if (backend.CreateFromAlternateCopy(file.RelPath, alternate.Path))
+                        this.Logger.Info("{0}: {1} file: {2} from alternate {3} (copy)", backend.Name, logAction, file.RelPath, alternate.Path);
                     else {
-                        backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5);
-                        this.Logger.Info("{0}: {1} file: {2} (backend refused alternate {3})", backend.Name, logAction, file.Name, alternate.Path);
+                        backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5);
+                        this.Logger.Info("{0}: {1} file: {2} (backend refused alternate {3})", backend.Name, logAction, file.RelPath, alternate.Path);
                     }
                 }
                 else {
                     // It's a move
-                    this.reportBackupAction(new BackupActionItem(alternate.Path, file.Name, BackupActionEntity.File, BackupActionOperation.Move, backend.Name));
-                    backend.CreateFromAlternateMove(file.Name, alternate.Path);
-                    this.Logger.Info("{0}: {1} file: {2} from alternate {3} (move)", backend.Name, logAction, file.Name, alternate.Path);
+                    this.reportBackupAction(new BackupActionItem(alternate.Path, file.RelPath, BackupActionEntity.File, BackupActionOperation.Move, backend.Name));
+                    backend.CreateFromAlternateMove(file.RelPath, alternate.Path);
+                    this.Logger.Info("{0}: {1} file: {2} from alternate {3} (move)", backend.Name, logAction, file.RelPath, alternate.Path);
                     this.fileDatabase.DeleteFile(alternate.Id);
                 }
 
@@ -265,10 +265,10 @@ namespace BackerUpper
         }
 
         private void updatefile(int fileId, TreeTraverser.FileEntry file, string remoteMD5) {
-            this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Hash));
+            this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Hash));
             // Only copy if the file has actually changed
             string fileMD5 = file.GetMD5((percent) => {
-                this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
                 return !this.Cancelled;
             });
             if (this.Cancelled)
@@ -276,7 +276,7 @@ namespace BackerUpper
 
             if (remoteMD5 == fileMD5) {
                 foreach (BackendBase backend in this.backends) {
-                    backend.TouchFile(file.Name, file.LastModified);
+                    backend.TouchFile(file.RelPath, file.LastModified);
                 }
                 //this.Logger.Info("File mtime changed, but file unchanged. Touching: {0}", file);
                 return;
@@ -286,11 +286,11 @@ namespace BackerUpper
                 if (this.createFromAlternate(file, fileMD5, true, backend))
                     continue;
 
-                this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
-                if (backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5))
-                    this.Logger.Info("{0}: Updated file: {1}", backend.Name, file.Name);
+                this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
+                if (backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5))
+                    this.Logger.Info("{0}: Updated file: {1}", backend.Name, file.RelPath);
                 else
-                    this.Logger.Info("{0}: Skipped file {1} (mtime changed but file up-to-date)", backend.Name, file.Name);
+                    this.Logger.Info("{0}: Skipped file {1} (mtime changed but file up-to-date)", backend.Name, file.RelPath);
             }
             // But update the last modified time either way
             this.fileDatabase.UpdateFile(fileId, file.LastModified, fileMD5);
@@ -298,16 +298,16 @@ namespace BackerUpper
 
         private void testFile(TreeTraverser.FileEntry file, string fileMD5) {
             foreach (BackendBase backend in this.backends) {
-                if (!backend.TestFile(file.Name, file.LastModified, fileMD5)) {
+                if (!backend.TestFile(file.RelPath, file.LastModified, fileMD5)) {
                     // Aha! File's gone missing from the backend
-                    this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
+                    this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
                     if (!this.createFromAlternate(file, fileMD5, true, backend)) {
-                        if (backend.CreateFile(file.Name, file.FullPath, file.LastModified, fileMD5))
-                            this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file.Name);
+                        if (backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5))
+                            this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file.RelPath);
                     }
                 }
                 else
-                    this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Nothing));
+                    this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Nothing));
             }
         }
 
@@ -342,34 +342,34 @@ namespace BackerUpper
 
                 if (entity.Type == BackendBase.Entity.Folder) {
                     folder = this.treeTraverser.CreateFolderEntry(entity.Path);
-                    this.reportBackupAction(new BackupActionItem(null, folder.Name, BackupActionEntity.Folder, BackupActionOperation.Add));
+                    this.reportBackupAction(new BackupActionItem(null, folder.RelPath, BackupActionEntity.Folder, BackupActionOperation.Add));
                     if (!Directory.Exists(folder.FullPath)) {
-                        this.Logger.Info("Restoring folder: {0}", folder.Name);
+                        this.Logger.Info("Restoring folder: {0}", folder.RelPath);
                         try {
                             Directory.CreateDirectory(folder.FullPath);
                         }
-                        catch (IOException e) { this.handleOperationException(new BackupOperationException(folder.Name, e.Message)); }
+                        catch (IOException e) { this.handleOperationException(new BackupOperationException(folder.RelPath, e.Message)); }
                     }
                     // Regardless of whether the folder was created or not, we need some data for the file bit
                     // Also, if the folder didn't exist in the database, now's the time to add it
-                    folderStatus = this.fileDatabase.InspectFolder(folder.Name);
+                    folderStatus = this.fileDatabase.InspectFolder(folder.RelPath);
                     if (folderStatus.Id >= 0)
                         curFolderId = folderStatus.Id;
                     else {
-                        curFolderId = this.fileDatabase.AddFolder(folder.Name);
+                        curFolderId = this.fileDatabase.AddFolder(folder.RelPath);
                     }
                 }
                 else {
                     file = this.treeTraverser.CreateFileEntry(entity.Path);
                     // Ignore this: we don't want to restore our own backup DB
-                    if (file.Name == Path.GetFileName(Database.FilePath))
+                    if (file.RelPath == Path.GetFileName(Database.FilePath))
                         continue;
                     destMd5 = null;
 
-                    this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Add));
+                    this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Add));
                     if (File.Exists(file.FullPath)) {
                         // Right, now we need to find some info about the file, if we can
-                        fileStatus = this.fileDatabase.InspectFileWithLastModified(curFolderId, file.Name, file.LastModified);
+                        fileStatus = this.fileDatabase.InspectFileWithLastModified(curFolderId, file.RelPath, file.LastModified);
 
                         if (overwrite) {
                             switch (fileStatus.FileModStatus) {
@@ -393,25 +393,25 @@ namespace BackerUpper
                         }
 
                         if (copyFile) {
-                            fileMd5 = fileStatus.MD5 == null ? backend.FileMD5(file.Name) : fileStatus.MD5;
+                            fileMd5 = fileStatus.MD5 == null ? backend.FileMD5(file.RelPath) : fileStatus.MD5;
                             // If it's still null, we have no way of getting the md5 from anywhere, so just copy the damn thing
                             // If not, test the file
                             if (fileMd5 != null) {
                                 destMd5 = file.GetMD5((percent) => {
-                                    this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                                    this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
                                     return !this.Cancelled;
                                 });
                                 if (this.Cancelled)
                                     return;
                                 if (fileMd5 == destMd5) {
                                     copyFile = false;
-                                    this.Logger.Info("Skipping file as identical: {0}", file.Name);
+                                    this.Logger.Info("Skipping file as identical: {0}", file.RelPath);
                                 }
                                 else
-                                    this.Logger.Info("File exists but is being overwritten: {0}", file.Name);
+                                    this.Logger.Info("File exists but is being overwritten: {0}", file.RelPath);
                             }
                             else
-                                this.Logger.Info("File exists but is being overwritten: {0}", file.Name);
+                                this.Logger.Info("File exists but is being overwritten: {0}", file.RelPath);
                         }
                     }
                     else {
@@ -419,14 +419,14 @@ namespace BackerUpper
                         copyFile = true;
                         // Still need to see if we can get its last modified time, if the record exists at all
                         // We don't care about the modified status, so just feed in anything
-                        fileStatus = this.fileDatabase.InspectFileWithLastModified(curFolderId, file.Name, DateTime.Now);
-                        this.Logger.Info("Restoring file: {0}", file.Name);
+                        fileStatus = this.fileDatabase.InspectFileWithLastModified(curFolderId, file.RelPath, DateTime.Now);
+                        this.Logger.Info("Restoring file: {0}", file.RelPath);
                     }
 
                     // We need to set the utime of the existing/new file.
                     // If we've got a DB record, use that. otherwise ask the backend. Otherwise now
                     // The backend's FileLastModified defaults to DateTime.UtcNow, which is the default we want, so keep that
-                    copyFileLastModified = fileStatus.MD5 == null ? backend.FileLastModified(file.Name) : fileStatus.LastModified;
+                    copyFileLastModified = fileStatus.MD5 == null ? backend.FileLastModified(file.RelPath) : fileStatus.LastModified;
                     if (!copyFile) {
                         // If the file exists, but we didn't write it, touch it instead
                         if (File.Exists(file.FullPath))
@@ -435,7 +435,7 @@ namespace BackerUpper
                     else {
                         // So. we definitely decided to copy.
                         try {
-                            backend.RestoreFile(file.Name, file.FullPath, copyFileLastModified);
+                            backend.RestoreFile(file.RelPath, file.FullPath, copyFileLastModified);
                         }
                         catch (BackupOperationException e) { this.handleOperationException(e); }
                     }
@@ -446,14 +446,14 @@ namespace BackerUpper
                         // If we haven't found the MD5 of the file yet, calculate it now. Look at the file on the dest, as it's likely quicker
                         if (destMd5 == null) {
                             destMd5 = file.GetMD5((percent) => {
-                                this.reportBackupAction(new BackupActionItem(null, file.Name, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
+                                this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Hash, null, percent));
                                 return !this.Cancelled;
                             });
                             if (this.Cancelled)
                                 return;
                         }
 
-                        this.fileDatabase.AddFile(curFolderId, file.Name, copyFileLastModified, destMd5);
+                        this.fileDatabase.AddFile(curFolderId, file.RelPath, copyFileLastModified, destMd5);
                     }
                 }
             }
@@ -464,17 +464,17 @@ namespace BackerUpper
 
                 foreach (TreeTraverser.FolderEntry purgeFolder in this.treeTraverser.ListFolders()) {
                     foreach (TreeTraverser.FileEntry purgeFile in purgeFolder.GetFiles()) {
-                        if (!recordedFiles.Contains(purgeFile.Name)) {
-                            this.Logger.Info("Deleting file {0}:", purgeFile.Name);
+                        if (!recordedFiles.Contains(purgeFile.RelPath)) {
+                            this.Logger.Info("Deleting file {0}:", purgeFile.RelPath);
                             try {
-                                this.treeTraverser.DeleteFile(purgeFile.Name);
+                                this.treeTraverser.DeleteFile(purgeFile.RelPath);
                             }
                             catch (BackupOperationException e) { this.handleOperationException(e); }
                         }
                     }
-                    this.Logger.Info("Deleting folder {0}:", purgeFolder.Name);
-                    if (!recordedFolders.Contains(purgeFolder.Name)) {
-                        this.treeTraverser.DeleteFolder(purgeFolder.Name);
+                    this.Logger.Info("Deleting folder {0}:", purgeFolder.RelPath);
+                    if (!recordedFolders.Contains(purgeFolder.RelPath)) {
+                        this.treeTraverser.DeleteFolder(purgeFolder.RelPath);
                     }
                 }
             }
