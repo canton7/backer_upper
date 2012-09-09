@@ -126,12 +126,12 @@ namespace BackerUpper
 
             propertiesForm.Close();
 
-            if (!Directory.Exists(this.backupsPath))
-                Directory.CreateDirectory(this.backupsPath);
             string destFile = Path.Combine(this.backupsPath, settings.Name + Constants.BACKUP_EXTENSION);
             database.Close();
 
             try {
+                if (!Directory.Exists(this.backupsPath))
+                    Directory.CreateDirectory(this.backupsPath);
                 File.Move(tempFile, destFile);
             }
             catch (IOException e) { this.showError(e.Message); }
@@ -193,6 +193,8 @@ namespace BackerUpper
 
             // Move it to the right dir
             try {
+                if (!Directory.Exists(this.backupsPath))
+                    Directory.CreateDirectory(this.backupsPath);
                 File.Move(path, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER, name + Constants.BACKUP_EXTENSION));
             }
             catch (IOException e) { this.showError(e.Message); }
