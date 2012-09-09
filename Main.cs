@@ -25,7 +25,7 @@ namespace BackerUpper
         private FileScanner currentBackupFilescanner;
         private bool backupInProgress = false;
 
-        public Main(string backupToRun=null) {
+        public Main(string backupToOpen = null, string backupToRun=null) {
             InitializeComponent();
 
             this.backupsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER);
@@ -37,9 +37,26 @@ namespace BackerUpper
             this.backupStatusTimer = new Timer();
             this.backupStatusTimer.Interval = 250;
             this.backupStatusTimer.Tick += new EventHandler(backupStatusTimer_Tick);
-            this.labelVersion.Text = "Version v"+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
+            this.labelVersion.Text = "Version "+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
+            this.Text += " v"+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
 
             Logger.Purge();
+
+            if (backupToOpen != null) {
+                // If it's in our appdata folder, select it. otherwise, import it
+                if (Path.GetFullPath(Path.GetDirectoryName(backupToOpen)) == Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER)) {
+                    string name = Path.GetFileNameWithoutExtension(backupToOpen);
+                    if (this.backupsList.Items.Contains(name))
+                        this.backupsList.SelectedItem = name;
+                    else
+                        // Hrm, that's odd
+                        this.showError("You opened a backup from the backups folder, but I don't think it exists. Try restarting me.");
+                }
+                else {
+                    // Import!
+                    this.importBackup(Path.GetFullPath(backupToOpen));
+                }
+            }
 
             if (backupToRun != null) {
                 if (!this.backupsList.Items.Contains(backupToRun))
@@ -110,12 +127,12 @@ namespace BackerUpper
 
             propertiesForm.Close();
 
-            if (!Directory.Exists(this.backupsPath))
-                Directory.CreateDirectory(this.backupsPath);
             string destFile = Path.Combine(this.backupsPath, settings.Name + Constants.BACKUP_EXTENSION);
             database.Close();
 
             try {
+                if (!Directory.Exists(this.backupsPath))
+                    Directory.CreateDirectory(this.backupsPath);
                 File.Move(tempFile, destFile);
             }
             catch (IOException e) { this.showError(e.Message); }
@@ -144,12 +161,14 @@ namespace BackerUpper
             this.populateBackupsList();
         }
 
-        private void importBackup() {
-            this.openFileDialogImport.Filter = "Database files|*" + Constants.BACKUP_EXTENSION;
-            DialogResult result = this.openFileDialogImport.ShowDialog();
-            if (result == DialogResult.Cancel)
-                return;
-            string orgPath = this.openFileDialogImport.FileName;
+        private void importBackup(string orgPath=null) {
+            if (orgPath == null) {
+                this.openFileDialogImport.Filter = "Database files|*" + Constants.BACKUP_EXTENSION;
+                DialogResult result = this.openFileDialogImport.ShowDialog();
+                if (result == DialogResult.Cancel)
+                    return;
+                orgPath = this.openFileDialogImport.FileName;
+            }
             // Get a copy of it, so we can change stuff
             string path = Path.GetTempFileName();
             File.Copy(orgPath, path, true);
@@ -175,6 +194,8 @@ namespace BackerUpper
 
             // Move it to the right dir
             try {
+                if (!Directory.Exists(this.backupsPath))
+                    Directory.CreateDirectory(this.backupsPath);
                 File.Move(path, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER, name + Constants.BACKUP_EXTENSION));
             }
             catch (IOException e) { this.showError(e.Message); }
@@ -267,15 +288,12 @@ namespace BackerUpper
                 return;
             }
 
-            this.currentBackupFilescanner = new FileScanner(source, database, logger, settings.Name, backends, settings.FileIgnorePattern);
+            this.currentBackupFilescanner = new FileScanner(source, database, logger, settings.Name, backends, settings.FileIgnorePattern,
+                    new HashSet<string>(settings.IgnoredFiles), new HashSet<string>(settings.IgnoredFolders));
             this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
             if (!restore) {
                 this.currentBackupFilescanner.Backup();
-                if (!this.currentBackupFilescanner.Cancelled) {
-                    this.backupStatus = "Purging...";
-                    this.currentBackupFilescanner.PurgeDest();
-                }
             }
             else {
                 this.currentBackupFilescanner.Restore(backupArgs.RestoreOverwrite, backupArgs.RestoreOverwriteOnlyIfOlder, backupArgs.RestorePurge);
@@ -287,6 +305,7 @@ namespace BackerUpper
             // Need to close to actually back up the database
             this.backupStatus = "Closing database...";
             database.Close();
+
             if (!restore && !this.currentBackupFilescanner.Cancelled) {
                 this.backupStatus = "Backing up database...";
                 FileScanner.BackupDatabase(database.FilePath, backends);
@@ -397,8 +416,8 @@ namespace BackerUpper
             try {
                 database.Lock();
             }
-            catch (Database.DatabaseInUseException ex) {
-                this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?\n\nIf you're certain this is the only instance of the program running, delete "+ex.LockFile);
+            catch (Database.DatabaseInUseException) {
+                this.showError("The database is currently in use (lockfile exists). Are you running this backup elsewhere?");
                 database.Close();
                 return;
             }
@@ -515,7 +534,10 @@ namespace BackerUpper
         }
 
         private void buttonViewLogs_Click(object sender, EventArgs e) {
-            Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER));
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            Process.Start(path);
         }
 
         private void buttonRestore_Click(object sender, EventArgs e) {

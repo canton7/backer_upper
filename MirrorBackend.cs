@@ -25,8 +25,11 @@ namespace BackerUpper
                 throw new IOException("Destination folder "+this.Dest+" doesn't exist!");
         }
 
-        public override void CreateFolder(string folder) {
-            this.withHandling(() => Directory.CreateDirectory(Path.Combine(this.Dest, folder)), folder);
+        public override void CreateFolder(string folder, FileAttributes attributes) {
+            this.withHandling(() => {
+                DirectoryInfo destInfo = Directory.CreateDirectory(Path.Combine(this.Dest, folder));
+                destInfo.Attributes = attributes;
+            }, folder);
         }
 
         public override void DeleteFolder(string folder) {
@@ -37,7 +40,15 @@ namespace BackerUpper
             return Directory.Exists(Path.Combine(this.Dest, folder));
         }
 
-        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5) {
+        public override void RestoreFolder(string folder, string dest) {
+            this.withHandling(() => {
+                DirectoryInfo info = Directory.CreateDirectory(dest);
+                DirectoryInfo sourceInfo = new DirectoryInfo(Path.Combine(this.Dest, folder));
+                info.Attributes = sourceInfo.Attributes;
+            }, folder);
+        }
+
+        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, FileAttributes attributes, bool reportProgress=true) {
             string dest = Path.Combine(this.Dest, file);
 
             // It's almost always quicker just to re-copy the file, rather than checking
@@ -46,19 +57,21 @@ namespace BackerUpper
             // for small files... 
 
             this.withHandling(() => XCopy.Copy(source, dest, true, true, (percent) => {
-                this.ReportProcess(percent);
+                if (reportProgress)
+                    this.ReportProcess(percent);
                 return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
             }), file);
             if (this.Cancelled)
                 return true;
             FileInfo fileInfo = new FileInfo(dest);
+            fileInfo.Attributes = attributes;
             fileInfo.IsReadOnly = false;
             this.withHandling(() => File.SetLastWriteTimeUtc(dest, lastModified), file);
             return true;
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.CreateFile(Path.Combine(this.Dest, file), source, DateTime.UtcNow, null);
+            this.CreateFile(Path.Combine(this.Dest, file), source, DateTime.UtcNow, null, new FileInfo(source).Attributes, false);
         }
 
         public override void DeleteFile(string file) {
@@ -93,8 +106,13 @@ namespace BackerUpper
                 this.ReportProcess(percent);
                 return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
             }), file);
-            if (!this.Cancelled)
-                File.SetLastWriteTimeUtc(dest, lastModified);
+            if (!this.Cancelled) {
+                this.withHandling(() => {
+                    File.SetLastWriteTimeUtc(dest, lastModified);
+                    FileInfo fileInfo = new FileInfo(dest);
+                    fileInfo.Attributes = new FileInfo(fullPath).Attributes;
+                }, file);
+            }
         }
 
         public override bool FileExists(string file) {
@@ -131,9 +149,9 @@ namespace BackerUpper
             TreeTraverser treeTraverser = new TreeTraverser(this.Dest);
 
             foreach(TreeTraverser.FolderEntry folder in treeTraverser.ListFolders()) {
-                yield return new EntityRecord(folder.Name, Entity.Folder);
+                yield return new EntityRecord(folder.RelPath, Entity.Folder);
                 foreach (TreeTraverser.FileEntry file in folder.GetFiles()) {
-                    yield return new EntityRecord(file.Name, Entity.File);
+                    yield return new EntityRecord(file.RelPath, Entity.File);
                 }
             }
         }
@@ -146,24 +164,24 @@ namespace BackerUpper
 
             foreach (TreeTraverser.FolderEntry folder in treeTraverser.ListFolders()) {
                 try {
-                    if (folders.Contains(folder.Name)) {
-                        if (handler != null && !handler(Entity.Folder, folder.Name, false))
+                    if (folders.Contains(folder.RelPath)) {
+                        if (handler != null && !handler(Entity.Folder, folder.RelPath, false))
                             return;
                         foreach (TreeTraverser.FileEntry file in folder.GetFiles()) {
-                            if (!files.Contains(file.Name)) {
+                            if (!files.Contains(file.RelPath)) {
                                 File.Delete(file.FullPath);
-                                if (handler != null && !handler(Entity.File, file.Name, true))
+                                if (handler != null && !handler(Entity.File, file.RelPath, true))
                                     return;
                             }
                             else {
-                                if (handler != null && !handler(Entity.File, file.Name, false))
+                                if (handler != null && !handler(Entity.File, file.RelPath, false))
                                     return;
                             }
                         }
                     }
                     else {
                         Directory.Delete(folder.FullPath);
-                        if (handler != null && !handler(Entity.Folder, folder.Name, true))
+                        if (handler != null && !handler(Entity.Folder, folder.RelPath, true))
                             return;
                     }
                 }

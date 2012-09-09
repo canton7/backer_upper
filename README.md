@@ -11,6 +11,8 @@ Apart from the S3 integration, main features are:
  - Supports backing up to multiple places *at once*.
  - Good integration with Windows Scheduler.
 
+See the [changelog](https://github.com/canton7/backer_upper/blob/master/CHANGELOG.md) for version-to-version changes.
+
 
 Getting Backer Upper
 --------------------
@@ -56,6 +58,11 @@ The ability to exclude subfolders will come one day...
 Filters exclude certain types of files from being backed up.
 This field is a series of globs (so '\*' matches everything, while '?' matches a single character), separated by pipes.
 
+#### Source Advanced
+
+This button opens a form, allowing you to select precisely which folders and files do and don't get backed up.
+You can also edit your filters from inside this window.
+
 #### Mirror backend
 
 This is a simple backend which takes your source folder, and mirrors it into the destination folder.
@@ -78,6 +85,11 @@ This requires a HEAD request per file, so is slow and potentially (slightly) exp
 The scheduler is pretty self-explanatory.
 It just talks to the Windows Task Scheduler, so if you're curious, fire that up and open the `BackerUpper` folder.
 Don't add new conditions, trigger, or actions to existing items, but feel free to add your own.
+
+If "start when available" is checked, and your computer isn't on when the backup is scheduled to start, the backup will run when the computer is next turned on.
+If "start on batteries" is checked, the backup will run even when your computer is running on battery power.
+If "close when finished" is checked, Backer Upper will close when the backup is complete.
+If "ignore warnings" is *not* checked, Backer Upper will display a dialog box if warnings occurred during the backup, which will stop the program from automatically closing.
 
 
 ### Running Backups

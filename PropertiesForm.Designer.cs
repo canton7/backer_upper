@@ -39,6 +39,8 @@
             this.buttonSave = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBoxIgnorePattern = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.groupBoxMirror = new System.Windows.Forms.GroupBox();
             this.checkBoxMirror = new System.Windows.Forms.CheckBox();
             this.checkBoxS3 = new System.Windows.Forms.CheckBox();
@@ -53,6 +55,8 @@
             this.textBoxS3Dest = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBoxScheduler = new System.Windows.Forms.GroupBox();
+            this.checkBoxSchedulerOnBatteries = new System.Windows.Forms.CheckBox();
+            this.checkBoxSchedulerWhenAvailable = new System.Windows.Forms.CheckBox();
             this.checkBoxIgnoreWarnings = new System.Windows.Forms.CheckBox();
             this.checkBoxAutoclose = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
@@ -65,8 +69,7 @@
             this.checkBoxScheduleTues = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleMon = new System.Windows.Forms.CheckBox();
             this.checkBoxUseScheduler = new System.Windows.Forms.CheckBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.textBoxIgnorePattern = new System.Windows.Forms.TextBox();
+            this.buttonSourceAdvanced = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBoxMirror.SuspendLayout();
             this.groupBoxS3.SuspendLayout();
@@ -161,7 +164,7 @@
             // 
             // buttonSave
             // 
-            this.buttonSave.Location = new System.Drawing.Point(12, 492);
+            this.buttonSave.Location = new System.Drawing.Point(12, 518);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(75, 23);
             this.buttonSave.TabIndex = 3;
@@ -171,7 +174,7 @@
             // 
             // buttonCancel
             // 
-            this.buttonCancel.Location = new System.Drawing.Point(93, 492);
+            this.buttonCancel.Location = new System.Drawing.Point(93, 518);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 4;
@@ -183,6 +186,7 @@
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.buttonSourceAdvanced);
             this.groupBox1.Controls.Add(this.textBoxIgnorePattern);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.textBoxSource);
@@ -194,6 +198,22 @@
             this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Source";
+            // 
+            // textBoxIgnorePattern
+            // 
+            this.textBoxIgnorePattern.Location = new System.Drawing.Point(47, 45);
+            this.textBoxIgnorePattern.Name = "textBoxIgnorePattern";
+            this.textBoxIgnorePattern.Size = new System.Drawing.Size(212, 20);
+            this.textBoxIgnorePattern.TabIndex = 4;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(5, 48);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(29, 13);
+            this.label8.TabIndex = 3;
+            this.label8.Text = "Filter";
             // 
             // groupBoxMirror
             // 
@@ -340,6 +360,8 @@
             // 
             this.groupBoxScheduler.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBoxScheduler.Controls.Add(this.checkBoxSchedulerOnBatteries);
+            this.groupBoxScheduler.Controls.Add(this.checkBoxSchedulerWhenAvailable);
             this.groupBoxScheduler.Controls.Add(this.checkBoxIgnoreWarnings);
             this.groupBoxScheduler.Controls.Add(this.checkBoxAutoclose);
             this.groupBoxScheduler.Controls.Add(this.label7);
@@ -354,15 +376,35 @@
             this.groupBoxScheduler.Enabled = false;
             this.groupBoxScheduler.Location = new System.Drawing.Point(4, 404);
             this.groupBoxScheduler.Name = "groupBoxScheduler";
-            this.groupBoxScheduler.Size = new System.Drawing.Size(378, 77);
+            this.groupBoxScheduler.Size = new System.Drawing.Size(378, 101);
             this.groupBoxScheduler.TabIndex = 10;
             this.groupBoxScheduler.TabStop = false;
             this.groupBoxScheduler.Text = "Schedule";
             // 
+            // checkBoxSchedulerOnBatteries
+            // 
+            this.checkBoxSchedulerOnBatteries.AutoSize = true;
+            this.checkBoxSchedulerOnBatteries.Location = new System.Drawing.Point(257, 25);
+            this.checkBoxSchedulerOnBatteries.Name = "checkBoxSchedulerOnBatteries";
+            this.checkBoxSchedulerOnBatteries.Size = new System.Drawing.Size(106, 17);
+            this.checkBoxSchedulerOnBatteries.TabIndex = 6;
+            this.checkBoxSchedulerOnBatteries.Text = "Start on batteries";
+            this.checkBoxSchedulerOnBatteries.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxSchedulerWhenAvailable
+            // 
+            this.checkBoxSchedulerWhenAvailable.AutoSize = true;
+            this.checkBoxSchedulerWhenAvailable.Location = new System.Drawing.Point(129, 24);
+            this.checkBoxSchedulerWhenAvailable.Name = "checkBoxSchedulerWhenAvailable";
+            this.checkBoxSchedulerWhenAvailable.Size = new System.Drawing.Size(122, 17);
+            this.checkBoxSchedulerWhenAvailable.TabIndex = 5;
+            this.checkBoxSchedulerWhenAvailable.Text = "Start when available";
+            this.checkBoxSchedulerWhenAvailable.UseVisualStyleBackColor = true;
+            // 
             // checkBoxIgnoreWarnings
             // 
             this.checkBoxIgnoreWarnings.AutoSize = true;
-            this.checkBoxIgnoreWarnings.Location = new System.Drawing.Point(264, 24);
+            this.checkBoxIgnoreWarnings.Location = new System.Drawing.Point(134, 74);
             this.checkBoxIgnoreWarnings.Name = "checkBoxIgnoreWarnings";
             this.checkBoxIgnoreWarnings.Size = new System.Drawing.Size(104, 17);
             this.checkBoxIgnoreWarnings.TabIndex = 4;
@@ -374,7 +416,7 @@
             this.checkBoxAutoclose.AutoSize = true;
             this.checkBoxAutoclose.Checked = true;
             this.checkBoxAutoclose.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxAutoclose.Location = new System.Drawing.Point(138, 24);
+            this.checkBoxAutoclose.Location = new System.Drawing.Point(8, 74);
             this.checkBoxAutoclose.Name = "checkBoxAutoclose";
             this.checkBoxAutoclose.Size = new System.Drawing.Size(120, 17);
             this.checkBoxAutoclose.TabIndex = 3;
@@ -496,27 +538,21 @@
             this.checkBoxUseScheduler.UseVisualStyleBackColor = true;
             this.checkBoxUseScheduler.CheckedChanged += new System.EventHandler(this.checkBoxUseScheduler_CheckedChanged);
             // 
-            // label8
+            // buttonSourceAdvanced
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(5, 49);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(29, 13);
-            this.label8.TabIndex = 3;
-            this.label8.Text = "Filter";
-            // 
-            // textBoxIgnorePattern
-            // 
-            this.textBoxIgnorePattern.Location = new System.Drawing.Point(47, 46);
-            this.textBoxIgnorePattern.Name = "textBoxIgnorePattern";
-            this.textBoxIgnorePattern.Size = new System.Drawing.Size(293, 20);
-            this.textBoxIgnorePattern.TabIndex = 4;
+            this.buttonSourceAdvanced.Location = new System.Drawing.Point(265, 43);
+            this.buttonSourceAdvanced.Name = "buttonSourceAdvanced";
+            this.buttonSourceAdvanced.Size = new System.Drawing.Size(75, 23);
+            this.buttonSourceAdvanced.TabIndex = 5;
+            this.buttonSourceAdvanced.Text = "Advanced";
+            this.buttonSourceAdvanced.UseVisualStyleBackColor = true;
+            this.buttonSourceAdvanced.Click += new System.EventHandler(this.buttonSourceAdvanced_Click);
             // 
             // PropertiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(394, 522);
+            this.ClientSize = new System.Drawing.Size(394, 552);
             this.Controls.Add(this.checkBoxUseScheduler);
             this.Controls.Add(this.groupBoxScheduler);
             this.Controls.Add(this.groupBoxS3);
@@ -529,7 +565,7 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBoxName);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(410, 560);
+            this.MinimumSize = new System.Drawing.Size(410, 590);
             this.Name = "PropertiesForm";
             this.Text = "Properties";
             this.groupBox1.ResumeLayout(false);
@@ -588,5 +624,8 @@
         private System.Windows.Forms.CheckBox checkBoxS3Test;
         private System.Windows.Forms.TextBox textBoxIgnorePattern;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.CheckBox checkBoxSchedulerWhenAvailable;
+        private System.Windows.Forms.CheckBox checkBoxSchedulerOnBatteries;
+        private System.Windows.Forms.Button buttonSourceAdvanced;
     }
 }

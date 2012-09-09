@@ -18,17 +18,24 @@ namespace BackerUpper
         private Settings settings;
         private string[] takenBackupNames;
         private string initialBackupName;
+        private IEnumerable<string> ignoredFiles;
+        private IEnumerable<string> ignoredFolders;
+        // ignored and ignoredFolders are relative to this base
+        private string ignoredFilesFoldersBase;
 
         const string FORBIDDEN_CHARS = "\\/:*?\"<>|";
 
-        public PropertiesForm(Settings settings, string[] takenBackupNames, bool backupIsNew=false) {
+        public PropertiesForm(Settings settings, string[] takenBackupNames, bool backupIsImport=false) {
             InitializeComponent();
 
             this.Saved = false;
             this.settings = settings;
             this.takenBackupNames = takenBackupNames;
             // Only use this info if the backup isn't new. New backups don't yet exist, in the scheduler or in the filesystem
-            this.initialBackupName = backupIsNew ? null : settings.Name;
+            this.initialBackupName = backupIsImport ? null : settings.Name;
+            if (backupIsImport) {
+                this.Text = "Importing Backup: "+settings.Name;
+            }
             this.loadValues();
         }
 
@@ -46,6 +53,9 @@ namespace BackerUpper
             this.checkBoxS3Test.Checked = this.settings.S3Test;
             this.checkBoxAutoclose.Checked = this.settings.Autoclose;
             this.checkBoxIgnoreWarnings.Checked = this.settings.IgnoreWarnings;
+            this.ignoredFiles = this.settings.IgnoredFiles;
+            this.ignoredFolders = this.settings.IgnoredFolders;
+            this.ignoredFilesFoldersBase = this.settings.Source;
 
             this.enableDisableDests();
 
@@ -67,6 +77,16 @@ namespace BackerUpper
             this.settings.Autoclose = this.checkBoxAutoclose.Checked;
             this.settings.IgnoreWarnings = this.checkBoxIgnoreWarnings.Checked;
 
+            // If base for ignored files/folders has changed, invalidate them
+            if (this.textBoxSource.Text == this.ignoredFilesFoldersBase) {
+                this.settings.IgnoredFiles = this.ignoredFiles;
+                this.settings.IgnoredFolders = this.ignoredFolders;
+            }
+            else {
+                this.settings.IgnoredFiles = Enumerable.Empty<string>();
+                this.settings.IgnoredFolders = Enumerable.Empty<string>();
+            }
+
             this.setupTask();
         }
 
@@ -84,6 +104,8 @@ namespace BackerUpper
             this.checkBoxScheduleSun.Checked = dow.HasFlag(DaysOfTheWeek.Sunday);
 
             this.checkBoxUseScheduler.Checked = scheduler.Enabled;
+            this.checkBoxSchedulerWhenAvailable.Checked = scheduler.StartWhenAvailable;
+            this.checkBoxSchedulerOnBatteries.Checked = scheduler.StartOnBatteries;
         }
 
         private void setupTask() {
@@ -103,7 +125,7 @@ namespace BackerUpper
 
             if (this.initialBackupName != null && this.initialBackupName != this.settings.Name)
                 Scheduler.Delete(this.initialBackupName);
-            Scheduler scheduler = new Scheduler(this.checkBoxUseScheduler.Checked, start, dow);
+            Scheduler scheduler = new Scheduler(this.checkBoxUseScheduler.Checked, start, dow, this.checkBoxSchedulerWhenAvailable.Checked, this.checkBoxSchedulerOnBatteries.Checked);
             scheduler.Save(this.settings.Name);
         }
 
@@ -173,6 +195,25 @@ namespace BackerUpper
             this.textBoxMirrorDest.Text = this.destBrowser.SelectedPath;
         }
 
+        private void buttonSourceAdvanced_Click(object sender, EventArgs e) {
+            // treeBrowerForm requires ignoredFiles and ignoredFolders to have absolute paths to avoid confusion
+            // we use this.ignoredFilesFoldersBase
+            // However, SOURCE-RELATIVE paths are returned, relative to treeBrowserForm.Source. We set ignoredFilesFoldersBase to this
+            IEnumerable<string> ignoredFilesAbs = this.ignoredFiles.Select(x => Path.Combine(this.ignoredFilesFoldersBase, x));
+            IEnumerable<string> ignoredFoldersAbs = this.ignoredFolders.Select(x => Path.Combine(this.ignoredFilesFoldersBase, x));
+
+            TreeBrowserForm treeBrowserForm = new TreeBrowserForm(this.textBoxSource.Text, this.textBoxIgnorePattern.Text, ignoredFilesAbs, ignoredFoldersAbs);
+            treeBrowserForm.ShowDialog();
+            if (treeBrowserForm.Saved) {
+                this.textBoxSource.Text = treeBrowserForm.Source;
+                this.ignoredFilesFoldersBase = treeBrowserForm.Source;
+                this.textBoxIgnorePattern.Text = treeBrowserForm.IgnorePattern;
+                this.ignoredFiles = treeBrowserForm.IgnoredFiles;
+                this.ignoredFolders = treeBrowserForm.IgnoredFolders;
+            }
+            treeBrowserForm.Close();
+        }
+
         private void buttonSave_Click(object sender, EventArgs e) {
             if (!this.checkValues())
                 return;
@@ -180,6 +221,7 @@ namespace BackerUpper
             this.Saved = true;
             this.Close();
         }
+
 
         private void buttonCancel_Click(object sender, EventArgs e) {
             this.Close();
