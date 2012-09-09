@@ -132,9 +132,9 @@ namespace BackerUpper
             TreeTraverser treeTraverser = new TreeTraverser(this.Dest);
 
             foreach(TreeTraverser.FolderEntry folder in treeTraverser.ListFolders()) {
-                yield return new EntityRecord(folder.Name, Entity.Folder);
+                yield return new EntityRecord(folder.RelPath, Entity.Folder);
                 foreach (TreeTraverser.FileEntry file in folder.GetFiles()) {
-                    yield return new EntityRecord(file.Name, Entity.File);
+                    yield return new EntityRecord(file.RelPath, Entity.File);
                 }
             }
         }
@@ -147,24 +147,24 @@ namespace BackerUpper
 
             foreach (TreeTraverser.FolderEntry folder in treeTraverser.ListFolders()) {
                 try {
-                    if (folders.Contains(folder.Name)) {
-                        if (handler != null && !handler(Entity.Folder, folder.Name, false))
+                    if (folders.Contains(folder.RelPath)) {
+                        if (handler != null && !handler(Entity.Folder, folder.RelPath, false))
                             return;
                         foreach (TreeTraverser.FileEntry file in folder.GetFiles()) {
-                            if (!files.Contains(file.Name)) {
+                            if (!files.Contains(file.RelPath)) {
                                 File.Delete(file.FullPath);
-                                if (handler != null && !handler(Entity.File, file.Name, true))
+                                if (handler != null && !handler(Entity.File, file.RelPath, true))
                                     return;
                             }
                             else {
-                                if (handler != null && !handler(Entity.File, file.Name, false))
+                                if (handler != null && !handler(Entity.File, file.RelPath, false))
                                     return;
                             }
                         }
                     }
                     else {
                         Directory.Delete(folder.FullPath);
-                        if (handler != null && !handler(Entity.Folder, folder.Name, true))
+                        if (handler != null && !handler(Entity.Folder, folder.RelPath, true))
                             return;
                     }
                 }

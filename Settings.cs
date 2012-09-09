@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data;
 
 namespace BackerUpper
 {
@@ -94,6 +95,16 @@ namespace BackerUpper
             set { this.setKey("ignoreWarnings", value ? "1" : "0"); }
         }
 
+        public IEnumerable<string> IgnoredFiles {
+            get { return this.getArray("ignoreFile"); }
+            set { this.setArray("ignoreFile", value); }
+        }
+
+        public IEnumerable<string> IgnoredFolders {
+            get { return this.getArray("ignoreFolder"); }
+            set { this.setArray("ignoreFolder", value); }
+        }
+
         public Settings(Database db) {
             this.db = db;
         }
@@ -106,6 +117,20 @@ namespace BackerUpper
 
         private string getKey(string name) {
             return this.db.ExecuteScalar("SELECT value FROM settings WHERE name = @name", "@name", name);
+        }
+
+        private void setArray(string name, IEnumerable<string> values) {
+            this.db.Execute("DELETE FROM settings WHERE name = @name", "@name", name);
+            foreach (string value in values) {
+                this.db.Execute("INSERT INTO settings (name, value) VALUES (@name, @value)", "@name", name, "@value", value);
+            }
+        }
+
+        private IEnumerable<string> getArray(string name) {
+            DataTable result = this.db.ExecuteReader("SELECT value FROM settings WHERE name = @name", "@name", name);
+            foreach (DataRow row in result.Rows) {
+                yield return row["value"].ToString();
+            }
         }
 
         public void PopulateInitial(string name) {

@@ -96,6 +96,18 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduler.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="FileTreeBrowser.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="FileTreeBrowser.Designer.cs">
+      <DependentUpon>FileTreeBrowser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TreeBrowserForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TreeBrowserForm.Designer.cs">
+      <DependentUpon>TreeBrowserForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="TreeTraverser.cs" />
     <Compile Include="XCopy.cs" />
     <EmbeddedResource Include="Main.resx">
@@ -117,6 +129,12 @@
     <EmbeddedResource Include="RestoreForm.resx">
       <DependentUpon>RestoreForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FileTreeBrowser.resx">
+      <DependentUpon>FileTreeBrowser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TreeBrowserForm.resx">
+      <DependentUpon>TreeBrowserForm.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -129,7 +147,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\IconFolderOpen.gif" />
+    <EmbeddedResource Include="Resources\IconFolderOpen.gif" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
