@@ -165,7 +165,11 @@ namespace BackerUpper
                 get { return this.lastModified.Value; }
                 set {
                     // WARNING doesn't update lazy
-                    File.SetLastWriteTimeUtc(this.FullPath, value);
+                    try {
+                        File.SetLastWriteTimeUtc(this.FullPath, value);
+                    }
+                    catch (IOException e) { throw new BackupOperationException(this.RelPath, e.Message); }
+                    catch (UnauthorizedAccessException e) { throw new BackupOperationException(this.RelPath, e.Message); }
                 }
             }
             public string Filename {
@@ -178,7 +182,13 @@ namespace BackerUpper
             public FileEntry(TreeTraverser parent, string relPath) {
                 this.parent = parent;
                 this.RelPath = relPath;
-                this.lastModified = new Lazy<DateTime>(() => File.GetLastWriteTimeUtc(this.FullPath));
+                this.lastModified = new Lazy<DateTime>(() => {
+                    try {
+                        return File.GetLastWriteTimeUtc(this.FullPath);
+                    }
+                    catch (IOException e) { throw new BackupOperationException(this.RelPath, e.Message); }
+                    catch (UnauthorizedAccessException e) { throw new BackupOperationException(this.RelPath, e.Message); }
+                });
             }
 
             public string GetMD5(FileUtils.HashProgress handler = null) {
