@@ -56,6 +56,11 @@ The ability to exclude subfolders will come one day...
 Filters exclude certain types of files from being backed up.
 This field is a series of globs (so '\*' matches everything, while '?' matches a single character), separated by pipes.
 
+#### Source Advanced
+
+This button opens a form, allowing you to select precisely which folders and files do and don't get backed up.
+You can also edit your filters from inside this window.
+
 #### Mirror backend
 
 This is a simple backend which takes your source folder, and mirrors it into the destination folder.
