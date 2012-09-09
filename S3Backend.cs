@@ -131,7 +131,7 @@ namespace BackerUpper
             catch (IOException e) { throw new BackupOperationException(folder, e.Message); }
         }
 
-        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, bool reportProgress=true) {
+        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, FileAttributes attributes, bool reportProgress=true) {
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
@@ -149,8 +149,13 @@ namespace BackerUpper
             };
             if (reportProgress)
                 putRequest.PutObjectProgressEvent += new EventHandler<PutObjectProgressArgs>(putRequest_PutObjectProgressEvent);
-            this.withHandling(() => putRequest.AddHeader("x-amz-meta-md5", fileMD5), file);
-            this.withHandling(() => this.client.PutObject(putRequest), file);
+            this.withHandling(() => {
+                putRequest.AddHeader("x-amz-meta-md5", fileMD5);
+                putRequest.AddHeader("x-amz-meta-hidden", attributes.HasFlag(FileAttributes.Hidden) ? "true" : "false");
+                putRequest.AddHeader("x-amz-meta-archive", attributes.HasFlag(FileAttributes.Archive) ? "true" : "false");
+                putRequest.AddHeader("x-amz-meta-not-index", attributes.HasFlag(FileAttributes.NotContentIndexed) ? "true" : "false");
+                this.client.PutObject(putRequest);
+            }, file);
             this.files.Add(file);
             return true;
         }
@@ -187,9 +192,17 @@ namespace BackerUpper
                 GetObjectResponse getResponse = this.client.GetObject(getRequest);
                 getResponse.WriteObjectProgressEvent += new EventHandler<WriteObjectProgressArgs>(getResponse_WriteObjectProgressEvent);
                 getResponse.WriteResponseStreamToFile(dest);
+                FileInfo destInfo = new FileInfo(dest);
+                if (getResponse.Headers["x-amz-meta-hidden"] == "true")
+                    destInfo.Attributes |= FileAttributes.Hidden;
+                if (getResponse.Headers["x-amz-meta-archive"] == "true")
+                    destInfo.Attributes |= FileAttributes.Archive;
+                if (getResponse.Headers["x-amz-meta-not-index"] == "true")
+                    destInfo.Attributes |= FileAttributes.NotContentIndexed;
             }
             catch (AmazonS3Exception e) { throw new BackupOperationException(file, e.Message); }
             catch (System.Net.WebException e) { throw new BackupOperationException(file, e.Message); }
+
             File.SetLastWriteTimeUtc(dest, lastModified);
         }
 
@@ -198,7 +211,7 @@ namespace BackerUpper
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.CreateFile(file, source, DateTime.UtcNow, null, false);
+            this.CreateFile(file, source, DateTime.UtcNow, null, new FileInfo(source).Attributes, false);
         }
 
         private void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {

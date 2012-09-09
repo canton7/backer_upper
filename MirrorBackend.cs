@@ -48,7 +48,7 @@ namespace BackerUpper
             }, folder);
         }
 
-        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, bool reportProgress=true) {
+        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, FileAttributes attributes, bool reportProgress=true) {
             string dest = Path.Combine(this.Dest, file);
 
             // It's almost always quicker just to re-copy the file, rather than checking
@@ -64,13 +64,14 @@ namespace BackerUpper
             if (this.Cancelled)
                 return true;
             FileInfo fileInfo = new FileInfo(dest);
+            fileInfo.Attributes = attributes;
             fileInfo.IsReadOnly = false;
             this.withHandling(() => File.SetLastWriteTimeUtc(dest, lastModified), file);
             return true;
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.CreateFile(Path.Combine(this.Dest, file), source, DateTime.UtcNow, null, false);
+            this.CreateFile(Path.Combine(this.Dest, file), source, DateTime.UtcNow, null, new FileInfo(source).Attributes, false);
         }
 
         public override void DeleteFile(string file) {
@@ -105,8 +106,13 @@ namespace BackerUpper
                 this.ReportProcess(percent);
                 return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
             }), file);
-            if (!this.Cancelled)
-                File.SetLastWriteTimeUtc(dest, lastModified);
+            if (!this.Cancelled) {
+                this.withHandling(() => {
+                    File.SetLastWriteTimeUtc(dest, lastModified);
+                    FileInfo fileInfo = new FileInfo(dest);
+                    fileInfo.Attributes = new FileInfo(fullPath).Attributes;
+                }, file);
+            }
         }
 
         public override bool FileExists(string file) {

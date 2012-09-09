@@ -214,7 +214,7 @@ namespace BackerUpper
                 if (this.createFromAlternate(file, fileMD5, false, backend))
                     continue;
                 this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
-                backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5);
+                backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5, file.Attributes);
                 this.Logger.Info("{0}: Added file: {1}", backend.Name, file.RelPath);
             }
             this.fileDatabase.AddFile(folderId, file.RelPath, file.LastModified, fileMD5);
@@ -246,7 +246,7 @@ namespace BackerUpper
                     if (backend.CreateFromAlternateCopy(file.RelPath, alternate.Path))
                         this.Logger.Info("{0}: {1} file: {2} from alternate {3} (copy)", backend.Name, logAction, file.RelPath, alternate.Path);
                     else {
-                        backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5);
+                        backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5, file.Attributes);
                         this.Logger.Info("{0}: {1} file: {2} (backend refused alternate {3})", backend.Name, logAction, file.RelPath, alternate.Path);
                     }
                 }
@@ -289,7 +289,7 @@ namespace BackerUpper
                     continue;
 
                 this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Update, backend.Name));
-                if (backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5))
+                if (backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5, file.Attributes))
                     this.Logger.Info("{0}: Updated file: {1}", backend.Name, file.RelPath);
                 else
                     this.Logger.Info("{0}: Skipped file {1} (mtime changed but file up-to-date)", backend.Name, file.RelPath);
@@ -304,7 +304,7 @@ namespace BackerUpper
                     // Aha! File's gone missing from the backend
                     this.reportBackupAction(new BackupActionItem(null, file.RelPath, BackupActionEntity.File, BackupActionOperation.Add, backend.Name));
                     if (!this.createFromAlternate(file, fileMD5, true, backend)) {
-                        if (backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5))
+                        if (backend.CreateFile(file.RelPath, file.FullPath, file.LastModified, fileMD5, file.Attributes))
                             this.Logger.Info("{0}: File on backend missing or modified, so re-creating: {1}", backend.Name, file.RelPath);
                     }
                 }
