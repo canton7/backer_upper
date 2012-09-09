@@ -243,8 +243,8 @@ namespace BackerUpper
             // Sort folders first, just to be sure (I think S3 sorts anyway, but hey). Nothing else minds it being sorted
             this.folders.Sort();
             foreach (string folder in this.folders) {
-                yield return new EntityRecord(folder, Entity.Folder);
                 string folderReversedSlashes = folder.Replace('/', '\\');
+                yield return new EntityRecord(folderReversedSlashes, Entity.Folder);
                 foreach (string file in this.files.Where(x => Path.GetDirectoryName(x) == folderReversedSlashes)) {
                     yield return new EntityRecord(file, Entity.File);
                 }
