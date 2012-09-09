@@ -11,6 +11,8 @@ Apart from the S3 integration, main features are:
  - Supports backing up to multiple places *at once*.
  - Good integration with Windows Scheduler.
 
+See the [changelog](https://github.com/canton7/backer_upper/blob/master/CHANGELOG.md) for version-to-version changes.
+
 
 Getting Backer Upper
 --------------------
