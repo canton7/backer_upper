@@ -50,6 +50,10 @@ namespace BackerUpper
         }
 
         private void textBoxIgnorePattern_TextChanged(object sender, EventArgs e) {
+            // Have to save ignored before re-populating
+            FileTreeBrowser.IgnoredFilesFolders ignored = this.fileTreeBrowser.GetIgnoredFilesFolders();
+            this.fileTreeBrowser.IgnoredFiles = new HashSet<string>(ignored.Files.Select(x => Path.Combine(this.textBoxSource.Text, x)));
+            this.fileTreeBrowser.IgnoredFolders = new HashSet<string>(ignored.Folders.Select(x => Path.Combine(this.textBoxSource.Text, x)));
             this.fileTreeBrowser.Populate(this.textBoxSource.Text.Trim(), this.textBoxIgnorePattern.Text);
         }
 
