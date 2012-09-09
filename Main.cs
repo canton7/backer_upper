@@ -285,7 +285,8 @@ namespace BackerUpper
                 return;
             }
 
-            this.currentBackupFilescanner = new FileScanner(source, database, logger, settings.Name, backends, settings.FileIgnorePattern);
+            this.currentBackupFilescanner = new FileScanner(source, database, logger, settings.Name, backends, settings.FileIgnorePattern,
+                    new HashSet<string>(settings.IgnoredFiles), new HashSet<string>(settings.IgnoredFolders));
             this.currentBackupFilescanner.BackupAction += new FileScanner.BackupActionEventHandler(fileScanner_BackupAction);
 
             if (!restore) {

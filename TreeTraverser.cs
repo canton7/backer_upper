@@ -12,8 +12,10 @@ namespace BackerUpper
         public string StartDir{ get; private set; }
         private int substringStart;
         public Regex FileIgnoreRules { get; private set; }
+        private HashSet<string> ignoredFiles;
+        private HashSet<string> ignoredFolders;
 
-        public TreeTraverser(string startDir, string ignoreRules=null) {
+        public TreeTraverser(string startDir, string ignoreRules=null, HashSet<string> ignoredFiles=null, HashSet<string> ignoredFolders=null) {
             // Canot go down the stripping \ route, as the screws up 'C:' (valid) and 'C:\' (also valid)
             if (!startDir.EndsWith("\\"))
                 startDir += '\\';
@@ -25,6 +27,15 @@ namespace BackerUpper
                 this.FileIgnoreRules = null;
             else
                 this.FileIgnoreRules = new Regex("^"+String.Join("|", ignoreRules.Split(new char[] { '|' }).Select(x => "("+Regex.Escape(x.Trim()).Replace(@"\*", ".*").Replace(@"\?", ".")+")"))+"$");
+
+            if (ignoredFiles == null)
+                this.ignoredFiles = new HashSet<string>();
+            else
+                this.ignoredFiles = ignoredFiles;
+            if (ignoredFolders == null)
+                this.ignoredFolders = new HashSet<string>();
+            else
+                this.ignoredFolders = ignoredFolders;
         }
 
         public IEnumerable<FolderEntry> ListFolders(int maxDepth=-1) {
@@ -35,9 +46,11 @@ namespace BackerUpper
             while (stack.Count > 0) {
                 item = stack.Pop();
                 yield return item;
-                if (maxDepth > 0 && item.Level < maxDepth) {
+                if (maxDepth < 0 || item.Level < maxDepth) {
                     try {
                         foreach (string dir in Directory.EnumerateDirectories(item.FullPath).Reverse().Select(x => x.Substring(this.substringStart))) {
+                            if (this.ignoredFolders.Contains(dir))
+                                continue;
                             stack.Push(new FolderEntry(this, item.Level + 1, dir));
                         }
                     }
@@ -59,11 +72,13 @@ namespace BackerUpper
         }
 
         public bool FileExists(string file) {
-            return File.Exists(Path.Combine(this.StartDir, file));
+            return !this.ignoredFolders.Any(x => file.Length >= x.Length && file.Substring(0, x.Length) == x) 
+                    && !this.ignoredFiles.Contains(file) && File.Exists(Path.Combine(this.StartDir, file));
         }
 
         public bool FolderExists(string path) {
-            return Directory.Exists(Path.Combine(this.StartDir, path));
+            return !this.ignoredFolders.Any(x => path.Length >= x.Length && path.Substring(0, x.Length) == x)
+                    && Directory.Exists(Path.Combine(this.StartDir, path));
         }
 
         public void DeleteFile(string file) {
@@ -111,7 +126,7 @@ namespace BackerUpper
 
                 if (files != null) {
                     foreach (string file in files.Select(x => x.Substring(this.parent.substringStart))) {
-                        if (this.parent.FileIgnoreRules != null && this.parent.FileIgnoreRules.IsMatch(file))
+                        if (this.parent.FileIgnoreRules != null && this.parent.FileIgnoreRules.IsMatch(file) || this.parent.ignoredFiles.Contains(file))
                             continue;
                         yield return new FileEntry(this.parent, file);
                     }
@@ -130,6 +145,8 @@ namespace BackerUpper
 
                 if (dirs != null) {
                     foreach (string dir in dirs.Select(x => x.Substring(this.parent.substringStart))) {
+                        if (this.parent.ignoredFolders.Contains(dir))
+                            continue;
                         yield return new FolderEntry(this.parent, this.Level + 1, dir);
                     }
                 }

@@ -96,13 +96,13 @@ namespace BackerUpper
         }
 
         public IEnumerable<string> IgnoredFiles {
-            get { return this.getArray("ignoreFiles"); }
-            set { this.setArray("ignoreFiles", value); }
+            get { return this.getArray("ignoreFile"); }
+            set { this.setArray("ignoreFile", value); }
         }
 
         public IEnumerable<string> IgnoredFolders {
-            get { return this.getArray("ignoreFolders"); }
-            set { this.setArray("ignoreFolders", value); }
+            get { return this.getArray("ignoreFolder"); }
+            set { this.setArray("ignoreFolder", value); }
         }
 
         public Settings(Database db) {

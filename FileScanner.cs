@@ -22,9 +22,9 @@ namespace BackerUpper
         public delegate void BackupActionEventHandler(object sender, BackupActionItem item);
         public event BackupActionEventHandler BackupAction;
 
-        public FileScanner(string startDir, Database database, Logger logger, string name, BackendBase[] backends, string fileIgnorePattern) {
+        public FileScanner(string startDir, Database database, Logger logger, string name, BackendBase[] backends, string fileIgnorePattern, HashSet<string> ignoredFiles, HashSet<string> ignoredFolders) {
             this.Database = database;
-            this.treeTraverser = new TreeTraverser(startDir, fileIgnorePattern);
+            this.treeTraverser = new TreeTraverser(startDir, fileIgnorePattern, ignoredFiles, ignoredFolders);
             this.fileDatabase = new FileDatabase(database);
             this.backends = backends;
             foreach (BackendBase backend in this.backends) {
@@ -182,6 +182,8 @@ namespace BackerUpper
 
         private void deleteFolder(int folderId, string folder) {
             foreach (BackendBase backend in this.backends) {
+                if (!backend.FolderExists(folder))
+                    continue;
                 this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Delete, backend.Name));
                 backend.DeleteFolder(folder);
                 this.Logger.Info("{0}: Deleted folder: {1}", backend.Name, folder);
@@ -313,6 +315,8 @@ namespace BackerUpper
 
         private void deleteFile(int fileId, string file) {
             foreach (BackendBase backend in this.backends) {
+                if (!backend.FileExists(file))
+                    continue;
                 this.reportBackupAction(new BackupActionItem(null, file, BackupActionEntity.File, BackupActionOperation.Delete, backend.Name));
                 backend.DeleteFile(file);
                 this.Logger.Info("{0}: Deleted file: {1}", backend.Name, file);
