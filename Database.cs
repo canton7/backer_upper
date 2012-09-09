@@ -44,8 +44,11 @@ namespace BackerUpper
             this.conn.Open();
 
             this.diskConn = null;
-
-            this.executeWithoutLock("PRAGMA foreign_keys = ON;");
+            // This can fail if the database is locked. No matter
+            try {
+                this.executeWithoutLock("PRAGMA foreign_keys = ON;");
+            }
+            catch (SQLiteException) { }
 
             // 5 minutes
             this.syncTimer = new Timer(300000) {

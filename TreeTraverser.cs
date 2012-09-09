@@ -108,11 +108,22 @@ namespace BackerUpper
             public string Name {
                 get { return Path.GetFileName(this.RelPath); }
             }
+            private Lazy<FileAttributes> attributes;
+            public FileAttributes Attributes {
+                get { return this.attributes.Value; }
+            }
             
             public FolderEntry(TreeTraverser parent, int level, string relPath) {
                 this.parent = parent;
                 this.Level = level;
                 this.RelPath = relPath;
+                this.attributes = new Lazy<FileAttributes>(() => {
+                    try {
+                        return new DirectoryInfo(this.FullPath).Attributes;
+                    }
+                    catch (IOException e) { throw new BackupOperationException(this.RelPath, e.Message); }
+                    catch (UnauthorizedAccessException e) { throw new BackupOperationException(this.RelPath, e.Message); }
+                });
             }
 
             public IEnumerable<FileEntry> GetFiles() {
@@ -178,6 +189,10 @@ namespace BackerUpper
             public string Extension {
                 get { return Path.GetExtension(this.RelPath); }
             }
+            private Lazy<FileAttributes> attributes;
+            public FileAttributes Attributes {
+                get { return this.attributes.Value; }
+            }
 
             public FileEntry(TreeTraverser parent, string relPath) {
                 this.parent = parent;
@@ -185,6 +200,13 @@ namespace BackerUpper
                 this.lastModified = new Lazy<DateTime>(() => {
                     try {
                         return File.GetLastWriteTimeUtc(this.FullPath);
+                    }
+                    catch (IOException e) { throw new BackupOperationException(this.RelPath, e.Message); }
+                    catch (UnauthorizedAccessException e) { throw new BackupOperationException(this.RelPath, e.Message); }
+                });
+                this.attributes = new Lazy<FileAttributes>(() => {
+                    try {
+                        return new FileInfo(this.FullPath).Attributes;
                     }
                     catch (IOException e) { throw new BackupOperationException(this.RelPath, e.Message); }
                     catch (UnauthorizedAccessException e) { throw new BackupOperationException(this.RelPath, e.Message); }
