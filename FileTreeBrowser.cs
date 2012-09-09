@@ -35,6 +35,10 @@ namespace BackerUpper
             this.IgnoredFolders = new HashSet<string>();
         }
 
+        void populateWorker_DoWork(object sender, DoWorkEventArgs e) {
+            ((TreeNodeTri)e.Argument).PopulateChildren();
+        }
+
         public void Clear() {
             this.tree.Nodes.Clear();
         }
@@ -47,12 +51,12 @@ namespace BackerUpper
             TreeNodeTri node;
             TreeTraverser.FolderEntry root = treeTraverser.ListFolders(0).First();
             foreach (TreeTraverser.FolderEntry folder in root.GetFolders()) {
-                node = new TreeNodeTri(folder, this.tree.ImageList, this.IgnoredFiles, this.IgnoredFolders);
+                node = new TreeNodeTri(folder, this.tree.ImageList, this.IgnoredFiles, this.IgnoredFolders, this.tree);
                 node.Populate();
                 this.tree.Nodes.Add(node);
             }
             foreach (TreeTraverser.FileEntry file in root.GetFiles()) {
-                this.tree.Nodes.Add(new TreeNodeTri(file, this.tree.ImageList, this.IgnoredFiles, this.IgnoredFolders));
+                this.tree.Nodes.Add(new TreeNodeTri(file, this.tree.ImageList, this.IgnoredFiles, this.IgnoredFolders, this.tree));
             }
         }
 
@@ -89,7 +93,11 @@ namespace BackerUpper
         }
 
         private void tree_BeforeExpand(object sender, TreeViewCancelEventArgs e) {
-            ((TreeNodeTri)e.Node).PopulateChildren();
+            //this.populateWorker.RunWorkerAsync(e.Node);
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += new DoWorkEventHandler(this.populateWorker_DoWork);
+            worker.RunWorkerAsync(e.Node);
+            //((TreeNodeTri)e.Node).PopulateChildren();
         }
 
         public struct IgnoredFilesFolders
@@ -114,8 +122,9 @@ namespace BackerUpper
             private ImageList imageList;
             private HashSet<string> ignoredFiles;
             private HashSet<string> ignoredFolders;
+            private TreeView parentTree;
 
-            public TreeNodeTri(TreeTraverser.FolderEntry folderEntry, ImageList imageList, HashSet<string> ignoredFiles, HashSet<string> ignoredFolders, CheckedState defaultState=CheckedState.Checked)
+            public TreeNodeTri(TreeTraverser.FolderEntry folderEntry, ImageList imageList, HashSet<string> ignoredFiles, HashSet<string> ignoredFolders, TreeView parentTree, CheckedState defaultState=CheckedState.Checked)
                     : base(folderEntry.Name) {
 
                 this.imageList = imageList;
@@ -129,6 +138,7 @@ namespace BackerUpper
 
                 this.ignoredFiles = ignoredFiles;
                 this.ignoredFolders = ignoredFolders;
+                this.parentTree = parentTree;
 
                 this.folderEntry = folderEntry;
 
@@ -136,7 +146,7 @@ namespace BackerUpper
                 this.SelectedImageIndex = 0;
             }
 
-            public TreeNodeTri(TreeTraverser.FileEntry fileEntry, ImageList imageList, HashSet<string> ignoredFiles, HashSet<string> ignoredFolders, CheckedState defaultState=CheckedState.Checked)
+            public TreeNodeTri(TreeTraverser.FileEntry fileEntry, ImageList imageList, HashSet<string> ignoredFiles, HashSet<string> ignoredFolders, TreeView parentTree, CheckedState defaultState=CheckedState.Checked)
                     : base(fileEntry.Filename) {
 
                 this.imageList = imageList;
@@ -149,6 +159,7 @@ namespace BackerUpper
 
                 this.ignoredFiles = ignoredFiles;
                 this.ignoredFolders = ignoredFolders;
+                this.parentTree = parentTree;
 
                 this.fileEntry = fileEntry;
                 
@@ -166,21 +177,23 @@ namespace BackerUpper
 
                 CheckedState defaultState = this.State == CheckedState.Unchecked ? this.State : CheckedState.Checked;
 
-                foreach (TreeTraverser.FolderEntry folder in this.folderEntry.GetFolders()) {
-                    this.Nodes.Add(new TreeNodeTri(folder, this.imageList, this.ignoredFiles, this.ignoredFolders, defaultState));
-                }
-                foreach (TreeTraverser.FileEntry file in this.folderEntry.GetFiles()) {
-                    this.Nodes.Add(new TreeNodeTri(file, this.imageList, this.ignoredFiles, this.ignoredFolders, defaultState));
-                }
-
-                //this.UpdateChildren();
+                this.parentTree.InvokeEx(f => {
+                    foreach (TreeTraverser.FolderEntry folder in this.folderEntry.GetFolders()) {
+                        this.Nodes.Add(new TreeNodeTri(folder, this.imageList, this.ignoredFiles, this.ignoredFolders, this.parentTree, defaultState));
+                    }
+                    foreach (TreeTraverser.FileEntry file in this.folderEntry.GetFiles()) {
+                        this.Nodes.Add(new TreeNodeTri(file, this.imageList, this.ignoredFiles, this.ignoredFolders, this.parentTree, defaultState));
+                    }
+                });
 
                 // Each node might be in some strange state but won't have had a chance to update its parent
                 // due to not yet being in the tree, and therefore having no idea what its parent is...
                 // This needs to be done after UpdateChildren, otherwise parents are enabled by children...
-                foreach (TreeNodeTri node in this.Nodes) {
-                    node.UpdateParent();
-                }
+                this.parentTree.InvokeEx(f => {
+                    foreach (TreeNodeTri node in this.Nodes) {
+                        node.UpdateParent();
+                    }
+                });
 
             }
 
