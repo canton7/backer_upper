@@ -301,6 +301,7 @@ namespace BackerUpper
             // Need to close to actually back up the database
             this.backupStatus = "Closing database...";
             database.Close();
+
             if (!restore && !this.currentBackupFilescanner.Cancelled) {
                 this.backupStatus = "Backing up database...";
                 FileScanner.BackupDatabase(database.FilePath, backends);

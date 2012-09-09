@@ -37,7 +37,7 @@ namespace BackerUpper
             return Directory.Exists(Path.Combine(this.Dest, folder));
         }
 
-        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5) {
+        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, bool reportProgress=true) {
             string dest = Path.Combine(this.Dest, file);
 
             // It's almost always quicker just to re-copy the file, rather than checking
@@ -46,7 +46,8 @@ namespace BackerUpper
             // for small files... 
 
             this.withHandling(() => XCopy.Copy(source, dest, true, true, (percent) => {
-                this.ReportProcess(percent);
+                if (reportProgress)
+                    this.ReportProcess(percent);
                 return this.Cancelled ? XCopy.CopyProgressResult.PROGRESS_CANCEL : XCopy.CopyProgressResult.PROGRESS_CONTINUE;
             }), file);
             if (this.Cancelled)
@@ -58,7 +59,7 @@ namespace BackerUpper
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.CreateFile(Path.Combine(this.Dest, file), source, DateTime.UtcNow, null);
+            this.CreateFile(Path.Combine(this.Dest, file), source, DateTime.UtcNow, null, false);
         }
 
         public override void DeleteFile(string file) {

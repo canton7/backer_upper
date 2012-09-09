@@ -100,7 +100,7 @@ namespace BackerUpper
             return this.folders.Contains(folder);
         }
 
-        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5) {
+        public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, bool reportProgress=true) {
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
@@ -116,7 +116,8 @@ namespace BackerUpper
                 CannedACL = S3CannedACL.Private,
                 StorageClass = this.storageClass,
             };
-            putRequest.PutObjectProgressEvent += new EventHandler<PutObjectProgressArgs>(putRequest_PutObjectProgressEvent);
+            if (reportProgress)
+                putRequest.PutObjectProgressEvent += new EventHandler<PutObjectProgressArgs>(putRequest_PutObjectProgressEvent);
             this.withHandling(() => putRequest.AddHeader("x-amz-meta-md5", fileMD5), file);
             this.withHandling(() => this.client.PutObject(putRequest), file);
             this.files.Add(file);
@@ -166,7 +167,7 @@ namespace BackerUpper
         }
 
         public override void BackupDatabase(string file, string source) {
-            this.CreateFile(file, source, DateTime.UtcNow, null);
+            this.CreateFile(file, source, DateTime.UtcNow, null, false);
         }
 
         private void putRequest_PutObjectProgressEvent(object sender, PutObjectProgressArgs e) {
