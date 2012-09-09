@@ -37,7 +37,8 @@ namespace BackerUpper
             this.backupStatusTimer = new Timer();
             this.backupStatusTimer.Interval = 250;
             this.backupStatusTimer.Tick += new EventHandler(backupStatusTimer_Tick);
-            this.labelVersion.Text = "Version v"+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
+            this.labelVersion.Text = "Version "+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
+            this.Text += " v"+Assembly.GetEntryAssembly().GetName().Version.ToString(3);
 
             Logger.Purge();
 
