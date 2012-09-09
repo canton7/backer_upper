@@ -67,7 +67,6 @@
     <Compile Include="BackendBase.cs" />
     <Compile Include="BackupOperationException.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="Icons.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="RestoreForm.cs">
       <SubType>Form</SubType>

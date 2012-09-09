@@ -14,8 +14,13 @@ namespace BackerUpper
         public Regex FileIgnoreRules { get; private set; }
 
         public TreeTraverser(string startDir, string ignoreRules=null) {
-            this.StartDir = startDir.TrimEnd('\\');
-            this.substringStart = this.StartDir.Length + 1;
+            // Canot go down the stripping \ route, as the screws up 'C:' (valid) and 'C:\' (also valid)
+            if (!startDir.EndsWith("\\"))
+                startDir += '\\';
+            this.substringStart = startDir.Length;
+
+            this.StartDir = startDir;
+            
             if (ignoreRules == null)
                 this.FileIgnoreRules = null;
             else

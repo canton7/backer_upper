@@ -26,9 +26,15 @@ namespace BackerUpper
             this.tree.ImageList.Images.Add(new Bitmap(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("BackerUpper.Resources.IconFolderOpen.gif")));
         }
 
-        public void Setup(string startDir) {
-            // Populate initial
-            TreeTraverser treeTraverser = new TreeTraverser(startDir);
+        public void Clear() {
+            this.tree.Nodes.Clear();
+        }
+
+        public void Populate(string startDir, string ignoreRules) {
+            // Get rid of anything there before
+            this.tree.Nodes.Clear();
+            // aaand start again!
+            TreeTraverser treeTraverser = new TreeTraverser(startDir, ignoreRules);
             TreeNodeTri node;
             TreeTraverser.FolderEntry root = treeTraverser.ListFolders(0).First();
             foreach (TreeTraverser.FolderEntry folder in root.GetFolders()) {

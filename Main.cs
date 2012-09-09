@@ -28,9 +28,6 @@ namespace BackerUpper
         public Main(string backupToOpen = null, string backupToRun=null) {
             InitializeComponent();
 
-            TreeBrowserForm tb = new TreeBrowserForm();
-            tb.ShowDialog();
-
             this.backupsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER);
             this.populateBackupsList();
             this.setButtonStates();

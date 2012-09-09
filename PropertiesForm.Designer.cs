@@ -69,6 +69,7 @@
             this.checkBoxScheduleTues = new System.Windows.Forms.CheckBox();
             this.checkBoxScheduleMon = new System.Windows.Forms.CheckBox();
             this.checkBoxUseScheduler = new System.Windows.Forms.CheckBox();
+            this.buttonSourceAdvanced = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBoxMirror.SuspendLayout();
             this.groupBoxS3.SuspendLayout();
@@ -185,6 +186,7 @@
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.buttonSourceAdvanced);
             this.groupBox1.Controls.Add(this.textBoxIgnorePattern);
             this.groupBox1.Controls.Add(this.label8);
             this.groupBox1.Controls.Add(this.textBoxSource);
@@ -199,15 +201,15 @@
             // 
             // textBoxIgnorePattern
             // 
-            this.textBoxIgnorePattern.Location = new System.Drawing.Point(47, 46);
+            this.textBoxIgnorePattern.Location = new System.Drawing.Point(47, 45);
             this.textBoxIgnorePattern.Name = "textBoxIgnorePattern";
-            this.textBoxIgnorePattern.Size = new System.Drawing.Size(293, 20);
+            this.textBoxIgnorePattern.Size = new System.Drawing.Size(212, 20);
             this.textBoxIgnorePattern.TabIndex = 4;
             // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(5, 49);
+            this.label8.Location = new System.Drawing.Point(5, 48);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(29, 13);
             this.label8.TabIndex = 3;
@@ -536,6 +538,16 @@
             this.checkBoxUseScheduler.UseVisualStyleBackColor = true;
             this.checkBoxUseScheduler.CheckedChanged += new System.EventHandler(this.checkBoxUseScheduler_CheckedChanged);
             // 
+            // buttonSourceAdvanced
+            // 
+            this.buttonSourceAdvanced.Location = new System.Drawing.Point(265, 43);
+            this.buttonSourceAdvanced.Name = "buttonSourceAdvanced";
+            this.buttonSourceAdvanced.Size = new System.Drawing.Size(75, 23);
+            this.buttonSourceAdvanced.TabIndex = 5;
+            this.buttonSourceAdvanced.Text = "Advanced";
+            this.buttonSourceAdvanced.UseVisualStyleBackColor = true;
+            this.buttonSourceAdvanced.Click += new System.EventHandler(this.buttonSourceAdvanced_Click);
+            // 
             // PropertiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -614,5 +626,6 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.CheckBox checkBoxSchedulerWhenAvailable;
         private System.Windows.Forms.CheckBox checkBoxSchedulerOnBatteries;
+        private System.Windows.Forms.Button buttonSourceAdvanced;
     }
 }

@@ -18,6 +18,8 @@ namespace BackerUpper
         private Settings settings;
         private string[] takenBackupNames;
         private string initialBackupName;
+        private IEnumerable<string> ignoredFiles;
+        private IEnumerable<string> ignoredFolders;
 
         const string FORBIDDEN_CHARS = "\\/:*?\"<>|";
 
@@ -178,6 +180,18 @@ namespace BackerUpper
             this.textBoxMirrorDest.Text = this.destBrowser.SelectedPath;
         }
 
+        private void buttonSourceAdvanced_Click(object sender, EventArgs e) {
+            TreeBrowserForm treeBrowserForm = new TreeBrowserForm(this.textBoxSource.Text, this.textBoxIgnorePattern.Text);
+            treeBrowserForm.ShowDialog();
+            if (treeBrowserForm.Saved) {
+                this.textBoxSource.Text = treeBrowserForm.Source;
+                this.textBoxIgnorePattern.Text = treeBrowserForm.IgnorePattern;
+                this.ignoredFiles = treeBrowserForm.IgnoredFiles;
+                this.ignoredFolders = treeBrowserForm.IgnoredFolders;
+            }
+            treeBrowserForm.Close();
+        }
+
         private void buttonSave_Click(object sender, EventArgs e) {
             if (!this.checkValues())
                 return;
@@ -185,6 +199,7 @@ namespace BackerUpper
             this.Saved = true;
             this.Close();
         }
+
 
         private void buttonCancel_Click(object sender, EventArgs e) {
             this.Close();
