@@ -23,7 +23,8 @@ namespace BackerUpper
 
             this.IgnoredFiles = ignoredFiles;
             this.IgnoredFolders = ignoredFolders;
-            this.fileTreeBrowser.Setup(this.IgnoredFiles, this.IgnoredFolders);
+            this.fileTreeBrowser.IgnoredFiles = new HashSet<string>(this.IgnoredFiles);
+            this.fileTreeBrowser.IgnoredFolders = new HashSet<string>(this.IgnoredFolders);
 
             this.textBoxSource.Text = source;
             this.textBoxIgnorePattern.Text = ignorePattern;
