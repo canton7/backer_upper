@@ -25,8 +25,11 @@ namespace BackerUpper
                 throw new IOException("Destination folder "+this.Dest+" doesn't exist!");
         }
 
-        public override void CreateFolder(string folder) {
-            this.withHandling(() => Directory.CreateDirectory(Path.Combine(this.Dest, folder)), folder);
+        public override void CreateFolder(string folder, FileAttributes attributes) {
+            this.withHandling(() => {
+                DirectoryInfo destInfo = Directory.CreateDirectory(Path.Combine(this.Dest, folder));
+                destInfo.Attributes = attributes;
+            }, folder);
         }
 
         public override void DeleteFolder(string folder) {
@@ -35,6 +38,14 @@ namespace BackerUpper
 
         public override bool FolderExists(string folder) {
             return Directory.Exists(Path.Combine(this.Dest, folder));
+        }
+
+        public override void RestoreFolder(string folder, string dest) {
+            this.withHandling(() => {
+                DirectoryInfo info = Directory.CreateDirectory(dest);
+                DirectoryInfo sourceInfo = new DirectoryInfo(Path.Combine(this.Dest, folder));
+                info.Attributes = sourceInfo.Attributes;
+            }, folder);
         }
 
         public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, bool reportProgress=true) {

@@ -73,7 +73,7 @@ namespace BackerUpper
             catch (System.Net.WebException e) { throw new IOException(e.Message); }
         }
 
-        public override void CreateFolder(string folder) {
+        public override void CreateFolder(string folder, FileAttributes attributes) {
             folder = folder.Replace('\\', '/');
             PutObjectRequest request = new PutObjectRequest() {
                 BucketName = this.bucket,
@@ -81,15 +81,19 @@ namespace BackerUpper
                 ContentBody = "",
                 StorageClass = this.storageClass,
             };
-            this.withHandling(() => this.client.PutObject(request), folder);
+            this.withHandling(() => {
+                request.AddHeader("x-amz-meta-hidden", attributes.HasFlag(FileAttributes.Hidden) ? "true" : "false");
+                request.AddHeader("x-amz-meta-archive", attributes.HasFlag(FileAttributes.Archive) ? "true" : "false");
+                request.AddHeader("x-amz-meta-not-index", attributes.HasFlag(FileAttributes.NotContentIndexed) ? "true" : "false");
+                this.client.PutObject(request);
+            }, folder);
             this.folders.Add(folder);
         }
 
         public override void DeleteFolder(string folder) {
             folder = folder.Replace('\\', '/');
             DeleteObjectRequest request = new DeleteObjectRequest() {
-                BucketName = this.bucket,
-                Key = (this.prefix + folder + '/')
+                BucketName = this.bucket, 
             };
             this.withHandling(() => this.client.DeleteObject(request), folder);
             this.folders.Remove(folder);
@@ -98,6 +102,33 @@ namespace BackerUpper
         public override bool FolderExists(string folder) {
             folder = folder.Replace('\\', '/');
             return this.folders.Contains(folder);
+        }
+
+        public override void RestoreFolder(string folder, string dest) {
+            folder = folder.Replace('\\', '/');
+            string key = this.prefix + folder;
+
+            if (!this.folders.Contains(folder))
+                throw new BackupOperationException(folder, "Folder could not be found on backend, so can't restore");
+
+            DirectoryInfo destInfo = Directory.CreateDirectory(dest);
+
+            try {
+                GetObjectMetadataRequest metaRequest = new GetObjectMetadataRequest() {
+                    BucketName = this.bucket,
+                    Key = key + '/',
+                };
+                GetObjectMetadataResponse metaResponse = client.GetObjectMetadata(metaRequest);
+                if (metaResponse.Headers["x-amz-meta-hidden"] == "true")
+                    destInfo.Attributes |= FileAttributes.Hidden;
+                if (metaResponse.Headers["x-amz-meta-archive"] == "true")
+                    destInfo.Attributes |= FileAttributes.Archive;
+                if (metaResponse.Headers["x-amz-meta-not-index"] == "true")
+                    destInfo.Attributes |= FileAttributes.NotContentIndexed;
+            }
+            catch (AmazonS3Exception e) { throw new BackupOperationException(folder, e.Message); }
+            catch (System.Net.WebException e) { throw new BackupOperationException(folder, e.Message); }
+            catch (IOException e) { throw new BackupOperationException(folder, e.Message); }
         }
 
         public override bool CreateFile(string file, string source, DateTime lastModified, string fileMD5, bool reportProgress=true) {

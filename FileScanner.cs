@@ -92,7 +92,7 @@ namespace BackerUpper
                 try {
                     if (newFolderLevel >= 0 && folder.Level > newFolderLevel) {
                         // Just automatically add it, as a parent somewhere is new
-                        curFolderId = this.addFolder(folder.RelPath);
+                        curFolderId = this.addFolder(folder);
                     }
                     else {
                         newFolderLevel = -1;
@@ -101,11 +101,11 @@ namespace BackerUpper
                         switch (folderStatus.FolderModStatus) {
                             case FileDatabase.FolderModStatus.New:
                                 newFolderLevel = folder.Level;
-                                curFolderId = this.addFolder(folder.RelPath);
+                                curFolderId = this.addFolder(folder);
                                 break;
                             case FileDatabase.FolderModStatus.Unmodified:
                                 curFolderId = folderStatus.Id;
-                                this.checkFolder(folder.RelPath);
+                                this.checkFolder(folder);
                                 break;
                         }
                     }
@@ -170,13 +170,13 @@ namespace BackerUpper
             }
         }
 
-        private int addFolder(string folder) {
+        private int addFolder(TreeTraverser.FolderEntry folder) {
             foreach (BackendBase backend in this.backends) {
-                this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add, backend.Name));
-                backend.CreateFolder(folder);
-                this.Logger.Info("{0}: Added folder: {1}", backend.Name, folder);
+                this.reportBackupAction(new BackupActionItem(null, folder.RelPath, BackupActionEntity.Folder, BackupActionOperation.Add, backend.Name));
+                backend.CreateFolder(folder.RelPath, folder.Attributes);
+                this.Logger.Info("{0}: Added folder: {1}", backend.Name, folder.RelPath);
             }
-            int insertedId = this.fileDatabase.AddFolder(folder);
+            int insertedId = this.fileDatabase.AddFolder(folder.RelPath);
             return insertedId;
         } 
 
@@ -191,12 +191,12 @@ namespace BackerUpper
             this.fileDatabase.DeleteFolder(folderId);
         }
 
-        private void checkFolder(string folder) {
+        private void checkFolder(TreeTraverser.FolderEntry folder) {
             foreach (BackendBase backend in this.backends) {
-                if (!backend.FolderExists(folder)) {
-                    this.reportBackupAction(new BackupActionItem(null, folder, BackupActionEntity.Folder, BackupActionOperation.Add, backend.Name));
-                    backend.CreateFolder(folder);
-                    this.Logger.Info("{0}: Folder missing from backend, so re-creating: {1}", backend.Name, folder);
+                if (!backend.FolderExists(folder.RelPath)) {
+                    this.reportBackupAction(new BackupActionItem(null, folder.RelPath, BackupActionEntity.Folder, BackupActionOperation.Add, backend.Name));
+                    backend.CreateFolder(folder.RelPath, folder.Attributes);
+                    this.Logger.Info("{0}: Folder missing from backend, so re-creating: {1}", backend.Name, folder.RelPath);
                 }
             }
         }
@@ -350,9 +350,9 @@ namespace BackerUpper
                     if (!Directory.Exists(folder.FullPath)) {
                         this.Logger.Info("Restoring folder: {0}", folder.RelPath);
                         try {
-                            Directory.CreateDirectory(folder.FullPath);
+                            backend.RestoreFolder(folder.RelPath, folder.FullPath);
                         }
-                        catch (IOException e) { this.handleOperationException(new BackupOperationException(folder.RelPath, e.Message)); }
+                        catch (BackupOperationException e) { this.handleOperationException(new BackupOperationException(folder.RelPath, e.Message)); }
                     }
                     // Regardless of whether the folder was created or not, we need some data for the file bit
                     // Also, if the folder didn't exist in the database, now's the time to add it
