@@ -12,6 +12,9 @@ namespace BackerUpper
     // Turns out it's a bad idea to subclass TreeView. Things get very confused
     public partial class FileTreeBrowser : UserControl
     {
+        private HashSet<string> ignoredFiles;
+        private HashSet<string> ignoredFolders;
+
         public FileTreeBrowser() {
             InitializeComponent();
 
@@ -24,6 +27,9 @@ namespace BackerUpper
 
             this.tree.ImageList = new ImageList();
             this.tree.ImageList.Images.Add(new Bitmap(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("BackerUpper.Resources.IconFolderOpen.gif")));
+
+            this.ignoredFiles = new HashSet<string>();
+            this.ignoredFolders = new HashSet<string>();
         }
 
         public void Clear() {
@@ -38,13 +44,18 @@ namespace BackerUpper
             TreeNodeTri node;
             TreeTraverser.FolderEntry root = treeTraverser.ListFolders(0).First();
             foreach (TreeTraverser.FolderEntry folder in root.GetFolders()) {
-                node = new TreeNodeTri(folder, this.tree.ImageList);
+                node = new TreeNodeTri(folder, this.tree.ImageList, this.ignoredFiles, this.ignoredFolders);
                 node.Populate();
                 this.tree.Nodes.Add(node);
             }
             foreach (TreeTraverser.FileEntry file in root.GetFiles()) {
-                this.tree.Nodes.Add(new TreeNodeTri(file, this.tree.ImageList));
+                this.tree.Nodes.Add(new TreeNodeTri(file, this.tree.ImageList, this.ignoredFiles, this.ignoredFolders));
             }
+        }
+
+        public void Setup(IEnumerable<string> ignoredFiles, IEnumerable<string> ignoredFolders) {
+            this.ignoredFiles = new HashSet<string>(ignoredFiles);
+            this.ignoredFolders = new HashSet<string>(ignoredFolders);
         }
 
         public IgnoredFilesFolders GetIgnoredFilesFolders() {
@@ -52,7 +63,7 @@ namespace BackerUpper
             List<string> ignoredFolders = new List<string>();
 
             foreach (TreeNodeTri node in this.tree.Nodes) {
-                node.IgnoresPaths(ignoredFolders, ignoredFiles);
+                node.GetIgnoredPaths(ignoredFiles, ignoredFolders);
             }
 
             return new IgnoredFilesFolders(ignoredFolders, ignoredFiles);
@@ -103,25 +114,43 @@ namespace BackerUpper
             private TreeTraverser.FolderEntry folderEntry;
             private TreeTraverser.FileEntry fileEntry;
             private ImageList imageList;
+            private HashSet<string> ignoredFiles;
+            private HashSet<string> ignoredFolders;
 
-            public TreeNodeTri(TreeTraverser.FolderEntry folderEntry, ImageList imageList)
+            public TreeNodeTri(TreeTraverser.FolderEntry folderEntry, ImageList imageList, HashSet<string> ignoredFiles, HashSet<string> ignoredFolders, CheckedState defaultState=CheckedState.Checked)
                     : base(folderEntry.Name) {
 
                 this.imageList = imageList;
-                this.State = CheckedState.Checked;
-                this.StateImageIndex = (int)CheckedState.Checked;
+                if (ignoredFolders.Contains(folderEntry.RelPath)) {
+                    this.State = CheckedState.Unchecked;
+                    // No children yet to update
+                }
+                else
+                    this.State = defaultState;
+                this.StateImageIndex = (int)this.State;
+
+                this.ignoredFiles = ignoredFiles;
+                this.ignoredFolders = ignoredFolders;
 
                 this.folderEntry = folderEntry;
+
                 this.ImageIndex = 0;
                 this.SelectedImageIndex = 0;
             }
 
-            public TreeNodeTri(TreeTraverser.FileEntry fileEntry, ImageList imageList)
+            public TreeNodeTri(TreeTraverser.FileEntry fileEntry, ImageList imageList, HashSet<string> ignoredFiles, HashSet<string> ignoredFolders, CheckedState defaultState=CheckedState.Checked)
                     : base(fileEntry.Filename) {
 
                 this.imageList = imageList;
-                this.State = CheckedState.Checked;
-                this.StateImageIndex = (int)CheckedState.Checked;
+
+                if (ignoredFiles.Contains(fileEntry.RelPath))
+                    this.State = CheckedState.Unchecked;
+                else
+                    this.State = defaultState;
+                this.StateImageIndex = (int)this.State;
+
+                this.ignoredFiles = ignoredFiles;
+                this.ignoredFolders = ignoredFolders;
 
                 this.fileEntry = fileEntry;
                 
@@ -137,12 +166,24 @@ namespace BackerUpper
                 if (this.folderEntry == null || this.Nodes.Count > 0)
                     return;
 
+                CheckedState defaultState = this.State == CheckedState.Unchecked ? this.State : CheckedState.Checked;
+
                 foreach (TreeTraverser.FolderEntry folder in this.folderEntry.GetFolders()) {
-                    this.Nodes.Add(new TreeNodeTri(folder, this.imageList));
+                    this.Nodes.Add(new TreeNodeTri(folder, this.imageList, this.ignoredFiles, this.ignoredFolders, defaultState));
                 }
                 foreach (TreeTraverser.FileEntry file in this.folderEntry.GetFiles()) {
-                    this.Nodes.Add(new TreeNodeTri(file, this.imageList));
+                    this.Nodes.Add(new TreeNodeTri(file, this.imageList, this.ignoredFiles, this.ignoredFolders, defaultState));
                 }
+
+                //this.UpdateChildren();
+
+                // Each node might be in some strange state but won't have had a chance to update its parent
+                // due to not yet being in the tree, and therefore having no idea what its parent is...
+                // This needs to be done after UpdateChildren, otherwise parents are enabled by children...
+                foreach (TreeNodeTri node in this.Nodes) {
+                    node.UpdateParent();
+                }
+
             }
 
             public void PopulateChildren() {
@@ -192,7 +233,7 @@ namespace BackerUpper
                 this.UpdateParent();
             }
 
-            public void IgnoresPaths(List<string> ignoredFolders, List<string> ignoredFiles) {
+            public void GetIgnoredPaths(List<string> ignoredFiles, List<string> ignoredFolders) {
                 if (this.folderEntry == null) {
                     // We're a file
                     if (this.State == CheckedState.Unchecked)
@@ -206,7 +247,7 @@ namespace BackerUpper
                         ignoredFolders.Add(this.folderEntry.RelPath);
                     else {
                         foreach (TreeNodeTri node in this.Nodes) {
-                            node.IgnoresPaths(ignoredFolders, ignoredFiles);
+                            node.GetIgnoredPaths(ignoredFiles, ignoredFolders);
                         }
                     }
                 }

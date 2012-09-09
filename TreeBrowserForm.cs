@@ -18,8 +18,12 @@ namespace BackerUpper
         public IEnumerable<string> IgnoredFiles { get; private set; }
         public IEnumerable<string> IgnoredFolders { get; private set; }
 
-        public TreeBrowserForm(string source, string ignorePattern) {
+        public TreeBrowserForm(string source, string ignorePattern, IEnumerable<string> ignoredFiles, IEnumerable<string> ignoredFolders) {
             InitializeComponent();
+
+            this.IgnoredFiles = ignoredFiles;
+            this.IgnoredFolders = ignoredFolders;
+            this.fileTreeBrowser.Setup(this.IgnoredFiles, this.IgnoredFolders);
 
             this.textBoxSource.Text = source;
             this.textBoxIgnorePattern.Text = ignorePattern;

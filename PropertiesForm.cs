@@ -51,6 +51,8 @@ namespace BackerUpper
             this.checkBoxS3Test.Checked = this.settings.S3Test;
             this.checkBoxAutoclose.Checked = this.settings.Autoclose;
             this.checkBoxIgnoreWarnings.Checked = this.settings.IgnoreWarnings;
+            this.ignoredFiles = this.settings.IgnoredFiles;
+            this.ignoredFolders = this.settings.IgnoredFolders;
 
             this.enableDisableDests();
 
@@ -71,6 +73,8 @@ namespace BackerUpper
             this.settings.S3Test = this.checkBoxS3Test.Checked;
             this.settings.Autoclose = this.checkBoxAutoclose.Checked;
             this.settings.IgnoreWarnings = this.checkBoxIgnoreWarnings.Checked;
+            this.settings.IgnoredFiles = this.ignoredFiles;
+            this.settings.IgnoredFolders = this.ignoredFolders;
 
             this.setupTask();
         }
@@ -181,7 +185,7 @@ namespace BackerUpper
         }
 
         private void buttonSourceAdvanced_Click(object sender, EventArgs e) {
-            TreeBrowserForm treeBrowserForm = new TreeBrowserForm(this.textBoxSource.Text, this.textBoxIgnorePattern.Text);
+            TreeBrowserForm treeBrowserForm = new TreeBrowserForm(this.textBoxSource.Text, this.textBoxIgnorePattern.Text, this.ignoredFiles, this.ignoredFolders);
             treeBrowserForm.ShowDialog();
             if (treeBrowserForm.Saved) {
                 this.textBoxSource.Text = treeBrowserForm.Source;
