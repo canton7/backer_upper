@@ -63,6 +63,7 @@ Section
   File "..\bin\Release\Microsoft.Win32.TaskScheduler.xml"
   File "..\bin\Release\System.Data.SQLite.dll"
   File "..\bin\Release\System.Data.SQLite.Linq.dll"
+  File "..\bin\Release\RestSharp.dll"
   File "..\icon.ico"
   File "..\LICENSE.txt"
   File "remove_tasks.bat"
@@ -135,6 +136,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Microsoft.Win32.TaskScheduler.xml"
   Delete "$INSTDIR\System.Data.SQLite.dll"
   Delete "$INSTDIR\System.Data.SQLite.Linq.dll"
+  Delete "$INSTDIR\RestSharp.dll"
   Delete "$INSTDIR\icon.ico"
   Delete "$INSTDIR\LICENSE.txt"
 
@@ -142,6 +144,7 @@ Section "Uninstall"
   Delete "$DESKTOP\Backer Upper.lnk"
 
   RMDir /r "$APPDATA\BackerUpper\Logs"
+  Delete "$APPDATA\BackerUpper\last_alerted_version.txt"
   RMDir "$APPDATA\BackerUpper"
 
   nsExec::ExecToLog "$INSTDIR\remove_tasks.bat"
