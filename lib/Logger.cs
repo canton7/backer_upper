@@ -21,11 +21,10 @@ namespace BackerUpper
         public string LogFilePath { get; private set; }
 
         public Logger(string type) {
-            string logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
-            if (!Directory.Exists(logsPath))
-                Directory.CreateDirectory(logsPath);
+            if (!Directory.Exists(Constants.LOG_FOLDER))
+                Directory.CreateDirectory(Constants.LOG_FOLDER);
             string fileName = String.Format("{0}-{1:yyyyMMddTHHmmss}.log", type, DateTime.Now);
-            this.LogFilePath = Path.Combine(logsPath, fileName);
+            this.LogFilePath = Path.Combine(Constants.LOG_FOLDER, fileName);
             this.writer = new StreamWriter(this.LogFilePath);
             this.writer.AutoFlush = true;
 
@@ -34,11 +33,10 @@ namespace BackerUpper
 
         public static void Purge() {
             // Keep only a certain number of each type of backup
-            string logsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
             // If there's no folder, there probably aren't any logs
-            if (!Directory.Exists(logsPath))
+            if (!Directory.Exists(Constants.LOG_FOLDER))
                 return;
-            string[] files = Directory.GetFiles(logsPath, "*.log");
+            string[] files = Directory.GetFiles(Constants.LOG_FOLDER, "*.log");
             Array.Sort(files);
 
             string currentBackup = null;

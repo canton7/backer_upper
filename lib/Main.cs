@@ -28,7 +28,7 @@ namespace BackerUpper
         public Main(string backupToOpen = null, string backupToRun=null) {
             InitializeComponent();
 
-            this.backupsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER);
+            this.backupsPath = Constants.BACKUPS_FOLDER;
             this.populateBackupsList();
             this.setButtonStates();
             this.backupTimer = new Timer();
@@ -44,7 +44,7 @@ namespace BackerUpper
 
             if (backupToOpen != null) {
                 // If it's in our appdata folder, select it. otherwise, import it
-                if (Path.GetFullPath(Path.GetDirectoryName(backupToOpen)) == Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER)) {
+                if (Path.GetFullPath(Path.GetDirectoryName(backupToOpen)) == Constants.BACKUPS_FOLDER) {
                     string name = Path.GetFileNameWithoutExtension(backupToOpen);
                     if (this.backupsList.Items.Contains(name))
                         this.backupsList.SelectedItem = name;
@@ -197,7 +197,7 @@ namespace BackerUpper
             try {
                 if (!Directory.Exists(this.backupsPath))
                     Directory.CreateDirectory(this.backupsPath);
-                File.Move(path, Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.BACKUPS_FOLDER, name + Constants.BACKUP_EXTENSION));
+                File.Move(path, Path.Combine(Constants.BACKUPS_FOLDER, name + Constants.BACKUP_EXTENSION));
             }
             catch (IOException e) { this.showError(e.Message); }
             this.populateBackupsList();
@@ -540,7 +540,7 @@ namespace BackerUpper
         }
 
         private void buttonViewLogs_Click(object sender, EventArgs e) {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.APPDATA_FOLDER, Constants.LOG_FOLDER);
+            string path = Constants.LOG_FOLDER;
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             Process.Start(path);
