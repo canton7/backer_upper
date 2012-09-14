@@ -66,6 +66,13 @@ namespace BackerUpper
                     this.performBackup(true);
                 }
             }
+            else {
+                // Only check version if we're not doing an automatic run
+                VersionChecker.CheckAsync((version) => {
+                    DialogResult result = MessageBox.Show("A new version is available!\n\nDownload v"+version.ToString(3)+"?", "New version available!", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    return result == DialogResult.Yes;
+                });
+            }
         }
 
         void backupTimer_Tick(object sender, EventArgs e) {
