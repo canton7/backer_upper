@@ -93,7 +93,8 @@ namespace BackerUpper
         public override void DeleteFolder(string folder) {
             folder = folder.Replace('\\', '/');
             DeleteObjectRequest request = new DeleteObjectRequest() {
-                BucketName = this.bucket, 
+                BucketName = this.bucket,
+                Key = this.prefix + folder + '/',
             };
             this.withHandling(() => this.client.DeleteObject(request), folder);
             this.folders.Remove(folder);

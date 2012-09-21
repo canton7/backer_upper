@@ -18,7 +18,7 @@ namespace BackerUpper
         private Timer backupTimer;
         private Timer backupStatusTimer;
         private string backupStatus;
-        public DateTime backupTimerStarted;
+        public int backupTimerElapsed;
         private string[] backups;
         private bool closeAfterFinish;
 
@@ -69,7 +69,8 @@ namespace BackerUpper
         }
 
         void backupTimer_Tick(object sender, EventArgs e) {
-            TimeSpan elapsed = DateTime.Now - this.backupTimerStarted;
+            this.backupTimerElapsed++;
+            TimeSpan elapsed = TimeSpan.FromSeconds(this.backupTimerElapsed);
             this.statusLabelTime.Text = ((int)elapsed.TotalHours > 0 ? ((int)elapsed.TotalHours).ToString() + ":" : "") + String.Format("{0:mm\\:ss}", elapsed);
         }
 
@@ -208,7 +209,7 @@ namespace BackerUpper
             this.setButtonStates();
 
             this.backupStatus = "Starting...";
-            this.backupTimerStarted = DateTime.Now;
+            this.backupTimerElapsed = 0; ;
             this.backupTimer.Start();
             this.backupStatusTimer.Start();
         }

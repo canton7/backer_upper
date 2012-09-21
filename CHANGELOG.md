@@ -4,6 +4,11 @@ Changelog
 The main features introduced in each version are listed here.
 For more details, see the log.
 
+0.9.2
+-----
+ - Fix bug where S3 folders deletions failed
+ - Time elapsed counter increment while computer was asleep
+
 0.9.1
 -----
  - Tree browser with checkboxes to allow you to specify exactly which files/folders are backed up (under Properties -> Advanced)
