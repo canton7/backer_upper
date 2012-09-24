@@ -64,6 +64,7 @@ namespace BackerUpper
         public static void BackupDatabase(string databasePath, BackendBase[] backends) {
             foreach (BackendBase backend in backends) {
                 string dbFile = Database.GetExportableFile(databasePath, backend.StripFilesFoldersOnDBBackup);
+                // NOTE: this can throw BackupOperationException
                 backend.BackupDatabase(Path.GetFileName(databasePath), dbFile);
             }
         }

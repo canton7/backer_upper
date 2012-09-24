@@ -3,3 +3,4 @@ obj
 *.suo
 packages
 installer/*.exe
+a

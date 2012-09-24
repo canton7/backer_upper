@@ -309,7 +309,12 @@ namespace BackerUpper
 
             if (!restore && !this.currentBackupFilescanner.Cancelled) {
                 this.backupStatus = "Backing up database...";
-                FileScanner.BackupDatabase(database.FilePath, backends);
+                try {
+                    FileScanner.BackupDatabase(database.FilePath, backends);
+                }
+                catch (BackupOperationException ex) {
+                    logger.Warn("Backing up database: "+ex.Message);
+                }
             }
 
             if (this.currentBackupFilescanner.WarningOccurred && !(backupArgs.FromScheduler && settings.IgnoreWarnings)) {
