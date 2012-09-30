@@ -24,7 +24,12 @@ Grab the latest installer from the [downloads page](https://github.com/canton7/b
 ### Buildling
 
 Clone the repo, and fire up VS2010.
-Packages are handles with NuGet, and it *should* all just work.
+Packages are handled with NuGet, so there are a few steps you need to do to download the deps:
+
+1. Install NuGet. [See here](http://docs.nuget.org/docs/start-here/installing-nuget) for instructions.
+2. Allow NuGet to download missing packages: Tools -> Options -> Package Manager -> General -> Check "Allow NuGet to download missing packages during build"
+3. Try to build. It *should* work.
+4. If not, go to Tools -> Library Package Manager -> Manage NuGet Packages for Solution..., and click "Restore" in the orange bar at the top.
 
 To build the installer build in the release configuration (into bin/Release) and use [NSIS](http://nsis.sourceforge.net/Download) to compile and install `installer/installer.nsi`.
 
