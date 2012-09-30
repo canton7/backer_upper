@@ -8,7 +8,7 @@
 ;--------------------------------
 ;General
 
-  !define VERSION "0.9.1"
+  !define VERSION "0.9.2"
 
   ;Name and file
   Name "Backer Upper"
