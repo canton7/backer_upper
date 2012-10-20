@@ -101,8 +101,8 @@ namespace BackerUpper
         }
 
         public override bool FolderExists(string folder) {
-            folder = folder.Replace('\\', '/');
-            return this.folders.Contains(folder);
+            folder = folder.Replace('\\', '/').ToLower();
+            return this.folders.Select(x => x.ToLower()).Contains(folder);
         }
 
         public override void RestoreFolder(string folder, string dest) {
@@ -136,7 +136,7 @@ namespace BackerUpper
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
-            if (this.files.Contains(file) && this.FileMD5(file) == fileMD5) {
+            if (this.files.Select(x => x.ToLower()).Contains(file.ToLower()) && this.FileMD5(file) == fileMD5) {
                 return false;
             }
 
@@ -167,7 +167,7 @@ namespace BackerUpper
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
-            if (!this.files.Contains(file))
+            if (!this.files.Select(x => x.ToLower()).Contains(file.ToLower()))
                 return false;
 
             // If we're not performing tests, don't
@@ -181,7 +181,7 @@ namespace BackerUpper
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
-            if (!this.files.Contains(file))
+            if (!this.files.Select(x => x.ToLower()).Contains(file.ToLower()))
                 throw new BackupOperationException(file, "File could not be found on backend, so can't restore");
 
             GetObjectRequest getRequest = new GetObjectRequest() {
@@ -236,14 +236,14 @@ namespace BackerUpper
 
         public override bool FileExists(string file) {
             file = file.Replace('\\', '/');
-            return this.files.Contains(file);
+            return this.files.Select(x => x.ToLower()).Contains(file.ToLower());
         }
 
         public override string FileMD5(string file) {
             file = file.Replace('\\', '/');
             string key = this.prefix + file;
 
-            if (!this.files.Contains(file))
+            if (!this.files.Select(x => x.ToLower()).Contains(file.ToLower()))
                 return null;
 
             try {
@@ -303,7 +303,7 @@ namespace BackerUpper
             // We can't modify the list we're iterating over, and DeleteFile does modify it
             string[] iterateFiles = this.files.ToArray();
             foreach (string file in iterateFiles) {
-                if (!limitFiles.Contains(file)) {
+                if (!limitFiles.Select(x => x.ToLower()).Contains(file.ToLower())) {
                     this.DeleteFile(file);
                     if (handler != null && !handler(Entity.File, file, true))
                         return;
@@ -316,7 +316,7 @@ namespace BackerUpper
 
             string[] iterateFolders = this.folders.ToArray();
             foreach (string folder in iterateFolders) {
-                if (!limitFolders.Contains(folder)) {
+                if (!limitFolders.Select(x => x.ToLower()).Contains(folder.ToLower())) {
                     this.DeleteFolder(folder);
                     if (handler != null && !handler(Entity.Folder, folder, true))
                         return;
