@@ -302,6 +302,10 @@ namespace BackerUpper
 
             if (!restore) {
                 this.currentBackupFilescanner.Backup();
+                if (!this.currentBackupFilescanner.Cancelled) {
+                    this.backupStatus = "Purging...";
+                    this.currentBackupFilescanner.PurgeDest();
+                }
             }
             else {
                 this.currentBackupFilescanner.Restore(backupArgs.RestoreOverwrite, backupArgs.RestoreOverwriteOnlyIfOlder, backupArgs.RestorePurge);
